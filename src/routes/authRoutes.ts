@@ -1,9 +1,10 @@
 import { Router } from 'express';
-import { register, login } from '@services/authService';
+import type { Router as ExpressRouter } from 'express';
+import { registerUser, login } from '@services/authService';
 
-const router = Router();
+const router: ExpressRouter = Router();
 
-router.post('/register', register);
+router.post('/register-user', registerUser);
 router.post('/login', login);
 
 export default router;

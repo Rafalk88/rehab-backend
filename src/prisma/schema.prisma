@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id                      String    @id @default(uuid()) @db.Uuid
+  login                   String    @unique
+  email                   String    @unique
+  password_hash           String
+  must_change_password    Boolean   @default(false)
+  password_changed_at     DateTime?
+  password_changed_by     String?   @db.Uuid
+  is_active               Boolean   @default(true)
+  is_locked               Boolean   @default(false)
+  locked_until            DateTime? 
+  failed_login_attempts   Int       @default(0)
+  last_failed_login_at    DateTime?
+  last_login_at           DateTime?
+  organizational_unit_id  String?   @db.Uuid
+  sex_id                  String?   @db.Uuid
+  first_name_id           String?   @db.Uuid
+  surname_id              String?   @db.Uuid
+  created_at              DateTime  @default(now())
+  updated_at              DateTime  @default(now()) @updatedAt
+
+  organizationalUnit OrganizationalUnit? @relation(fields: [organizational_unit_id], references: [id])
+  sex Sex? @relation(fields: [sex_id], references: [id])
+  firstName GivenName? @relation(fields: [first_name_id], references: [id])
+  surname Surname? @relation(fields: [surname_id], references: [id])
+  userRoles   UserRole[]
+  assignedRoles UserRole[] @relation("AssignedBy")
+  passwordOwnerHistory   PasswordHistory[] @relation("PasswordOwner")
+  passwordChangerHistory PasswordHistory[] @relation("PasswordChanger")
+}
+
+model GivenName {
+  id          String   @id @default(uuid()) @db.Uuid
+  first_name  String
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  users       User[]
+}
+
+model Surname {
+  id         String   @id @default(uuid()) @db.Uuid
+  surname    String
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+  users      User[]
+}
+
+model Sex {
+  id          String   @id @default(uuid()) @db.Uuid
+  sex         String   @unique
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  users       User[]
+}
+
+model OrganizationalUnit {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String
+  description String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  users       User[]
+}
+
+model Role {
+  id          String       @id @default(uuid()) @db.Uuid
+  name        String       @unique
+  description String
+  created_at  DateTime     @default(now())
+  updated_at  DateTime     @updatedAt
+  userRoles   UserRole[]
+}
+
+model UserRole {
+  id           String   @id @default(uuid()) @db.Uuid
+  user_id      String   @db.Uuid
+  role_id      String   @db.Uuid
+  assigned_by  String   @db.Uuid
+  assigned_at  DateTime @default(now())
+  user         User     @relation(fields: [user_id], references: [id])
+  role         Role     @relation(fields: [role_id], references: [id])
+  assignedBy   User     @relation("AssignedBy", fields: [assigned_by], references: [id])
+}
+
+model PasswordHistory {
+  id            String   @id @default(uuid()) @db.Uuid
+  user_id       String   @db.Uuid
+  password_hash String
+  changed_at    DateTime @default(now())
+  changed_by    String   @db.Uuid
+  user          User     @relation("PasswordOwner", fields: [user_id], references: [id])
+  changedBy     User     @relation("PasswordChanger", fields: [changed_by], references: [id])
+}
