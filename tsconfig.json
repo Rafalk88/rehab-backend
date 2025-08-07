@@ -9,7 +9,7 @@
     // See also https://aka.ms/tsconfig/module
     "module": "commonjs",
     "target": "es2020",
-    "types": [],
+    "types": ["jest", "node"],
     // For nodejs:
     // "lib": ["esnext"],
     // "types": ["node"],
@@ -38,15 +38,18 @@
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
+    "moduleResolution": "node",
     "skipLibCheck": true,
     "esModuleInterop": true,
 
     // Wwn config
     "baseUrl": "./src",
     "paths": {
+      "@config/*": ["./config/*"],
       "@routes/*": ["./routes/*"],
       "@services/*": ["./services/*"],
-      "@utils/*": ["./utils/*"]
+      "@utils/*": ["./utils/*"],
+      "@db/*": ["./prisma/*"]
     }
   }
 }

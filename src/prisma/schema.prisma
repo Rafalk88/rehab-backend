@@ -36,6 +36,7 @@ model User {
   assignedRoles UserRole[] @relation("AssignedBy")
   passwordOwnerHistory   PasswordHistory[] @relation("PasswordOwner")
   passwordChangerHistory PasswordHistory[] @relation("PasswordChanger")
+  operationLogs OperationLog[]
 }
 
 model GivenName {
@@ -99,4 +100,16 @@ model PasswordHistory {
   changed_by    String   @db.Uuid
   user          User     @relation("PasswordOwner", fields: [user_id], references: [id])
   changedBy     User     @relation("PasswordChanger", fields: [changed_by], references: [id])
+}
+
+model OperationLog {
+  id            String   @id @default(uuid())
+  user          User     @relation(fields: [userId], references: [id])
+  userId        String
+  action        String
+  actionDetails String
+  timestamp     DateTime @default(now())
+  entityType    String
+  entityId      String
+  ipAddress     String
 }

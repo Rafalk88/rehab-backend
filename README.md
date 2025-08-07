@@ -17,13 +17,12 @@ This repository contains the backend of the Rehabilitation Management System.
 ```bash
 src/
 ├── config/ # Configuration (e.g. environment, Prisma client)
-├── controllers/ # Business logic (auth, user, role, logs, etc.)
 ├── middlewares/ # Global and route-specific middlewares
 ├── prisma/ # Prisma schema and migrations
-├── routes/ # Routing
 ├── services/ # Service layer (e.g. authService)
 ├── utils/ # Reusable utilities
-└── index.ts # Express app setup
+├── app.ts # Express app setup
+└── index.ts # Server listener
 env # env variables
 ```
 
