@@ -40,8 +40,8 @@ const registerUser = async (userData: {
       password_hash: passwordHash,
       first_name_id: firstNameEntry.id,
       surname_id: surnameEntry.id,
-      sex_id,
-      organizational_unit_id,
+      sex_id: sex_id ?? null,
+      organizational_unit_id: organizational_unit_id ?? null,
       must_change_password: true,
     },
   });
