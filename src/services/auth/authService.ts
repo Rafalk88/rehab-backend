@@ -1,19 +1,19 @@
-import { prisma } from '@db/client';
+import { prisma } from '@config/prismaClient';
 import { hashPassword, verifyPassword } from '@utils/password';
 import { generateToken } from '@utils/jwt';
 
 const registerUser = async (userData: {
-  first_name: string;
+  firstName: string;
   surname: string;
-  sex_id?: string;
-  organizational_unit_id?: string;
+  sexId?: string;
+  organizationalUnitId?: string;
   password: string;
 }) => {
-  const { first_name, surname, sex_id, organizational_unit_id, password } = userData;
+  const { firstName, surname, sexId, organizationalUnitId, password } = userData;
 
-  let firstNameEntry = await prisma.givenName.findFirst({ where: { first_name } });
+  let firstNameEntry = await prisma.givenName.findFirst({ where: { firstName } });
   if (!firstNameEntry) {
-    firstNameEntry = await prisma.givenName.create({ data: { first_name } });
+    firstNameEntry = await prisma.givenName.create({ data: { firstName } });
   }
 
   let surnameEntry = await prisma.surname.findFirst({ where: { surname } });
@@ -21,7 +21,7 @@ const registerUser = async (userData: {
     surnameEntry = await prisma.surname.create({ data: { surname } });
   }
 
-  const baseLogin = `${first_name[0]?.toLowerCase()}${surname.toLowerCase()}`;
+  const baseLogin = `${firstName[0]?.toLowerCase()}${surname.toLowerCase()}`;
   let login = baseLogin;
   let suffix = 1;
 
@@ -37,12 +37,12 @@ const registerUser = async (userData: {
     data: {
       login,
       email: finalEmail,
-      password_hash: passwordHash,
-      first_name_id: firstNameEntry.id,
-      surname_id: surnameEntry.id,
-      sex_id: sex_id ?? null,
-      organizational_unit_id: organizational_unit_id ?? null,
-      must_change_password: true,
+      passwordHash: passwordHash,
+      firstNameId: firstNameEntry.id,
+      surnameId: surnameEntry.id,
+      sexId: sexId ?? null,
+      organizationalUnitId: organizationalUnitId ?? null,
+      mustChangePassword: true,
     },
   });
 
@@ -53,7 +53,7 @@ const loginUser = async (login: string, password: string) => {
   const user = await prisma.user.findUnique({ where: { login } });
   if (!user) throw new Error('User not found');
 
-  const valid = await verifyPassword(password, user.password_hash);
+  const valid = await verifyPassword(password, user.passwordHash);
   if (!valid) throw new Error('Invalid password');
 
   const token = generateToken({ userId: user.id });
