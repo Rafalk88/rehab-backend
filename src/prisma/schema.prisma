@@ -8,108 +8,142 @@ datasource db {
 }
 
 model User {
-  id                      String    @id @default(uuid()) @db.Uuid
-  login                   String    @unique
-  email                   String    @unique
-  password_hash           String
-  must_change_password    Boolean   @default(false)
-  password_changed_at     DateTime?
-  password_changed_by     String?   @db.Uuid
-  is_active               Boolean   @default(true)
-  is_locked               Boolean   @default(false)
-  locked_until            DateTime? 
-  failed_login_attempts   Int       @default(0)
-  last_failed_login_at    DateTime?
-  last_login_at           DateTime?
-  organizational_unit_id  String?   @db.Uuid
-  sex_id                  String?   @db.Uuid
-  first_name_id           String?   @db.Uuid
-  surname_id              String?   @db.Uuid
-  created_at              DateTime  @default(now())
-  updated_at              DateTime  @default(now()) @updatedAt
+  id                    String   @id @default(uuid()) @db.Uuid @map("id")
+  login                 String   @unique @map("login")
+  email                 String   @unique @map("email")
+  passwordHash          String   @map("password_hash")
+  mustChangePassword    Boolean  @default(false) @map("must_change_password")
+  passwordChangedAt     DateTime? @map("password_changed_at")
+  passwordChangedBy     String?  @db.Uuid @map("password_changed_by")
+  isActive              Boolean  @default(true) @map("is_active")
+  isLocked              Boolean  @default(false) @map("is_locked")
+  lockedUntil           DateTime? @map("locked_until")
+  failedLoginAttempts   Int      @default(0) @map("failed_login_attempts")
+  lastFailedLoginAt     DateTime? @map("last_failed_login_at")
+  lastLoginAt           DateTime? @map("last_login_at")
+  organizationalUnitId  String?  @db.Uuid @map("organizational_unit_id")
+  sexId                 String?  @db.Uuid @map("sex_id")
+  firstNameId           String?  @db.Uuid @map("first_name_id")
+  surnameId             String?  @db.Uuid @map("surname_id")
+  createdAt             DateTime @default(now()) @map("created_at")
+  updatedAt             DateTime @default(now()) @updatedAt @map("updated_at")
+  createdBy             String?  @db.Uuid @map("created_by")
+  updatedBy             String?  @db.Uuid @map("updated_by")
+  deletedAt             DateTime? @map("deleted_at")
+  retentionUntil        DateTime? @map("retention_until")
 
-  organizationalUnit OrganizationalUnit? @relation(fields: [organizational_unit_id], references: [id])
-  sex Sex? @relation(fields: [sex_id], references: [id])
-  firstName GivenName? @relation(fields: [first_name_id], references: [id])
-  surname Surname? @relation(fields: [surname_id], references: [id])
-  userRoles   UserRole[]
-  assignedRoles UserRole[] @relation("AssignedBy")
-  passwordOwnerHistory   PasswordHistory[] @relation("PasswordOwner")
-  passwordChangerHistory PasswordHistory[] @relation("PasswordChanger")
-  operationLogs OperationLog[]
+  organizationalUnit    OrganizationalUnit? @relation(fields: [organizationalUnitId], references: [id])
+  sex                   Sex?                 @relation(fields: [sexId], references: [id])
+  firstName             GivenName?           @relation(fields: [firstNameId], references: [id])
+  surname               Surname?             @relation(fields: [surnameId], references: [id])
+  userRoles             UserRole[]
+  assignedRoles         UserRole[]           @relation("AssignedBy")
+  passwordOwnerHistory  PasswordHistory[]    @relation("PasswordOwner")
+  passwordChangerHistory PasswordHistory[]   @relation("PasswordChanger")
+  operationLogs         OperationLog[]
 }
 
 model GivenName {
-  id          String   @id @default(uuid()) @db.Uuid
-  first_name  String
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
-  users       User[]
+  id             String   @id @default(uuid()) @db.Uuid @map("id")
+  firstName      String   @map("first_name")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
+  createdBy      String?  @db.Uuid @map("created_by")
+  updatedBy      String?  @db.Uuid @map("updated_by")
+  deletedAt      DateTime? @map("deleted_at")
+  retentionUntil DateTime? @map("retention_until")
+
+  users          User[]
 }
 
 model Surname {
-  id         String   @id @default(uuid()) @db.Uuid
-  surname    String
-  created_at DateTime @default(now())
-  updated_at DateTime @updatedAt
-  users      User[]
+  id             String   @id @default(uuid()) @db.Uuid @map("id")
+  surname        String   @map("surname")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
+  createdBy      String?  @db.Uuid @map("created_by")
+  updatedBy      String?  @db.Uuid @map("updated_by")
+  deletedAt      DateTime? @map("deleted_at")
+  retentionUntil DateTime? @map("retention_until")
+
+  users          User[]
 }
 
 model Sex {
-  id          String   @id @default(uuid()) @db.Uuid
-  sex         String   @unique
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
-  users       User[]
+  id             String   @id @default(uuid()) @db.Uuid @map("id")
+  sex            String   @unique @map("sex")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
+  createdBy      String?  @db.Uuid @map("created_by")
+  updatedBy      String?  @db.Uuid @map("updated_by")
+  deletedAt      DateTime? @map("deleted_at")
+  retentionUntil DateTime? @map("retention_until")
+
+  users          User[]
 }
 
 model OrganizationalUnit {
-  id          String   @id @default(uuid()) @db.Uuid
-  name        String
-  description String?
-  created_at  DateTime @default(now())
-  updated_at  DateTime @updatedAt
-  users       User[]
+  id             String   @id @default(uuid()) @db.Uuid @map("id")
+  name           String   @map("name")
+  description    String?  @map("description")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
+  createdBy      String?  @db.Uuid @map("created_by")
+  updatedBy      String?  @db.Uuid @map("updated_by")
+  deletedAt      DateTime? @map("deleted_at")
+  retentionUntil DateTime? @map("retention_until")
+
+  users          User[]
 }
 
 model Role {
-  id          String       @id @default(uuid()) @db.Uuid
-  name        String       @unique
-  description String
-  created_at  DateTime     @default(now())
-  updated_at  DateTime     @updatedAt
-  userRoles   UserRole[]
+  id             String   @id @default(uuid()) @db.Uuid @map("id")
+  name           String   @unique @map("name")
+  description    String   @map("description")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
+  createdBy      String?  @db.Uuid @map("created_by")
+  updatedBy      String?  @db.Uuid @map("updated_by")
+  deletedAt      DateTime? @map("deleted_at")
+  retentionUntil DateTime? @map("retention_until")
+
+  userRoles      UserRole[]
 }
 
 model UserRole {
-  id           String   @id @default(uuid()) @db.Uuid
-  user_id      String   @db.Uuid
-  role_id      String   @db.Uuid
-  assigned_by  String   @db.Uuid
-  assigned_at  DateTime @default(now())
-  user         User     @relation(fields: [user_id], references: [id])
-  role         Role     @relation(fields: [role_id], references: [id])
-  assignedBy   User     @relation("AssignedBy", fields: [assigned_by], references: [id])
+  id          String   @id @default(uuid()) @db.Uuid @map("id")
+  userId      String   @db.Uuid @map("user_id")
+  roleId      String   @db.Uuid @map("role_id")
+  assignedById String  @db.Uuid @map("assigned_by")
+  assignedAt  DateTime @default(now()) @map("assigned_at")
+
+  user        User     @relation(fields: [userId], references: [id])
+  role        Role     @relation(fields: [roleId], references: [id])
+  assignedBy  User     @relation("AssignedBy", fields: [assignedById], references: [id])
 }
 
 model PasswordHistory {
-  id            String   @id @default(uuid()) @db.Uuid
-  user_id       String   @db.Uuid
-  password_hash String
-  changed_at    DateTime @default(now())
-  changed_by    String   @db.Uuid
-  user          User     @relation("PasswordOwner", fields: [user_id], references: [id])
-  changedBy     User     @relation("PasswordChanger", fields: [changed_by], references: [id])
+  id            String   @id @default(uuid()) @db.Uuid @map("id")
+  userId        String   @db.Uuid @map("user_id")
+  passwordHash  String   @map("password_hash")
+  changedAt     DateTime @default(now()) @map("changed_at")
+  changedById   String   @db.Uuid @map("changed_by")
+
+  user          User     @relation("PasswordOwner", fields: [userId], references: [id])
+  changedBy     User     @relation("PasswordChanger", fields: [changedById], references: [id])
 }
 
 model OperationLog {
-  id            String   @id @default(uuid())
+  id            String   @id @default(uuid()) @db.Uuid @map("id")
+  userId        String   @db.Uuid @map("user_id")
+  action        String   @map("action")
+  actionDetails String   @map("action_details")
+  oldValues     Json?    @map("old_values")
+  newValues     Json?    @map("new_values")
+  timestamp     DateTime @default(now()) @map("timestamp")
+  entityType    String   @map("entity_type")
+  entityId      String   @map("entity_id")
+  ipAddress     String   @map("ip_address")
+
   user          User     @relation(fields: [userId], references: [id])
-  userId        String
-  action        String
-  actionDetails String
-  timestamp     DateTime @default(now())
-  entityType    String
-  entityId      String
-  ipAddress     String
 }

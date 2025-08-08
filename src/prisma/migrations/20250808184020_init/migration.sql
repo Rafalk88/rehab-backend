@@ -19,6 +19,10 @@ CREATE TABLE "public"."User" (
     "surname_id" UUID,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_by" UUID,
+    "updated_by" UUID,
+    "deleted_at" TIMESTAMP(3),
+    "retention_until" TIMESTAMP(3),
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
@@ -28,7 +32,11 @@ CREATE TABLE "public"."GivenName" (
     "id" UUID NOT NULL,
     "first_name" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_by" UUID,
+    "updated_by" UUID,
+    "deleted_at" TIMESTAMP(3),
+    "retention_until" TIMESTAMP(3),
 
     CONSTRAINT "GivenName_pkey" PRIMARY KEY ("id")
 );
@@ -38,7 +46,11 @@ CREATE TABLE "public"."Surname" (
     "id" UUID NOT NULL,
     "surname" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_by" UUID,
+    "updated_by" UUID,
+    "deleted_at" TIMESTAMP(3),
+    "retention_until" TIMESTAMP(3),
 
     CONSTRAINT "Surname_pkey" PRIMARY KEY ("id")
 );
@@ -48,7 +60,11 @@ CREATE TABLE "public"."Sex" (
     "id" UUID NOT NULL,
     "sex" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_by" UUID,
+    "updated_by" UUID,
+    "deleted_at" TIMESTAMP(3),
+    "retention_until" TIMESTAMP(3),
 
     CONSTRAINT "Sex_pkey" PRIMARY KEY ("id")
 );
@@ -59,7 +75,11 @@ CREATE TABLE "public"."OrganizationalUnit" (
     "name" TEXT NOT NULL,
     "description" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_by" UUID,
+    "updated_by" UUID,
+    "deleted_at" TIMESTAMP(3),
+    "retention_until" TIMESTAMP(3),
 
     CONSTRAINT "OrganizationalUnit_pkey" PRIMARY KEY ("id")
 );
@@ -70,7 +90,11 @@ CREATE TABLE "public"."Role" (
     "name" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMP(3) NOT NULL,
+    "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "created_by" UUID,
+    "updated_by" UUID,
+    "deleted_at" TIMESTAMP(3),
+    "retention_until" TIMESTAMP(3),
 
     CONSTRAINT "Role_pkey" PRIMARY KEY ("id")
 );
@@ -95,6 +119,22 @@ CREATE TABLE "public"."PasswordHistory" (
     "changed_by" UUID NOT NULL,
 
     CONSTRAINT "PasswordHistory_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."OperationLog" (
+    "id" UUID NOT NULL,
+    "user_id" UUID NOT NULL,
+    "action" TEXT NOT NULL,
+    "action_details" TEXT NOT NULL,
+    "old_values" JSONB,
+    "new_values" JSONB,
+    "timestamp" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "entity_type" TEXT NOT NULL,
+    "entity_id" TEXT NOT NULL,
+    "ip_address" TEXT NOT NULL,
+
+    CONSTRAINT "OperationLog_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -135,3 +175,6 @@ ALTER TABLE "public"."PasswordHistory" ADD CONSTRAINT "PasswordHistory_user_id_f
 
 -- AddForeignKey
 ALTER TABLE "public"."PasswordHistory" ADD CONSTRAINT "PasswordHistory_changed_by_fkey" FOREIGN KEY ("changed_by") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."OperationLog" ADD CONSTRAINT "OperationLog_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
