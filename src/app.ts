@@ -1,10 +1,10 @@
-import express from 'express';
+import express, { type Express } from 'express';
 import dotenv from 'dotenv';
 import authRoutes from '@services/auth/authRouter';
 
 dotenv.config();
 
-const app = express();
+const app: Express = express();
 
 app.use(express.json());
 
