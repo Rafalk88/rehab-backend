@@ -1,84 +1,143 @@
 import { authService } from '@services/auth/authService';
-import { prisma } from '@db/client';
-import bcrypt from 'bcrypt';
+import type { User, GivenName, Surname } from '@prisma/client';
+import { prismaMock } from '../../singleton';
+import { hashPassword, verifyPassword } from '@utils/password';
+import { generateToken } from '@utils/jwt';
 
-jest.mock('@prisma/client');
-jest.mock('bcrypt');
+jest.mock('@utils/password');
+jest.mock('@utils/jwt');
 
-describe('authService', () => {
+describe('authService.registerUser', () => {
+  const env = process.env;
   beforeEach(() => {
     jest.clearAllMocks();
+    process.env = { ...env };
   });
 
   describe('registerUser', () => {
     it('should create new user and return user and login', async () => {
-      const fakeGivenName = { id: 'uuid-1', first_name: 'John' };
-      const fakeSurname = { id: 'uuid-2', surname: 'Doe' };
-      const fakeUser = { id: 'uuid-3', login: 'jdoe' };
-
-      (prisma.givenName.findFirst as jest.Mock).mockResolvedValue(null);
-      (prisma.givenName.create as jest.Mock).mockResolvedValue(fakeGivenName);
-
-      (prisma.surname.findFirst as jest.Mock).mockResolvedValue(null);
-      (prisma.surname.create as jest.Mock).mockResolvedValue(fakeSurname);
-
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
-      (prisma.user.create as jest.Mock).mockResolvedValue(fakeUser);
-
-      (bcrypt.hash as jest.Mock).mockResolvedValue('hashedPassword');
-
-      const result = await authService.registerUser({
-        first_name: 'John',
+      // input danych
+      const fakeUserInput = {
+        firstName: 'John',
         surname: 'Doe',
-        password: 'password123',
-      });
+        sexId: 'sex-uuid',
+        organizationalUnitId: 'org-unit-uuid',
+        password: 'plainPassword',
+      };
 
-      expect(prisma.givenName.findFirst).toBeCalledWith({
-        where: { first_name: 'John' },
-      });
-      expect(prisma.givenName.create).toBeCalledWith({ data: { first_name: 'John' } });
+      // mocowanie wartości
+      (hashPassword as jest.Mock).mockResolvedValue('hashedPassword123');
+      prismaMock.givenName.findFirst.mockResolvedValue(null);
+      prismaMock.givenName.create.mockResolvedValueOnce({
+        id: 'firstname-uuid',
+        firstName: 'John',
+      } as GivenName);
+      prismaMock.surname.findFirst.mockResolvedValue(null);
+      prismaMock.surname.create.mockResolvedValueOnce({
+        id: 'surname-uuid',
+        surname: 'Doe',
+      } as Surname);
+      const fakeUserFromDb = {
+        id: 'user-uuid',
+        login: 'jdoe',
+        email: 'jdoe@vitala.com',
+        passwordHash: 'hashedPassword123',
+        mustChangePassword: true,
+        organizationalUnitId: 'org-unit-uuid',
+        sexId: 'sex-uuid',
+        firstNameId: 'firstname-uuid',
+        surnameId: 'surname-uuid',
+      } as User;
+      prismaMock.user.create.mockResolvedValue(fakeUserFromDb);
 
-      expect(prisma.surname.findFirst).toBeCalledWith({ where: { surname: 'Doe' } });
-      expect(prisma.surname.create).toBeCalledWith({ data: { surname: 'Doe' } });
+      // testy
+      const result = await authService.registerUser(fakeUserInput, prismaMock);
 
-      expect(prisma.user.findUnique).toBeCalledWith({ where: { login: 'jdoe' } });
-      expect(prisma.user.create).toBeCalled();
-
-      expect(result.user).toEqual(fakeUser);
       expect(result.login).toBe('jdoe');
+      expect(result.user).toEqual(fakeUserFromDb);
+
+      expect(prismaMock.givenName.findFirst).toHaveBeenCalledWith({
+        where: { firstName: 'John' },
+      });
+      expect(prismaMock.givenName.create).toHaveBeenCalledWith({
+        data: { firstName: 'John' },
+      });
+
+      expect(prismaMock.surname.findFirst).toHaveBeenCalledWith({
+        where: { surname: 'Doe' },
+      });
+      expect(prismaMock.surname.create).toHaveBeenCalledWith({
+        data: { surname: 'Doe' },
+      });
+
+      expect(prismaMock.user.create).toHaveBeenCalledWith({
+        data: {
+          login: 'jdoe',
+          email: 'jdoe@vitala.com',
+          passwordHash: 'hashedPassword123',
+          firstNameId: 'firstname-uuid',
+          surnameId: 'surname-uuid',
+          sexId: 'sex-uuid',
+          organizationalUnitId: 'org-unit-uuid',
+          mustChangePassword: true,
+        },
+      });
+    });
+  });
+});
+
+describe('authService.loginUser', () => {
+  const env = process.env;
+  beforeEach(() => {
+    jest.clearAllMocks();
+    process.env = { ...env };
+  });
+
+  it('should return token if login and password are correct', async () => {
+    const fakeUser = {
+      id: 'user-uuid',
+      login: 'jdoe',
+      passwordHash: 'hashedPassword123',
+    } as User;
+
+    prismaMock.user.findUnique.mockResolvedValue(fakeUser);
+    (verifyPassword as jest.Mock).mockResolvedValue(true);
+    (generateToken as jest.Mock).mockReturnValue('fake-jwt-token');
+
+    const token = await authService.loginUser('jdoe', 'correctPassword', prismaMock);
+
+    expect(prismaMock.user.findUnique).toHaveBeenCalledWith({ where: { login: 'jdoe' } });
+    expect(verifyPassword).toHaveBeenCalledWith('correctPassword', 'hashedPassword123');
+    expect(generateToken).toHaveBeenCalledWith({ userId: 'user-uuid' });
+    expect(token).toBe('fake-jwt-token');
+  });
+
+  it('should throw error if user not found', async () => {
+    prismaMock.user.findUnique.mockResolvedValue(null);
+
+    await expect(
+      authService.loginUser('unknownUser', 'anyPassword', prismaMock)
+    ).rejects.toThrow('User not found');
+    expect(prismaMock.user.findUnique).toHaveBeenCalledWith({
+      where: { login: 'unknownUser' },
     });
   });
 
-  describe('loginUser', () => {
-    it('should throw error if user not found', async () => {
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
-      await expect(authService.loginUser('jdoe', 'pass')).rejects.toThrow(
-        'User not found'
-      );
-    });
+  it('should throw error if password is invalid', async () => {
+    const fakeUser = {
+      id: 'user-uuid',
+      login: 'jdoe',
+      passwordHash: 'hashedPassword123',
+    } as User;
 
-    it('should throw error if password invalid', async () => {
-      const fakeUser = { id: 'uuid-3', login: 'jdoe', password_hash: 'hashed' };
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(fakeUser);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(false);
+    prismaMock.user.findUnique.mockResolvedValue(fakeUser);
+    (verifyPassword as jest.Mock).mockResolvedValue(false);
 
-      await expect(authService.loginUser('jdoe', 'wrongpass')).rejects.toThrow(
-        'Invalid password'
-      );
-    });
+    await expect(
+      authService.loginUser('jdoe', 'wrongPassword', prismaMock)
+    ).rejects.toThrow('Invalid password');
 
-    it('should return token if login successful', async () => {
-      const fakeUser = { id: 'uuid-3', login: 'jdoe', password_hash: 'hashed' };
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(fakeUser);
-      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
-
-      // mock generateToken
-      jest.mock('@utils/jwt', () => ({
-        generateToken: () => 'token123',
-      }));
-
-      const token = await authService.loginUser('jdoe', 'correctpass');
-      expect(token).toBe('token123');
-    });
+    expect(prismaMock.user.findUnique).toHaveBeenCalledWith({ where: { login: 'jdoe' } });
+    expect(verifyPassword).toHaveBeenCalledWith('wrongPassword', 'hashedPassword123');
   });
 });

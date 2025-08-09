@@ -14,11 +14,13 @@ module.exports = {
     },
   },
   moduleFileExtensions: ['ts', 'js', 'json'],
+  clearMocks: true,
+  preset: 'ts-jest',
+  setupFilesAfterEnv: ['<rootDir>/src/singleton.ts'],
   moduleNameMapper: {
     '^@config/(.*)$': '<rootDir>/src/config/$1',
     '^@routes/(.*)$': '<rootDir>/src/routes/$1',
     '^@services/(.*)$': '<rootDir>/src/services/$1',
     '^@utils/(.*)$': '<rootDir>/src/utils/$1',
-    '^@prisma/(.*)$': '<rootDir>/src/prisma/$1',
   },
 };

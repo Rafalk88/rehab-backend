@@ -48,8 +48,7 @@
       "@config/*": ["./config/*"],
       "@routes/*": ["./routes/*"],
       "@services/*": ["./services/*"],
-      "@utils/*": ["./utils/*"],
-      "@db/*": ["./prisma/*"]
+      "@utils/*": ["./utils/*"]
     }
   }
 }

@@ -2,42 +2,61 @@ import { prisma } from '@config/prismaClient';
 import { hashPassword, verifyPassword } from '@utils/password';
 import { generateToken } from '@utils/jwt';
 
-const registerUser = async (userData: {
-  firstName: string;
-  surname: string;
-  sexId?: string;
-  organizationalUnitId?: string;
-  password: string;
-}) => {
-  const { firstName, surname, sexId, organizationalUnitId, password } = userData;
-
-  let firstNameEntry = await prisma.givenName.findFirst({ where: { firstName } });
+async function getOrCreateFirstName(firstName: string, prismaInstance = prisma) {
+  let firstNameEntry = await prismaInstance.givenName.findFirst({ where: { firstName } });
   if (!firstNameEntry) {
-    firstNameEntry = await prisma.givenName.create({ data: { firstName } });
+    firstNameEntry = await prismaInstance.givenName.create({ data: { firstName } });
   }
+  return firstNameEntry;
+}
 
-  let surnameEntry = await prisma.surname.findFirst({ where: { surname } });
+async function getOrCreateSurname(surname: string, prismaInstance = prisma) {
+  let surnameEntry = await prismaInstance.surname.findFirst({ where: { surname } });
   if (!surnameEntry) {
-    surnameEntry = await prisma.surname.create({ data: { surname } });
+    surnameEntry = await prismaInstance.surname.create({ data: { surname } });
   }
+  return surnameEntry;
+}
 
+async function generateUniqueLogin(
+  firstName: string,
+  surname: string,
+  prismaInstance = prisma
+) {
   const baseLogin = `${firstName[0]?.toLowerCase()}${surname.toLowerCase()}`;
   let login = baseLogin;
   let suffix = 1;
 
-  while (await prisma.user.findUnique({ where: { login } })) {
+  while (await prismaInstance.user.findUnique({ where: { login } })) {
     login = `${baseLogin}${suffix}`;
     suffix++;
   }
+  return login;
+}
 
-  const finalEmail = `${login}@vitala.com`;
+const registerUser = async (
+  userData: {
+    firstName: string;
+    surname: string;
+    sexId?: string;
+    organizationalUnitId?: string;
+    password: string;
+  },
+  prismaInstance = prisma
+) => {
+  const { firstName, surname, sexId, organizationalUnitId, password } = userData;
+
+  const firstNameEntry = await getOrCreateFirstName(firstName, prismaInstance);
+  const surnameEntry = await getOrCreateSurname(surname, prismaInstance);
+  const login = await generateUniqueLogin(firstName, surname, prismaInstance);
+  const email = `${login}@vitala.com`;
   const passwordHash = await hashPassword(password);
 
-  const user = await prisma.user.create({
+  const user = await prismaInstance.user.create({
     data: {
       login,
-      email: finalEmail,
-      passwordHash: passwordHash,
+      email,
+      passwordHash,
       firstNameId: firstNameEntry.id,
       surnameId: surnameEntry.id,
       sexId: sexId ?? null,
@@ -49,8 +68,8 @@ const registerUser = async (userData: {
   return { user, login };
 };
 
-const loginUser = async (login: string, password: string) => {
-  const user = await prisma.user.findUnique({ where: { login } });
+const loginUser = async (login: string, password: string, prismaInstance = prisma) => {
+  const user = await prismaInstance.user.findUnique({ where: { login } });
   if (!user) throw new Error('User not found');
 
   const valid = await verifyPassword(password, user.passwordHash);
