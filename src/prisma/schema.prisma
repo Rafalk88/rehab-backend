@@ -8,9 +8,9 @@ datasource db {
 }
 
 model User {
-  id                    String   @id @default(uuid()) @db.Uuid @map("id")
-  login                 String   @unique @map("login")
-  email                 String   @unique @map("email")
+  id                    String   @id @default(uuid()) @db.Uuid
+  login                 String   @unique
+  email                 String   @unique
   passwordHash          String   @map("password_hash")
   mustChangePassword    Boolean  @default(false) @map("must_change_password")
   passwordChangedAt     DateTime? @map("password_changed_at")
@@ -44,8 +44,8 @@ model User {
 }
 
 model GivenName {
-  id             String   @id @default(uuid()) @db.Uuid @map("id")
-  firstName      String   @map("first_name")
+  id             String   @id @default(uuid())
+  firstName      String   @map("first_name") @unique
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
   createdBy      String?  @db.Uuid @map("created_by")
@@ -57,8 +57,8 @@ model GivenName {
 }
 
 model Surname {
-  id             String   @id @default(uuid()) @db.Uuid @map("id")
-  surname        String   @map("surname")
+  id             String   @id @default(uuid()) @db.Uuid
+  surname        String   @map("surname") @unique
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
   createdBy      String?  @db.Uuid @map("created_by")
@@ -70,8 +70,8 @@ model Surname {
 }
 
 model Sex {
-  id             String   @id @default(uuid()) @db.Uuid @map("id")
-  sex            String   @unique @map("sex")
+  id             String   @id @default(uuid()) @db.Uuid
+  sex            String   @unique
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
   createdBy      String?  @db.Uuid @map("created_by")
@@ -83,8 +83,8 @@ model Sex {
 }
 
 model OrganizationalUnit {
-  id             String   @id @default(uuid()) @db.Uuid @map("id")
-  name           String   @map("name")
+  id             String   @id @default(uuid()) @db.Uuid
+  name           String   @unique
   description    String?  @map("description")
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
@@ -97,8 +97,8 @@ model OrganizationalUnit {
 }
 
 model Role {
-  id             String   @id @default(uuid()) @db.Uuid @map("id")
-  name           String   @unique @map("name")
+  id             String   @id @default(uuid()) @db.Uuid
+  name           String   @unique
   description    String   @map("description")
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
@@ -111,7 +111,7 @@ model Role {
 }
 
 model UserRole {
-  id          String   @id @default(uuid()) @db.Uuid @map("id")
+  id          String   @id @default(uuid()) @db.Uuid
   userId      String   @db.Uuid @map("user_id")
   roleId      String   @db.Uuid @map("role_id")
   assignedById String  @db.Uuid @map("assigned_by")
@@ -123,7 +123,7 @@ model UserRole {
 }
 
 model PasswordHistory {
-  id            String   @id @default(uuid()) @db.Uuid @map("id")
+  id            String   @id @default(uuid()) @db.Uuid
   userId        String   @db.Uuid @map("user_id")
   passwordHash  String   @map("password_hash")
   changedAt     DateTime @default(now()) @map("changed_at")
@@ -134,13 +134,13 @@ model PasswordHistory {
 }
 
 model OperationLog {
-  id            String   @id @default(uuid()) @db.Uuid @map("id")
+  id            String   @id @default(uuid()) @db.Uuid
   userId        String   @db.Uuid @map("user_id")
-  action        String   @map("action")
+  action        String   
   actionDetails String   @map("action_details")
   oldValues     Json?    @map("old_values")
   newValues     Json?    @map("new_values")
-  timestamp     DateTime @default(now()) @map("timestamp")
+  timestamp     DateTime @default(now())
   entityType    String   @map("entity_type")
   entityId      String   @map("entity_id")
   ipAddress     String   @map("ip_address")
