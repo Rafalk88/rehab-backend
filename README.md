@@ -9,7 +9,8 @@ This repository contains the backend of the Rehabilitation Management System.
 - Prisma ORM
 - PostgreSQL
 - Express.js
-- JWT for authentication
+- JWT for authentication and session management
+- Zod for input validation
 - REST API
 
 ## 📂 Project Structure
@@ -17,12 +18,13 @@ This repository contains the backend of the Rehabilitation Management System.
 ```bash
 src/
 ├── config/ # Configuration (e.g. environment, Prisma client)
-├── middlewares/ # Global and route-specific middlewares
+├── middlewares/ # Global and route-specific middlewares (authentication, authorization, validation, error handling)
 ├── prisma/ # Prisma schema and migrations
 ├── services/ # Service layer (e.g. authService)
-├── utils/ # Reusable utilities
+├── utils/ # Reusable utilities and classes (AppError, JWT utils, cache utils)
 ├── app.ts # Express app setup
-└── index.ts # Server listener
+├── index.ts # Server listener
+└── singleton.ts # Mocked version of prisma client
 env # env variables
 ```
 
@@ -39,15 +41,15 @@ pnpm install
 Create a .env file in the root directory and configure your environment variables:
 
 ```bash
-DATABASE_URL=
-JWT_SECRET=
-PORT=
+DATABASE_URL=your_database_connection_string
+JWT_SECRET=your_jwt_secret_key
+PORT=your_desired_port_number
 ```
 
 3. **Run migrations**
 
 ```bash
-npx prisma migrate dev --name init
+npx prisma migrate dev --name init --schema=./src/prisma/schema.prisma
 ```
 
 4. **Start the server**
@@ -58,13 +60,24 @@ pnpm run dev
 
 ## 📖 Features
 
-User authentication & authorization (JWT-based)
-Role-based access control
-User registration with name deduplication
-Password reset and change system (admin-managed)
-Audit logging
-Organizational unit and role management
-Historical password storage (PasswordHistory)
+- User authentication & authorization (JWT-based)
+- Role-based access control with permission overrides and organizational unit checks
+- User registration with GivenName and Surname deduplication
+- Password reset and change system (admin-managed)
+- Audit logging for compliance and traceability
+- Input validation using Zod schemas
+- Permission caching for improved performance
+- Centralized error handling middleware
+- Organizational unit and role management
+- Historical password storage (PasswordHistory)
+
+## 🧪 Testy
+
+1. **Uruchom testy**
+
+```bash
+pnpm test
+```
 
 ## 📘 License
 
