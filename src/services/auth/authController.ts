@@ -3,12 +3,12 @@ import { Request, Response } from 'express';
 
 const registerUser = async (req: Request, res: Response) => {
   try {
-    const { first_name, surname, sex_id, organizational_unit_id, password } = req.body;
+    const { firstName, surname, sexId, organizationalUnitId, password } = req.body;
     const { user, login } = await authService.registerUser({
-      first_name,
+      firstName,
       surname,
-      sex_id,
-      organizational_unit_id,
+      sexId,
+      organizationalUnitId,
       password,
     });
 
