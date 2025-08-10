@@ -1,10 +1,16 @@
-import { Router } from 'express';
-import type { Router as ExpressRouter } from 'express';
-import { authController } from '@services/auth/authController';
+import { Router, type Router as ExpressRouter } from 'express';
+import { authController, LoginUserSchema, RegisterUserSchema } from '@services/auth';
+import { validate, authentication, authorization } from '@/middlewares';
 
 const router: ExpressRouter = Router();
 
-router.post('/register-user', authController.registerUser);
-router.post('/login', authController.loginUser);
+router.post(
+  '/register-user',
+  validate(RegisterUserSchema),
+  authentication,
+  authorization('admin'),
+  authController.registerUser
+);
+router.post('/login', validate(LoginUserSchema), authController.loginUser);
 
 export default router;

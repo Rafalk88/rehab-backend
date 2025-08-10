@@ -72,8 +72,8 @@ const loginUser = async (login: string, password: string, prismaInstance = prism
   const user = await prismaInstance.user.findUnique({ where: { login } });
   if (!user) throw new Error('User not found');
 
-  const valid = await verifyPassword(password, user.passwordHash);
-  if (!valid) throw new Error('Invalid password');
+  const hasId = await verifyPassword(password, user.passwordHash);
+  if (!hasId) throw new Error('Invalid password');
 
   const token = generateToken({ userId: user.id });
   return token;
