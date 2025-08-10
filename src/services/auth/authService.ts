@@ -1,19 +1,30 @@
 import { prisma } from '@config/prismaClient';
 import { hashPassword, verifyPassword } from '@utils/password';
 import { generateToken } from '@utils/jwt';
+import { AppError } from '@utils/utilityClasses';
 
 async function getOrCreateFirstName(firstName: string, prismaInstance = prisma) {
-  let firstNameEntry = await prismaInstance.givenName.findFirst({ where: { firstName } });
+  const normalizedFirstName = firstName.trim().toLowerCase();
+  let firstNameEntry = await prismaInstance.givenName.findFirst({
+    where: { firstName: normalizedFirstName },
+  });
   if (!firstNameEntry) {
-    firstNameEntry = await prismaInstance.givenName.create({ data: { firstName } });
+    firstNameEntry = await prismaInstance.givenName.create({
+      data: { firstName: normalizedFirstName },
+    });
   }
   return firstNameEntry;
 }
 
 async function getOrCreateSurname(surname: string, prismaInstance = prisma) {
-  let surnameEntry = await prismaInstance.surname.findFirst({ where: { surname } });
+  const normalizedSurname = surname.trim().toLowerCase();
+  let surnameEntry = await prismaInstance.surname.findFirst({
+    where: { surname: normalizedSurname },
+  });
   if (!surnameEntry) {
-    surnameEntry = await prismaInstance.surname.create({ data: { surname } });
+    surnameEntry = await prismaInstance.surname.create({
+      data: { surname: normalizedSurname },
+    });
   }
   return surnameEntry;
 }
@@ -23,7 +34,9 @@ async function generateUniqueLogin(
   surname: string,
   prismaInstance = prisma
 ) {
-  const baseLogin = `${firstName[0]?.toLowerCase()}${surname.toLowerCase()}`;
+  const baseLogin = `${firstName[0]?.trim().toLowerCase()}${surname
+    .trim()
+    .toLowerCase()}`;
   let login = baseLogin;
   let suffix = 1;
 
@@ -70,10 +83,10 @@ const registerUser = async (
 
 const loginUser = async (login: string, password: string, prismaInstance = prisma) => {
   const user = await prismaInstance.user.findUnique({ where: { login } });
-  if (!user) throw new Error('User not found');
+  if (!user) throw new AppError('unauthorized', 'User not found');
 
-  const hasId = await verifyPassword(password, user.passwordHash);
-  if (!hasId) throw new Error('Invalid password');
+  const isValid = await verifyPassword(password, user.passwordHash);
+  if (!isValid) throw new AppError('unauthorized', 'Invalid password');
 
   const token = generateToken({ userId: user.id });
   return token;

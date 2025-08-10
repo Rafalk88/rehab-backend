@@ -14,12 +14,16 @@
   "license": "ISC",
   "dependencies": {
     "@prisma/client": "^6.13.0",
+    "add": "^2.0.6",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
+    "express-rate-limit": "^8.0.1",
+    "helmet": "^8.1.0",
     "jest-mock-extended": "^4.0.0",
     "jsonwebtoken": "^9.0.2",
+    "pnpm": "^10.14.0",
     "zod": "^4.0.17"
   },
   "devDependencies": {

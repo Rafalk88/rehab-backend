@@ -159,6 +159,18 @@ export const errorHandler = (
   });
 };
 
+/**
+ * Middleware walidujący i sanityzujący request według schematu Zod.
+ *
+ * Schemat powinien zawierać zarówno walidację (np. regexy, minimalne długości),
+ * jak i sanityzację (np. .trim(), .toLowerCase()).
+ *
+ * Dzięki temu w downstream (kontrolerach, DB) dane są zawsze czyste i spójne,
+ * np. loginy i imiona zawsze lowercase, bez zbędnych spacji itp.
+ *
+ * Uwaga: walidacja nie zastępuje parametrów zapytań ORM – nadal trzeba stosować
+ * parametryzowane zapytania (np. Prisma) aby zabezpieczyć się przed SQL Injection.
+ */
 export const validate =
   (schema: ZodObject<any>) =>
   async (req: Request<unknown>, _: Response, next: NextFunction) => {
