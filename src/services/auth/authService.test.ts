@@ -57,17 +57,17 @@ describe('authService.registerUser', () => {
       expect(result.user).toEqual(fakeUserFromDb);
 
       expect(prismaMock.givenName.findFirst).toHaveBeenCalledWith({
-        where: { firstName: 'John' },
+        where: { firstName: 'john' },
       });
       expect(prismaMock.givenName.create).toHaveBeenCalledWith({
-        data: { firstName: 'John' },
+        data: { firstName: 'john' },
       });
 
       expect(prismaMock.surname.findFirst).toHaveBeenCalledWith({
-        where: { surname: 'Doe' },
+        where: { surname: 'doe' },
       });
       expect(prismaMock.surname.create).toHaveBeenCalledWith({
-        data: { surname: 'Doe' },
+        data: { surname: 'doe' },
       });
 
       expect(prismaMock.user.create).toHaveBeenCalledWith({
