@@ -38,13 +38,14 @@ model User {
   surname               Surname?             @relation(fields: [surnameId], references: [id])
   userRoles             UserRole[]
   assignedRoles         UserRole[]           @relation("AssignedBy")
+  userPermissions       UserPermission[]
   passwordOwnerHistory  PasswordHistory[]    @relation("PasswordOwner")
   passwordChangerHistory PasswordHistory[]   @relation("PasswordChanger")
   operationLogs         OperationLog[]
 }
 
 model GivenName {
-  id             String   @id @default(uuid())
+  id             String   @id @default(uuid()) @db.Uuid
   firstName      String   @map("first_name") @unique
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
@@ -99,7 +100,7 @@ model OrganizationalUnit {
 model Role {
   id             String   @id @default(uuid()) @db.Uuid
   name           String   @unique
-  description    String   @map("description")
+  description    String   
   createdAt      DateTime @default(now()) @map("created_at")
   updatedAt      DateTime @default(now()) @updatedAt @map("updated_at")
   createdBy      String?  @db.Uuid @map("created_by")
@@ -108,6 +109,14 @@ model Role {
   retentionUntil DateTime? @map("retention_until")
 
   userRoles      UserRole[]
+  rolePermissions RolePermission[]
+}
+
+model RolePermission {
+  id         String @id @default(uuid()) @db.Uuid
+  roleId     String @db.Uuid @map("role_id")
+  permission String
+  role       Role   @relation(fields: [roleId], references: [id])
 }
 
 model UserRole {
@@ -120,6 +129,14 @@ model UserRole {
   user        User     @relation(fields: [userId], references: [id])
   role        Role     @relation(fields: [roleId], references: [id])
   assignedBy  User     @relation("AssignedBy", fields: [assignedById], references: [id])
+}
+
+model UserPermission {
+  id         String  @id @default(uuid()) @db.Uuid
+  userId     String  @db.Uuid
+  permission String
+  allowed    Boolean @default(true) // true = explicit allow, false = explicit deny
+  user       User    @relation(fields: [userId], references: [id])
 }
 
 model PasswordHistory {

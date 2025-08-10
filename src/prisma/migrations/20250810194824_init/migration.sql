@@ -100,6 +100,15 @@ CREATE TABLE "public"."Role" (
 );
 
 -- CreateTable
+CREATE TABLE "public"."RolePermission" (
+    "id" UUID NOT NULL,
+    "role_id" UUID NOT NULL,
+    "permission" TEXT NOT NULL,
+
+    CONSTRAINT "RolePermission_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "public"."UserRole" (
     "id" UUID NOT NULL,
     "user_id" UUID NOT NULL,
@@ -108,6 +117,16 @@ CREATE TABLE "public"."UserRole" (
     "assigned_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "UserRole_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "public"."UserPermission" (
+    "id" UUID NOT NULL,
+    "userId" UUID NOT NULL,
+    "permission" TEXT NOT NULL,
+    "allowed" BOOLEAN NOT NULL DEFAULT true,
+
+    CONSTRAINT "UserPermission_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -144,7 +163,16 @@ CREATE UNIQUE INDEX "User_login_key" ON "public"."User"("login");
 CREATE UNIQUE INDEX "User_email_key" ON "public"."User"("email");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "GivenName_first_name_key" ON "public"."GivenName"("first_name");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Surname_surname_key" ON "public"."Surname"("surname");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Sex_sex_key" ON "public"."Sex"("sex");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "OrganizationalUnit_name_key" ON "public"."OrganizationalUnit"("name");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Role_name_key" ON "public"."Role"("name");
@@ -162,6 +190,9 @@ ALTER TABLE "public"."User" ADD CONSTRAINT "User_first_name_id_fkey" FOREIGN KEY
 ALTER TABLE "public"."User" ADD CONSTRAINT "User_surname_id_fkey" FOREIGN KEY ("surname_id") REFERENCES "public"."Surname"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "public"."RolePermission" ADD CONSTRAINT "RolePermission_role_id_fkey" FOREIGN KEY ("role_id") REFERENCES "public"."Role"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "public"."UserRole" ADD CONSTRAINT "UserRole_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -169,6 +200,9 @@ ALTER TABLE "public"."UserRole" ADD CONSTRAINT "UserRole_role_id_fkey" FOREIGN K
 
 -- AddForeignKey
 ALTER TABLE "public"."UserRole" ADD CONSTRAINT "UserRole_assigned_by_fkey" FOREIGN KEY ("assigned_by") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "public"."UserPermission" ADD CONSTRAINT "UserPermission_userId_fkey" FOREIGN KEY ("userId") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."PasswordHistory" ADD CONSTRAINT "PasswordHistory_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
