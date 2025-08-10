@@ -1,31 +1,31 @@
-import { prisma } from '@prisma/client';
+import { prisma } from './prismaClient';
 
 interface LogParams {
-  user_id: string;
+  userId: string;
   action: string;
-  action_details: string;
-  entity_type: string;
-  entity_id: string;
-  ip_address?: string;
+  actionDetails: string;
+  entityType: string;
+  entityId: string;
+  ipAddress?: string;
 }
 
 export const logAction = async ({
-  user_id,
+  userId,
   action,
-  action_details,
-  entity_type,
-  entity_id,
-  ip_address = 'system',
+  actionDetails,
+  entityType,
+  entityId,
+  ipAddress = 'system',
 }: LogParams) => {
   try {
     await prisma.operationLog.create({
       data: {
-        user_id,
+        userId,
         action,
-        action_details,
-        entity_type,
-        entity_id,
-        ip_address,
+        actionDetails,
+        entityType,
+        entityId,
+        ipAddress,
       },
     });
   } catch (error) {

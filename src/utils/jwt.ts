@@ -13,5 +13,7 @@ export const verifyToken = (token: string) => {
   if (!process.env.JWT_SECRET) {
     throw new Error('API Secret not defined. Unable to generate JWT.');
   }
-  return jwt.verify(token, JWT_SECRET);
+
+  const payload = jwt.verify(token, JWT_SECRET) as { id: string };
+  return payload.id;
 };
