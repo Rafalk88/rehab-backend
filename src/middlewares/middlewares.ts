@@ -1,10 +1,10 @@
 import prisma from '@config/prismaClient';
+import logger from '@config/logger';
 import type { PrismaClient } from '@prisma/client';
 import { verifyToken } from '@utils/jwt';
-import type { NextFunction, Request, Response } from 'express';
 import { AppError } from '@utils/utilityClasses';
-import type { ZodObject } from 'zod';
-import { ZodError } from 'zod';
+import type { NextFunction, Request, Response } from 'express';
+import { ZodError, type ZodObject } from 'zod';
 
 export const permCache = new Map<string, { perms: string[]; expiresAt: number }>();
 const TTL_MS = 60_000;
@@ -150,10 +150,22 @@ export const authorization =
 
 export const errorHandler = (
   error: Error,
-  _: Request,
+  request: Request,
   response: Response,
   _next: NextFunction // eslint-disable-line no-unused-vars
 ) => {
+  // Loguj szczegóły błędu do pliku + konsoli
+  logger.error({
+    message: error.message,
+    stack: error.stack || 'No stack trace',
+    name: error.name,
+    method: request.method,
+    url: request.originalUrl,
+    body: request.body,
+    params: request.params,
+    query: request.query,
+  });
+
   response.status('statusCode' in error ? (error.statusCode as number) : 500).json({
     message: error instanceof AppError ? error.message : 'Oops! Something went wrong...',
   });
