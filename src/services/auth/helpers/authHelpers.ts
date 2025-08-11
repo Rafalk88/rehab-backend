@@ -1,5 +1,5 @@
 import { AppError } from '@utils/utilityClasses';
-import { verifyPassword } from '@/utils/password';
+import { verifyPassword } from '@utils/password';
 import prisma from '@config/prismaClient';
 import type { User, PrismaClient } from '@prisma/client';
 
@@ -34,21 +34,15 @@ export const verifyLoginCredentials = async (
     passwordHash: User['passwordHash'];
   },
   password: string,
-  prismaInstance: PrismaClient = prisma
+  prismaInstance: PrismaClient = prisma,
 ) => {
   const isValid = await verifyPassword(password, user.passwordHash);
 
   if (!isValid) {
-    const { failedAttempts, lockedUntil } = await updateLoginFailure(
-      user.id,
-      prismaInstance
-    );
+    const { failedAttempts, lockedUntil } = await updateLoginFailure(user.id, prismaInstance);
 
     if (failedAttempts >= MAX_FAILED_ATTEMPTS) {
-      throw new AppError(
-        'forbidden',
-        `Account locked until ${lockedUntil?.toISOString()}`
-      );
+      throw new AppError('forbidden', `Account locked until ${lockedUntil?.toISOString()}`);
     }
 
     throw new AppError('unauthorized', 'Invalid login or password');
@@ -102,10 +96,7 @@ export const checkLoginRestrictions = (user: {
  * @param id - identyfikator użytkownika
  * @param prismaInstance - instancja Prisma do operacji na bazie danych (opcjonalnie)
  */
-export const updateLoginSuccess = async (
-  id: User['id'],
-  prismaInstance: PrismaClient = prisma
-) => {
+export const updateLoginSuccess = async (id: User['id'], prismaInstance: PrismaClient = prisma) => {
   await prismaInstance.user.update({
     where: { id },
     data: {
@@ -127,10 +118,7 @@ export const updateLoginSuccess = async (
  * @param prismaInstance - instancja Prisma do operacji na bazie danych (opcjonalnie)
  * @returns obiekt z aktualną liczbą nieudanych prób i ewentualnym czasem blokady
  */
-export const updateLoginFailure = async (
-  id: User['id'],
-  prismaInstance: PrismaClient = prisma
-) => {
+export const updateLoginFailure = async (id: User['id'], prismaInstance: PrismaClient = prisma) => {
   const updated = await prismaInstance.user.update({
     where: { id },
     data: {
@@ -167,10 +155,7 @@ export const updateLoginFailure = async (
  * @param prismaInstance - instancja Prisma do operacji na bazie danych (opcjonalnie)
  * @returns obiekt rekordu imienia z bazy danych
  */
-export const getOrCreateFirstName = async (
-  firstName: string,
-  prismaInstance = prisma
-) => {
+export const getOrCreateFirstName = async (firstName: string, prismaInstance = prisma) => {
   const normalizedFirstName = firstName.trim().toLowerCase();
   let firstNameEntry = await prismaInstance.givenName.findFirst({
     where: { firstName: normalizedFirstName },
@@ -216,11 +201,9 @@ export const getOrCreateSurname = async (surname: string, prismaInstance = prism
 export const generateUniqueLogin = async (
   firstName: string,
   surname: string,
-  prismaInstance = prisma
+  prismaInstance = prisma,
 ) => {
-  const baseLogin = `${firstName[0]?.trim().toLowerCase()}${surname
-    .trim()
-    .toLowerCase()}`;
+  const baseLogin = `${firstName[0]?.trim().toLowerCase()}${surname.trim().toLowerCase()}`;
   let login = baseLogin;
   let suffix = 1;
 

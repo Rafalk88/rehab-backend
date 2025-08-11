@@ -45,11 +45,11 @@
     // Wwn config
     "baseUrl": "./src",
     "paths": {
+      "@/*": ["./*"],
       "@config/*": ["./config/*"],
       "@routes/*": ["./routes/*"],
       "@services/*": ["./services/*"],
-      "@utils/*": ["./utils/*"],
-      "@/*": ["./*"]
+      "@utils/*": ["./utils/*"]
     }
   }
 }

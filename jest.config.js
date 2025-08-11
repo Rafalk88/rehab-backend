@@ -18,6 +18,7 @@ module.exports = {
   preset: 'ts-jest',
   setupFilesAfterEnv: ['<rootDir>/src/singleton.ts'],
   moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
     '^@config/(.*)$': '<rootDir>/src/config/$1',
     '^@routes/(.*)$': '<rootDir>/src/routes/$1',
     '^@services/(.*)$': '<rootDir>/src/services/$1',
