@@ -1,52 +1,25 @@
 import { prisma } from '@config/prismaClient';
-import { hashPassword, verifyPassword } from '@utils/password';
+import { hashPassword } from '@utils/password';
 import { generateToken } from '@utils/jwt';
 import { AppError } from '@utils/utilityClasses';
+import {
+  getOrCreateFirstName,
+  getOrCreateSurname,
+  generateUniqueLogin,
+  verifyLoginCredentials,
+  checkLoginRestrictions,
+  updateLoginSuccess,
+} from './helpers/authHelpers';
 
-async function getOrCreateFirstName(firstName: string, prismaInstance = prisma) {
-  const normalizedFirstName = firstName.trim().toLowerCase();
-  let firstNameEntry = await prismaInstance.givenName.findFirst({
-    where: { firstName: normalizedFirstName },
-  });
-  if (!firstNameEntry) {
-    firstNameEntry = await prismaInstance.givenName.create({
-      data: { firstName: normalizedFirstName },
-    });
-  }
-  return firstNameEntry;
-}
-
-async function getOrCreateSurname(surname: string, prismaInstance = prisma) {
-  const normalizedSurname = surname.trim().toLowerCase();
-  let surnameEntry = await prismaInstance.surname.findFirst({
-    where: { surname: normalizedSurname },
-  });
-  if (!surnameEntry) {
-    surnameEntry = await prismaInstance.surname.create({
-      data: { surname: normalizedSurname },
-    });
-  }
-  return surnameEntry;
-}
-
-async function generateUniqueLogin(
-  firstName: string,
-  surname: string,
-  prismaInstance = prisma
-) {
-  const baseLogin = `${firstName[0]?.trim().toLowerCase()}${surname
-    .trim()
-    .toLowerCase()}`;
-  let login = baseLogin;
-  let suffix = 1;
-
-  while (await prismaInstance.user.findUnique({ where: { login } })) {
-    login = `${baseLogin}${suffix}`;
-    suffix++;
-  }
-  return login;
-}
-
+/**
+ * Rejestruje nowego użytkownika w systemie.
+ * Tworzy lub pobiera rekordy imienia i nazwiska, generuje unikalny login,
+ * hashuje podane hasło oraz tworzy użytkownika w bazie z ustawieniem wymogu zmiany hasła przy pierwszym logowaniu.
+ *
+ * @param userData - Dane użytkownika do rejestracji (imię, nazwisko, hasło, opcjonalnie sexId i organizationalUnitId).
+ * @param prismaInstance - Instancja Prisma do operacji na bazie (domyślnie globalna).
+ * @returns Obiekt zawierający nowo utworzonego użytkownika i jego login.
+ */
 const registerUser = async (
   userData: {
     firstName: string;
@@ -81,15 +54,43 @@ const registerUser = async (
   return { user, login };
 };
 
+/**
+ * Autoryzuje użytkownika na podstawie loginu i hasła.
+ * Sprawdza, czy użytkownik istnieje, weryfikuje hasło,
+ * sprawdza ograniczenia konta (blokada, aktywność, wymóg zmiany hasła),
+ * resetuje licznik nieudanych prób przy poprawnym logowaniu,
+ * a na końcu generuje token uwierzytelniający.
+ *
+ * @param login - Login użytkownika.
+ * @param password - Podane hasło do weryfikacji.
+ * @param prismaInstance - Instancja Prisma do operacji na bazie (domyślnie globalna).
+ * @returns Token JWT dla uwierzytelnionego użytkownika.
+ * @throws AppError w przypadku niepoprawnych danych lub zablokowanego konta.
+ */
 const loginUser = async (login: string, password: string, prismaInstance = prisma) => {
   const user = await prismaInstance.user.findUnique({ where: { login } });
-  if (!user) throw new AppError('unauthorized', 'User not found');
+  if (!user) {
+    throw new AppError('unauthorized', 'Invalid login or password');
+  }
 
-  const isValid = await verifyPassword(password, user.passwordHash);
-  if (!isValid) throw new AppError('unauthorized', 'Invalid password');
+  await verifyLoginCredentials(
+    {
+      id: user.id,
+      failedLoginAttempts: user.failedLoginAttempts,
+      passwordHash: user.passwordHash,
+    },
+    password,
+    prismaInstance
+  );
+  checkLoginRestrictions({
+    isActive: user.isActive,
+    isLocked: user.isLocked,
+    lockedUntil: user.lockedUntil,
+    mustChangePassword: user.mustChangePassword,
+  });
+  await updateLoginSuccess(user.id, prismaInstance);
 
-  const token = generateToken({ userId: user.id });
-  return token;
+  return generateToken({ userId: user.id });
 };
 
 export const authService = {
