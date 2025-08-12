@@ -11,20 +11,23 @@ This repository contains the backend of the Rehabilitation Management System.
 - Express.js
 - JWT for authentication and session management
 - Zod for input validation
+- Husky
+- Winston
 - REST API
 
 ## 📂 Project Structure
 
 ```bash
 src/
+├── __mocks__/ # Mocks for testing purposes
 ├── config/ # Configuration (e.g. environment, Prisma client)
+├── errors/ # Handle global errors in app
 ├── middlewares/ # Global and route-specific middlewares (authentication, authorization, validation, error handling)
 ├── prisma/ # Prisma schema and migrations
 ├── services/ # Service layer (e.g. authService)
 ├── utils/ # Reusable utilities and classes (AppError, JWT utils, cache utils)
 ├── app.ts # Express app setup
 ├── index.ts # Server listener
-└── singleton.ts # Mocked version of prisma client
 env # env variables
 ```
 

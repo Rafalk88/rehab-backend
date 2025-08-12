@@ -4,8 +4,8 @@ import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
-import authRouter from '@services/auth/authRouter';
-import { errorHandler } from '@/middlewares';
+import authRouter from '@/services/auth/v1/auth.router';
+import { errorHandler } from '@errors/error.handler';
 import logger from '@/config/logger';
 
 dotenv.config();
@@ -30,7 +30,7 @@ app.use(
       }
     },
     credentials: true, // jeśli cookies/auth header
-  })
+  }),
 );
 logger.info(`CORS configured for origins: ${allowedOrigins.join(', ')}`);
 
@@ -53,7 +53,7 @@ app.use(express.json({ limit: '10kb' }));
 logger.info('Body parser with size limit 10kb enabled');
 
 // routy
-app.use('/auth', authRouter);
+app.use('/api/v1/auth', authRouter);
 logger.info('Auth routes mounted on /auth');
 
 // Middleware do obsługi błędów

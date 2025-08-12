@@ -1,0 +1,28 @@
+import { createDefaultPreset } from 'ts-jest';
+
+const tsJestTransformCfg = createDefaultPreset().transform;
+
+/** @type {import('jest').Config} */
+export default {
+  testEnvironment: 'node',
+  transform: {
+    ...tsJestTransformCfg,
+  },
+  globals: {
+    'ts-jest': {
+      tsconfig: './tsconfig.json',
+    },
+  },
+  moduleFileExtensions: ['ts', 'js', 'json'],
+  clearMocks: true,
+  preset: 'ts-jest',
+  setupFilesAfterEnv: ['<rootDir>/src/__mocks__/prismaClient.ts'],
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
+    '^@config/(.*)$': '<rootDir>/src/config/$1',
+    '^@errors/(.*)$': '<rootDir>/src/errors/$1',
+    '^@routes/(.*)$': '<rootDir>/src/routes/$1',
+    '^@services/(.*)$': '<rootDir>/src/services/$1',
+    '^@utils/(.*)$': '<rootDir>/src/utils/$1',
+  },
+};

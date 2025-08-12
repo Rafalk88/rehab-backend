@@ -1,7 +1,7 @@
 {
   "name": "rehab-backend",
   "version": "0.2.0",
-  "description": "",
+  "description": "This repository contains the backend of the Rehabilitation Management System",
   "main": "index.js",
   "scripts": {
     "dev": "ts-node-dev src/index.ts",
@@ -10,8 +10,17 @@
     "test": "jest"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": {
+    "name": "Rafał Kochanecki",
+    "email": "rafal.kochanecki@gmail.com",
+    "url": "https://pl.linkedin.com/in/rafalkochanecki"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Rafalk88/rehab-backend"
+  },
+  "type": "module",
+  "license": "MIT",
   "dependencies": {
     "@prisma/client": "^6.13.0",
     "add": "^2.0.6",
@@ -45,6 +54,7 @@
     "eslint-plugin-prettier": "^5.5.4",
     "husky": "^9.1.7",
     "jest": "^30.0.5",
+    "jsdoc": "^4.0.4",
     "lint-staged": "^16.1.5",
     "nodemon": "^3.1.10",
     "prettier": "^3.6.2",

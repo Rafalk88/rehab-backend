@@ -63,3 +63,45 @@ This document outlines key design and architecture decisions for the rehab-backe
 - **Rationale**:
   Zod provides strong typings and detailed error reports.
   Centralizing validation reduces duplicated code and improves API robustness.
+
+## Decision 007 - Logging with Winston
+
+- **Date**: 2025-08-11
+- **Status**: Accepted
+- **Context**: Robust and configurable logging is needed for debugging, monitoring, and compliance with audit requirements.
+- **Decision**: Use Winston as the logging framework to provide structured, leveled logs supporting multiple transports (console, files).
+- **Rationale**: Winston is flexible, widely adopted, and integrates well with Node.js apps, enabling better observability and error tracking.
+
+## Decision 008 - Pre-commit hooks with Husky
+
+- **Date**: 2025-08-11
+- **Status**: Accepted
+- **Context**: Enforcing code quality and consistent commit messages before pushing code to the repo.
+- **Decision**: Use Husky to run pre-commit hooks for linting, tests, and commit message validation.
+- **Rationale**: Automated hooks reduce human error, ensure higher code quality, and streamline the development workflow.
+
+## Decision 009 - Use JSDoc for API and code documentation
+
+- **Date**: 2025-08-11
+- **Status**: Accepted
+- **Context**: Clear and maintainable codebase requires inline documentation and auto-generated docs.
+- **Decision**: Adopt JSDoc to document functions, types, and APIs, enabling generation of documentation and improving developer understanding.
+- **Rationale**: JSDoc is a well-known standard that integrates well with editors and tools, enhancing developer experience and onboarding.
+
+## Decision 007 - API Versioning Strategy
+
+- **Date**: 2025-08-11
+- **Status**: Accepted
+- **Context**: The API is expected to evolve over time with breaking changes and new features. Clients require stability and backward compatibility.
+- **Decision**:
+  We adopt **URI path versioning**, exposing versions as part of the API route (e.g., `/api/v1/...`).  
+  This approach is explicit, easy to implement, and simple for clients and developers to understand.  
+  Each major API version will be maintained separately in the codebase, allowing simultaneous support.  
+  Minor and patch changes within a version are backward compatible and do not require version bumping.  
+  Deprecation of older versions will be communicated clearly, with a grace period for clients to migrate.
+
+- **Rationale**:
+  - Clear visibility of API version for all requests.
+  - Simplifies routing and middleware logic.
+  - Enables simultaneous support for multiple API versions.
+  - Well-known and widely adopted pattern.
