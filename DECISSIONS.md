@@ -88,7 +88,7 @@ This document outlines key design and architecture decisions for the rehab-backe
 - **Decision**: Adopt JSDoc to document functions, types, and APIs, enabling generation of documentation and improving developer understanding.
 - **Rationale**: JSDoc is a well-known standard that integrates well with editors and tools, enhancing developer experience and onboarding.
 
-## Decision 007 - API Versioning Strategy
+## Decision 010 - API Versioning Strategy
 
 - **Date**: 2025-08-11
 - **Status**: Accepted
@@ -106,7 +106,7 @@ This document outlines key design and architecture decisions for the rehab-backe
   - Enables simultaneous support for multiple API versions.
   - Well-known and widely adopted pattern.
 
-## Decision 008 - NestJS as Backend Framework
+## Decision 011 - NestJS as Backend Framework
 
 - **Date**: 2025-08-15
 - **Status**: Accepted
