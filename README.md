@@ -1,14 +1,19 @@
 # Rehab Backend
 
+⚠️ **Project Status: Integration in Progress**  
+The backend is currently being migrated to **NestJS**.  
+At this stage, the codebase is **unstable and not fully functional**.  
+Do not use in production until the migration is completed and stabilized.
+
 This repository contains the backend of the Rehabilitation Management System.
 
 ## 🚀 Tech Stack
 
 - Node.js
 - TypeScript
+- NestJS (built on top of Express)
 - Prisma ORM
 - PostgreSQL
-- Express.js
 - JWT for authentication and session management
 - Zod for input validation
 - Husky
@@ -63,6 +68,7 @@ pnpm run dev
 
 ## 📖 Features
 
+- Modular architecture with NestJS (dependency injection, modules, guards, interceptors)
 - User authentication & authorization (JWT-based)
 - Role-based access control with permission overrides and organizational unit checks
 - User registration with GivenName and Surname deduplication
@@ -70,13 +76,13 @@ pnpm run dev
 - Audit logging for compliance and traceability
 - Input validation using Zod schemas
 - Permission caching for improved performance
-- Centralized error handling middleware
+- Centralized error handling (via NestJS exception filters)
 - Organizational unit and role management
 - Historical password storage (PasswordHistory)
 
-## 🧪 Testy
+## 🧪 Tests
 
-1. **Uruchom testy**
+1. **Run tests**
 
 ```bash
 pnpm test

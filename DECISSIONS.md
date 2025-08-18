@@ -105,3 +105,22 @@ This document outlines key design and architecture decisions for the rehab-backe
   - Simplifies routing and middleware logic.
   - Enables simultaneous support for multiple API versions.
   - Well-known and widely adopted pattern.
+
+## Decision 008 - NestJS as Backend Framework
+
+- **Date**: 2025-08-15
+- **Status**: Accepted
+- **Context**: The project requires a structured, maintainable, and scalable backend framework that supports modular architecture, dependency injection, and strong TypeScript integration. Express was considered too unopinionated, requiring more manual setup for common features like dependency injection, guards, interceptors, and decorators.
+- **Decision**:
+  Adopt **NestJS** as the main backend framework for the application.
+  - Provides opinionated but flexible architecture following SOLID principles.
+  - Built-in dependency injection system promotes testability and loose coupling.
+  - Decorators and modules improve readability and organization of features.
+  - Strong TypeScript support ensures type safety and better developer experience.
+  - Rich ecosystem of integrations (e.g., with GraphQL, WebSockets, microservices, Prisma, etc.).
+  - Compatible with existing Express middleware and ecosystem, enabling gradual migration and reuse.
+- **Rationale**:
+  - Improves maintainability of a growing codebase by enforcing a consistent project structure.
+  - Enhances productivity with out-of-the-box solutions for common concerns (validation, guards, interceptors).
+  - Provides flexibility to scale into microservices if needed in the future.
+  - Widely adopted and actively maintained, reducing long-term risk.
