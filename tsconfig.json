@@ -59,11 +59,8 @@
     // Wwn config
     "paths": {
       "@/*": ["./src/*"],
-      "@config/*": ["src/old code/config/*"],
-      "@errors/*": ["src/old code/errors/*"],
-      "@routes/*": ["./src/routes/*"],
-      "@services/*": ["src/old code/services/*"],
-      "@utils/*": ["src/lib/*"]
+      "@common/*": ["./src/common/*"],
+      "@lib/*": ["./src/lib/*"]
     }
   },
   "exclude": ["node_modules", "dist", "jest.config.mjs", "eslint.config.mjs"]

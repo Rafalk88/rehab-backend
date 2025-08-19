@@ -1,16 +1,16 @@
+import { AppError } from '@common/errors/app.error.js';
+import { verifyToken } from '@lib/jwt.util.js';
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { AppError } from '@/old code/errors/app.error.js';
-import { verifyToken } from '@/lib/jwt.util.js';
 import { Request, Response } from 'express';
 
 /**
- * Guard uwierzytelniający użytkownika na podstawie tokenu JWT.
+ * Guard that authenticates a user based on a JWT token.
  *
- * - Wymaga nagłówka `Authorization: Bearer <token>`.
- * - W przypadku braku lub niepoprawności tokenu zgłasza błąd `AppError` z kodem 401.
- * - Po poprawnej weryfikacji ustawia `req.session.userId`.
+ * - Requires the `Authorization: Bearer <token>` header.
+ * - Throws an `AppError` with a 401 status code if the token is missing or invalid.
+ * - On successful verification, sets `req.session.userId`.
  *
- * @param context Kontekst wykonania (zawiera obiekt żądania/odpowiedzi).
+ * @param context The execution context (contains the request/response objects).
  */
 @Injectable()
 export class AuthenticationGuard implements CanActivate {
@@ -20,28 +20,27 @@ export class AuthenticationGuard implements CanActivate {
 
     if (request.method === 'OPTIONS') {
       response.send({ message: 'Preflight check successful.' });
-      return false; // przerwanie obsługi dalszych guardów/kontrolera
+      return false; // stops further guards/controller
     }
 
-    const authHeader = request.headers.authorization;
-    if (!authHeader) {
-      throw new AppError('unauthorized', '`Authorization` header is required.');
-    }
+    const token = this.extractToken(request.headers.authorization);
+    request['session'] = { userId: verifyToken(token) };
+    return true; // allow access
+  }
 
-    if (!authHeader.startsWith('Bearer ')) {
+  /*
+   * Inside this block:
+   * - The JWT token has been validated.
+   * - `request.session.userId` is set and can be used by subsequent guards or controllers.
+   * - If any check fails, an AppError is thrown and further execution is stopped.
+   */
+  private extractToken(authHeader?: string): string {
+    if (!authHeader) throw new AppError('unauthorized', '`Authorization` header is required.');
+    if (!authHeader.startsWith('Bearer '))
       throw new AppError('unauthorized', 'Invalid access token.');
-    }
 
     const token = authHeader.split(' ')[1]?.trim();
-    if (!token) {
-      throw new AppError('unauthorized', 'Invalid access token.');
-    }
-
-    try {
-      request['session'] = { userId: verifyToken(token) };
-      return true; // pozwalamy wejść do kontrolera
-    } catch {
-      throw new AppError('validation', 'Invalid access token.');
-    }
+    if (!token) throw new AppError('unauthorized', 'Invalid access token.');
+    return token;
   }
 }
