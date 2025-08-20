@@ -1,11 +1,12 @@
 import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module.js';
+import { ValidationPipe } from '@nestjs/common';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import morgan from 'morgan';
 import express from 'express';
-import { HttpExceptionFilter } from './common/filters/http-exceptions.filter.js';
-import logger from './lib/logger.js';
+import { HttpExceptionFilter } from '@common/filters/http-exceptions.filter.js';
+import { AppModule } from './app.module.js';
+import logger from '@/lib/logger/winston.js';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -47,9 +48,23 @@ async function bootstrap() {
   app.use(express.json({ limit: '10kb' }));
   logger.info('Body parser with size limit 10kb enabled');
 
+  // Global validation (DTOs)
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true, // strip unknown fields
+      forbidNonWhitelisted: true, // extra fields blocked
+      transform: true, // automatic type transform e.g. string -> number
+    }),
+  );
+  logger.info('Global validation pipe enabled');
+
   // Global error filter
   app.useGlobalFilters(new HttpExceptionFilter());
   logger.info('Global error filter enabled');
+
+  // API prefix
+  app.setGlobalPrefix('api/v1');
+  logger.info('Global API prefix set to /api/v1');
 
   await app.listen(process.env.PORT || 3000);
 }

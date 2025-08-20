@@ -1,85 +1,48 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { Reflector } from '@nestjs/core';
 import { AppError } from '@common/errors/app.error.js';
-import { PermissionsCacheService } from '@common/cache/permissions-cache.service.js';
-import { PrismaService } from '@/prisma/prisma.service.js';
+import { PermissionsService } from '@modules/permissions/permissions.service.js';
 
+/**
+ * AuthorizationGuard
+ *
+ * A NestJS Guard responsible for enforcing permission checks
+ * before allowing access to route handlers.
+ */
 @Injectable()
 export class AuthorizationGuard implements CanActivate {
-  constructor(
-    private readonly reflector: Reflector,
-    private readonly cache: PermissionsCacheService,
-    private readonly prisma: PrismaService,
-  ) {}
+  constructor(private readonly permissionsService: PermissionsService = new PermissionsService()) {}
 
+  /**
+   * Validates whether the current user can access the route.
+   * @throws {AppError} If unauthorized or forbidden.
+   */
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
-    const userId = request.session?.userId;
+    const req = context.switchToHttp().getRequest();
+    const userId = req.session?.userId;
+    if (!userId) throw new AppError('unauthorized', 'Not authenticated');
 
-    if (!userId) {
-      throw new AppError('unauthorized', 'Not authenticated');
-    }
+    const requiredPermission = this.reflectPermission(context);
+    if (!requiredPermission) return true; // route without permissions (e.g. login, health-check)
 
-    const requiredPermission = this.reflector.get<string>('permission', context.getHandler());
+    const targetOrgId = req.params.orgId ?? req.body?.orgId;
 
-    if (!requiredPermission) {
-      return true; // no required permission -> we let it through (public access)
-    }
+    const hasAccess = await this.permissionsService.canAccess(
+      userId,
+      requiredPermission,
+      targetOrgId,
+    );
 
-    // check cache
-    let perms = await this.cache.get(userId);
-    let overrides: { permission: string; allowed: boolean }[] = [];
-    let orgIdFromDb: string | null = null;
+    if (!hasAccess) throw new AppError('forbidden', 'Insufficient permissions');
 
-    if (!perms) {
-      const user = await this.prisma.user.findUnique({
-        where: { id: userId },
-        include: {
-          userRoles: {
-            include: {
-              role: { include: { rolePermissions: true } },
-            },
-          },
-          userPermissions: true,
-        },
-      });
+    return true;
+  }
 
-      if (!user) {
-        throw new AppError('unauthorized', 'User not found');
-      }
-
-      perms = user.userRoles.flatMap((ur) =>
-        (ur.role.rolePermissions ?? []).map((rp) => rp.permission),
-      );
-      overrides = user.userPermissions ?? [];
-      orgIdFromDb = user.organizationalUnitId ?? null;
-
-      await this.cache.set(userId, perms);
-    } else {
-      overrides = await this.prisma.userPermission.findMany({ where: { userId } });
-      const userRow = await this.prisma.user.findUnique({
-        where: { id: userId },
-        select: { organizationalUnitId: true },
-      });
-      orgIdFromDb = userRow?.organizationalUnitId ?? null;
-    }
-
-    // check overrides
-    const override = overrides.find((o) => o.permission === requiredPermission);
-    if (override) {
-      if (override.allowed) return true;
-      throw new AppError('forbidden', 'Access explicitly denied');
-    }
-
-    // check roles
-    if (perms.includes(requiredPermission)) {
-      const targetOrgId = request.params.orgId ?? request.body?.orgId;
-      if (targetOrgId && orgIdFromDb && targetOrgId !== orgIdFromDb) {
-        throw new AppError('forbidden', 'Insufficient permissions for this organizational unit');
-      }
-      return true;
-    }
-
-    throw new AppError('forbidden', 'Insufficient permissions');
+  /**
+   * Reads required permission metadata from the route handler.
+   * In real app → use @SetMetadata('permission', 'value')
+   */
+  private reflectPermission(context: ExecutionContext): string | undefined {
+    const handler = context.getHandler();
+    return Reflect.getMetadata('permission', handler);
   }
 }

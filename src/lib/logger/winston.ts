@@ -3,7 +3,7 @@ import 'winston-daily-rotate-file';
 
 const { combine, timestamp, printf, errors, colorize } = winston.format;
 
-// Format logów, który pokazuje czas, poziom i komunikat oraz stack błędu jeśli jest
+// Log form: time, level, message, stack trace
 const logFormat = printf(({ level, message, timestamp, stack }) => {
   return `${timestamp} [${level}]: ${stack || message}`;
 });
@@ -11,27 +11,23 @@ const logFormat = printf(({ level, message, timestamp, stack }) => {
 const transport = new winston.transports.DailyRotateFile({
   filename: 'logs/application-%DATE%.log',
   datePattern: 'YYYY-MM-DD',
-  maxFiles: '14d', // zachowuj logi z ostatnich 14 dni
-  zippedArchive: true, // kompresuj starsze pliki
-  maxSize: '20m', // maksymalny rozmiar pliku 20MB
+  maxFiles: '14d', // keep logs 14 days
+  zippedArchive: true,
+  maxSize: '20m',
 });
 
-const logger = winston.createLogger({
+const winstonLogger = winston.createLogger({
   level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-  format: combine(
-    timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
-    errors({ stack: true }), // obsługa stack trace błędów
-    logFormat,
-  ),
+  format: combine(timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), errors({ stack: true }), logFormat),
   transports: [
     transport,
     new winston.transports.Console({
-      format: combine(colorize(), logFormat), // kolorowa konsola w devie
+      format: combine(colorize(), logFormat),
     }),
   ],
   exitOnError: false,
 });
 
-logger.info('Logger initialized');
+winstonLogger.info('Logger initialized');
 
-export default logger;
+export default winstonLogger;
