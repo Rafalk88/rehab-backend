@@ -6,14 +6,18 @@ import morgan from 'morgan';
 import express from 'express';
 import { HttpExceptionFilter } from '@common/filters/http-exceptions.filter.js';
 import { AppModule } from './app.module.js';
-import logger from '@/lib/logger/winston.js';
+import { LoggerService } from '@lib/logger/logger.service.js';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create(AppModule, {
+    bufferLogs: true,
+  });
+
+  const logger = app.get(LoggerService);
 
   // Helmet
   app.use(helmet());
-  logger.info('Helmet middleware enabled');
+  logger.log('Helmet middleware enabled');
 
   // CORS
   const allowedOrigins = [process.env.FRONTEND_URL || 'http://localhost:3000'];
@@ -27,7 +31,7 @@ async function bootstrap() {
     },
     credentials: true,
   });
-  logger.info(`CORS configured for origins: ${allowedOrigins.join(', ')}`);
+  logger.log(`CORS configured for origins: ${allowedOrigins.join(', ')}`);
 
   // Rate limit
   app.use(
@@ -38,15 +42,15 @@ async function bootstrap() {
       legacyHeaders: false,
     }),
   );
-  logger.info('Rate limiting middleware enabled');
+  logger.log('Rate limiting middleware enabled');
 
   // Request logging
   app.use(morgan('combined'));
-  logger.info('Morgan middleware enabled for HTTP request logging');
+  logger.log('Morgan middleware enabled for HTTP request logging');
 
   // JSON body parser limit
   app.use(express.json({ limit: '10kb' }));
-  logger.info('Body parser with size limit 10kb enabled');
+  logger.log('Body parser with size limit 10kb enabled');
 
   // Global validation (DTOs)
   app.useGlobalPipes(
@@ -56,15 +60,15 @@ async function bootstrap() {
       transform: true, // automatic type transform e.g. string -> number
     }),
   );
-  logger.info('Global validation pipe enabled');
+  logger.log('Global validation pipe enabled');
 
   // Global error filter
   app.useGlobalFilters(new HttpExceptionFilter());
-  logger.info('Global error filter enabled');
+  logger.log('Global error filter enabled');
 
   // API prefix
   app.setGlobalPrefix('api/v1');
-  logger.info('Global API prefix set to /api/v1');
+  logger.log('Global API prefix set to /api/v1');
 
   await app.listen(process.env.PORT || 3000);
 }
