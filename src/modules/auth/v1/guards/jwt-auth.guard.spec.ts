@@ -1,8 +1,7 @@
-// tests/auth/jwt-auth.guard.spec.ts
 import { ExecutionContext } from '@nestjs/common';
 import { JwtAuthGuard } from '@modules/auth/v1/guards/jwt-auth.guard.js';
 import { JwtStrategy } from '@modules/auth/v1/strategies/jwt.strategy.js';
-import type { HttpArgumentsHost } from '@nestjs/common/';
+import { HttpArgumentsHost } from '@nestjs/common/interfaces/index.js';
 
 describe('JwtStrategy', () => {
   let strategy: JwtStrategy;
@@ -23,12 +22,9 @@ describe('JwtAuthGuard', () => {
   let mockContext: Partial<ExecutionContext>;
 
   const createHttpArgsHost = (user?: any): HttpArgumentsHost => ({
-    getRequest: () => ({
-      user,
-      headers: {},
-    }),
-    getResponse: () => ({}),
-    getNext: () => ({}),
+    getRequest: <T>() => ({ user, headers: {} }) as T,
+    getResponse: <T>() => ({}) as T,
+    getNext: <T>() => ({}) as T,
   });
 
   beforeEach(() => {
