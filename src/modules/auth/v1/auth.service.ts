@@ -3,6 +3,7 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '@/prisma/prisma.service.js';
 import { hashPassword } from '@lib/password.util.js';
 import { AuthHelpers } from './helpers/auth.helpers.js';
+import { DbLoggerService } from '@lib/DbLoggerService.js';
 
 /**
  * AuthService
@@ -38,6 +39,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
     private readonly helpers: AuthHelpers,
+    private readonly dbLogger: DbLoggerService,
   ) {}
 
   /**
@@ -64,13 +66,16 @@ export class AuthService {
    * // login: 'jdoe'
    * ```
    */
-  async registerUser(userData: {
-    firstName: string;
-    surname: string;
-    sexId?: string;
-    organizationalUnitId?: string;
-    password: string;
-  }) {
+  async registerUser(
+    userData: {
+      firstName: string;
+      surname: string;
+      sexId?: string;
+      organizationalUnitId?: string;
+      password: string;
+    },
+    ipAddress?: string,
+  ) {
     const { firstName, surname, sexId, organizationalUnitId, password } = userData;
 
     const firstNameEntry = await this.helpers.getOrCreateFirstName(firstName);
@@ -90,6 +95,15 @@ export class AuthService {
         organizationalUnitId: organizationalUnitId ?? null,
         mustChangePassword: true,
       },
+    });
+
+    await this.dbLogger.logAction({
+      userId: user.id,
+      action: 'register',
+      actionDetails: `User registered with login ${login}`,
+      entityType: 'User',
+      entityId: user.id,
+      ipAddress: ipAddress ?? 'system',
     });
 
     return { user, login };
@@ -120,9 +134,17 @@ export class AuthService {
    * // }
    * ```
    */
-  async loginUser(login: string, password: string) {
+  async loginUser(login: string, password: string, ipAddress?: string) {
     const user = await this.prisma.user.findUnique({ where: { login } });
     if (!user) {
+      await this.dbLogger.logAction({
+        userId: 'unknown',
+        action: 'login_failed',
+        actionDetails: `Failed login attempt for ${login}`,
+        entityType: 'User',
+        entityId: 'unknown',
+        ipAddress: ipAddress ?? 'system',
+      });
       throw new UnauthorizedException('Invalid login or password');
     }
 
@@ -144,9 +166,47 @@ export class AuthService {
 
     await this.helpers.updateLoginSuccess(user.id);
 
+    await this.dbLogger.logAction({
+      userId: user.id,
+      action: 'login',
+      actionDetails: `User logged in successfully`,
+      entityType: 'User',
+      entityId: user.id,
+      ipAddress: ipAddress ?? 'system',
+    });
+
     const payload = { sub: user.id, email: user.email };
     return {
       access_token: this.jwtService.sign(payload),
     };
+  }
+
+  /**
+   * Logs out a user by recording the action in the operation log.
+   *
+   * In medical systems, logout actions are critical for auditing purposes.
+   * This does not delete or deactivate the user account, but ensures
+   * that all logins and logouts are traceable.
+   *
+   * @param userId - The ID of the user who is logging out
+   * @returns Confirmation message
+   * @throws UnauthorizedException if the user does not exist
+   */
+  async logoutUser(userId: string) {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new UnauthorizedException('Invalid user');
+    }
+
+    // Record logout in operation log for auditing
+    await this.dbLogger.logAction({
+      userId,
+      action: 'logout',
+      actionDetails: `User ${user.login} logged out`,
+      entityType: 'User',
+      entityId: user.id,
+    });
+
+    return { message: 'Successfully logged out' };
   }
 }

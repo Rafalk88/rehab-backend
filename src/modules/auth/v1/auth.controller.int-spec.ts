@@ -4,7 +4,6 @@ import request from 'supertest';
 import { AuthModule } from '@modules/auth/v1/auth.module.js';
 import { PrismaService } from '@/prisma/prisma.service.js';
 
-// 🔹 mock Prisma, żeby nie dotykać prawdziwej bazy
 const prismaMock = {
   user: {
     create: jest.fn(),
@@ -47,6 +46,7 @@ describe('AuthController (integration)', () => {
 
       const res = await request(app.getHttpServer())
         .post('/auth/register')
+        .set('x-forwarded-for', '127.0.0.1') // symulacja IP
         .send({ firstName: 'John', surname: 'Doe', password: 'Secret123' })
         .expect(201);
 
@@ -78,10 +78,32 @@ describe('AuthController (integration)', () => {
 
       const res = await request(app.getHttpServer())
         .post('/auth/login')
+        .set('x-forwarded-for', '127.0.0.1') // IP
         .send({ login: 'jdoe', password: 'Secret123' })
         .expect(201);
 
       expect(res.body).toHaveProperty('access_token');
+    });
+  });
+
+  describe('/auth/logout (POST)', () => {
+    it('should logout a user successfully', async () => {
+      // symulujemy sesję z userId
+      const fakeSessionMiddleware = (req, _res, next) => {
+        req.session = { userId: 'user-1' };
+        next();
+      };
+      app.use(fakeSessionMiddleware);
+
+      const res = await request(app.getHttpServer()).post('/auth/logout').expect(201);
+
+      expect(res.body).toEqual({ message: 'Logged out successfully' });
+    });
+
+    it('should return message if no user logged in', async () => {
+      const res = await request(app.getHttpServer()).post('/auth/logout').expect(201);
+
+      expect(res.body).toEqual({ message: 'No user logged in' });
     });
   });
 });

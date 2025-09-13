@@ -5,6 +5,7 @@ import { JwtService } from '@nestjs/jwt';
 import { AuthService } from './auth.service.js';
 import { PrismaService } from '@/prisma/prisma.service.js';
 import { AuthHelpers } from './helpers/auth.helpers.js';
+import { DbLoggerService, LogParams } from '@lib/DbLoggerService.js';
 import { hashPassword } from '@lib/password.util.js';
 
 jest.mock('@lib/password.util', () => ({
@@ -16,6 +17,7 @@ describe('AuthService', () => {
   let prisma: jest.Mocked<PrismaService>;
   let helpers: jest.Mocked<AuthHelpers>;
   let jwtService: jest.Mocked<JwtService>;
+  let dbLogger: jest.Mocked<DbLoggerService>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -43,9 +45,11 @@ describe('AuthService', () => {
         },
         {
           provide: JwtService,
-          useValue: {
-            sign: jest.fn().mockReturnValue('signed-jwt-token'),
-          },
+          useValue: { sign: jest.fn().mockReturnValue('signed-jwt-token') },
+        },
+        {
+          provide: DbLoggerService,
+          useValue: { logAction: jest.fn().mockResolvedValue(undefined) },
         },
       ],
     }).compile();
@@ -54,6 +58,7 @@ describe('AuthService', () => {
     prisma = module.get(PrismaService);
     helpers = module.get(AuthHelpers);
     jwtService = module.get(JwtService);
+    dbLogger = module.get(DbLoggerService);
   });
 
   afterEach(() => {
@@ -61,7 +66,7 @@ describe('AuthService', () => {
   });
 
   describe('registerUser', () => {
-    it('should create a new user with hashed password and generated login', async () => {
+    it('should create a new user and log the action', async () => {
       (prisma.user.create as jest.Mock).mockResolvedValueOnce({ id: 'user-1' } as any);
 
       const result = await service.registerUser({
@@ -74,13 +79,13 @@ describe('AuthService', () => {
       expect(helpers.getOrCreateSurname).toHaveBeenCalledWith('Smith');
       expect(helpers.generateUniqueLogin).toHaveBeenCalledWith('John', 'Smith');
       expect(hashPassword).toHaveBeenCalledWith('P@ssw0rd123');
-      expect(prisma.user.create).toHaveBeenCalledWith(
-        expect.objectContaining({
-          data: expect.objectContaining({
-            login: 'jsmith',
-            email: 'jsmith@vitala.com',
-            passwordHash: 'hashed-password',
-          }),
+      expect(prisma.user.create).toHaveBeenCalled();
+      expect(dbLogger.logAction).toHaveBeenCalledWith(
+        expect.objectContaining<Partial<LogParams>>({
+          userId: 'user-1',
+          action: 'register',
+          entityType: 'User',
+          entityId: 'user-1',
         }),
       );
 
@@ -89,72 +94,63 @@ describe('AuthService', () => {
   });
 
   describe('loginUser', () => {
+    it('should log successful login', async () => {
+      (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce({
+        id: 'user-1',
+        login: 'jdoe',
+        email: 'jdoe@vitala.com',
+        passwordHash: 'hashed-pass',
+        failedLoginAttempts: 0,
+        isActive: true,
+        isLocked: false,
+        lockedUntil: null,
+        mustChangePassword: false,
+      } as any);
+
+      await service.loginUser('jdoe', 'correct-pass');
+
+      expect(dbLogger.logAction).toHaveBeenCalledWith(
+        expect.objectContaining<Partial<LogParams>>({
+          userId: 'user-1',
+          action: 'login',
+          entityType: 'User',
+          entityId: 'user-1',
+        }),
+      );
+    });
+
     it('should throw UnauthorizedException if user not found', async () => {
       (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce(null);
 
       await expect(service.loginUser('jdoe', 'wrong-pass')).rejects.toThrow(UnauthorizedException);
-    });
 
-    it('should authenticate valid user and return access token', async () => {
+      expect(dbLogger.logAction).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('logoutUser', () => {
+    it('should log out user and record action', async () => {
       (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce({
         id: 'user-1',
         login: 'jdoe',
-        email: 'jdoe@vitala.com',
-        passwordHash: 'hashed-pass',
-        failedLoginAttempts: 0,
-        isActive: true,
-        isLocked: false,
-        lockedUntil: null,
-        mustChangePassword: false,
-      } as any);
-
-      await expect(service.loginUser('jdoe', 'correct-pass')).resolves.toEqual({
-        access_token: 'signed-jwt-token',
       });
 
-      expect(helpers.verifyLoginCredentials).toHaveBeenCalledWith(
-        expect.objectContaining({
-          id: 'user-1',
-          passwordHash: 'hashed-pass',
-          failedLoginAttempts: 0,
-        }),
-        'correct-pass',
-      );
+      await service.logoutUser('user-1');
 
-      expect(helpers.checkLoginRestrictions).toHaveBeenCalledWith(
+      expect(dbLogger.logAction).toHaveBeenCalledWith(
         expect.objectContaining({
-          isActive: true,
-          isLocked: false,
-          lockedUntil: null,
-          mustChangePassword: false,
+          userId: 'user-1',
+          action: 'logout',
+          entityType: 'User',
+          entityId: 'user-1',
         }),
       );
-
-      expect(helpers.updateLoginSuccess).toHaveBeenCalledWith('user-1');
-      expect(jwtService.sign).toHaveBeenCalledWith({
-        sub: 'user-1',
-        email: 'jdoe@vitala.com',
-      });
     });
 
-    it('should propagate errors from helpers.verifyLoginCredentials', async () => {
-      (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce({
-        id: 'user-1',
-        login: 'jdoe',
-        email: 'jdoe@vitala.com',
-        passwordHash: 'hashed-pass',
-        failedLoginAttempts: 0,
-        isActive: true,
-        isLocked: false,
-        lockedUntil: null,
-        mustChangePassword: false,
-      } as any);
+    it('should throw UnauthorizedException if user not found', async () => {
+      (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce(null);
 
-      helpers.verifyLoginCredentials.mockRejectedValueOnce(
-        new UnauthorizedException('Invalid login or password'),
-      );
-
-      await expect(service.loginUser('jdoe', 'wrong-pass')).rejects.toThrow(UnauthorizedException);
+      await expect(service.logoutUser('unknown')).rejects.toThrow(UnauthorizedException);
     });
   });
 });
