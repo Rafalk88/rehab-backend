@@ -7,7 +7,13 @@
     "dev": "ts-node-dev src/index.ts",
     "build": "tsc",
     "start": "node build/index.js",
-    "test": "echo \"Tests temporarily disabled\""
+    "test": "jest",
+    "test:unit": "jest --config jest.config.mjs",
+    "test:int": "jest --config jest.int.config.mjs",
+    "test:watch": "jest --watch",
+    "test:cov": "jest --coverage",
+    "lint": "eslint 'src/**/*.ts' --fix",
+    "format": "prettier --write 'src/**/*.ts'"
   },
   "keywords": [],
   "author": {
@@ -81,7 +87,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged"
+      "pre-commit": "lint-staged && npm run test:unit"
     }
   },
   "lint-staged": {
