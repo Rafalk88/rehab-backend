@@ -42,6 +42,8 @@ model User {
   passwordOwnerHistory  PasswordHistory[]    @relation("PasswordOwner")
   passwordChangerHistory PasswordHistory[]   @relation("PasswordChanger")
   operationLogs         OperationLog[]
+  refreshTokens         RefreshToken[]
+  blacklistedTokens     BlacklistedToken[]
 }
 
 model GivenName {
@@ -163,4 +165,25 @@ model OperationLog {
   ipAddress     String   @map("ip_address")
 
   user          User     @relation(fields: [userId], references: [id])
+}
+
+model RefreshToken {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @db.Uuid @map("user_id")
+  tokenHash  String   @map("token_hash") @unique
+  expiresAt  DateTime @map("expires_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+  revoked    Boolean  @default(false)
+
+  user       User     @relation(fields: [userId], references: [id])
+}
+
+model BlacklistedToken {
+  id         String   @id @default(uuid()) @db.Uuid
+  jti        String   @unique
+  userId     String   @db.Uuid @map("user_id")
+  expiredAt  DateTime @map("expired_at")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  user       User     @relation(fields: [userId], references: [id])
 }
