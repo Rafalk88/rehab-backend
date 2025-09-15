@@ -1,9 +1,12 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '@/prisma/prisma.service.js';
-import { hashPassword } from '@lib/password.util.js';
+import { hashPassword, verifyPassword } from '@lib/password.util.js';
 import { AuthHelpers } from './helpers/auth.helpers.js';
 import { DbLoggerService } from '@lib/DbLoggerService.js';
+import { AppError } from '@common/errors/app.error.js';
+
+const SEVEN_DAYS_IN_MS = 7 * 24 * 60 * 60 * 1000;
 
 /**
  * AuthService
@@ -78,12 +81,16 @@ export class AuthService {
   ) {
     const { firstName, surname, sexId, organizationalUnitId, password } = userData;
 
+    // 1️⃣ Create / get first name and surname
     const firstNameEntry = await this.helpers.getOrCreateFirstName(firstName);
     const surnameEntry = await this.helpers.getOrCreateSurname(surname);
+
+    // 2️⃣ Generate login, email, password hash
     const login = await this.helpers.generateUniqueLogin(firstName, surname);
     const email = `${login}@vitala.com`;
     const passwordHash = await hashPassword(password);
 
+    // 3️⃣ Create user in DB
     const user = await this.prisma.user.create({
       data: {
         login,
@@ -97,6 +104,7 @@ export class AuthService {
       },
     });
 
+    // 4️⃣ Log registration
     await this.dbLogger.logAction({
       userId: user.id,
       action: 'register',
@@ -106,7 +114,121 @@ export class AuthService {
       ipAddress: ipAddress ?? 'system',
     });
 
-    return { user, login };
+    // 5️⃣ Generate tokens
+    const payload = { sub: user.id, email: user.email };
+    const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
+
+    const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+    const hashedRefreshToken = await hashPassword(refreshToken);
+
+    // 6️⃣ Save refresh token in DB
+    await this.prisma.refreshToken.create({
+      data: {
+        userId: user.id,
+        tokenHash: hashedRefreshToken,
+        expiresAt: new Date(Date.now() + SEVEN_DAYS_IN_MS),
+      },
+    });
+
+    // 7️⃣ Return user + tokens
+    return {
+      user,
+      login,
+      access_token: accessToken,
+      refresh_token: refreshToken,
+    };
+  }
+
+  /**
+   * Refreshes access and refresh tokens for a user.
+   *
+   * This method:
+   * - Verifies the provided refresh token against stored hashed tokens in the database.
+   * - Rejects the request if the token is invalid, expired, or blacklisted.
+   * - Moves the old refresh token to the BlacklistedToken table for audit and security.
+   * - Deletes the old refresh token from the refreshToken table.
+   * - Generates a new access token (short-lived) and a new refresh token (long-lived).
+   * - Hashes the new refresh token and stores it in the refreshToken table with an expiration date.
+   *
+   * @param providedToken - The refresh token provided by the client.
+   * @returns An object containing:
+   *   - `access_token`: newly signed JWT access token.
+   *   - `refresh_token`: newly generated refresh token.
+   *
+   * @throws AppError with type 'unauthorized' if the token is invalid, expired, or blacklisted.
+   *
+   * @example
+   * const tokens = await authService.refreshTokens(existingRefreshToken);
+   * // {
+   * //   access_token: 'eyJhbGciOiJIUzI1NiIsInR...',
+   * //   refresh_token: 'eyJhbGciOiJIUzI1NiIsInR...'
+   * // }
+   */
+  async refreshTokens(providedToken: string) {
+    // 1️⃣ Find all non-expired tokens
+    const tokens = await this.prisma.refreshToken.findMany({
+      where: { expiresAt: { gt: new Date() } },
+      include: { user: true },
+    });
+
+    // 2️⃣ Find matching token
+    let tokenEntry: (typeof tokens)[number] | null = null;
+    for (const t of tokens) {
+      const isValid = await verifyPassword(providedToken, t.tokenHash);
+      if (isValid) {
+        tokenEntry = t;
+        break;
+      }
+    }
+
+    if (!tokenEntry) {
+      throw new AppError('unauthorized', 'Refresh token expired or invalid');
+    }
+
+    const user = tokenEntry.user;
+
+    // 3️⃣ Check if token is already blacklisted
+    const blacklisted = await this.prisma.blacklistedToken.findUnique({
+      where: { jti: tokenEntry.id },
+    });
+
+    if (blacklisted) {
+      throw new AppError('unauthorized', 'Refresh token has been revoked');
+    }
+
+    // 4️⃣ Generate new access token
+    const payload = { sub: user.id, email: user.email };
+    const newAccessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
+
+    // 5️⃣ Generate new refresh token, hash it
+    const newRefreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+    const newTokenHash = await hashPassword(newRefreshToken);
+
+    // 6️⃣ Move old refresh token to Blacklist instead of deleting
+    await this.prisma.blacklistedToken.create({
+      data: {
+        jti: tokenEntry.id,
+        userId: user.id,
+        expiredAt: tokenEntry.expiresAt,
+      },
+    });
+
+    // 7️⃣ Clear old refresh token
+    await this.prisma.refreshToken.delete({ where: { id: tokenEntry.id } });
+
+    // 8️⃣ Save new refresh token
+    await this.prisma.refreshToken.create({
+      data: {
+        userId: user.id,
+        tokenHash: newTokenHash,
+        expiresAt: new Date(Date.now() + SEVEN_DAYS_IN_MS),
+      },
+    });
+
+    return {
+      access_token: newAccessToken,
+      refresh_token: newRefreshToken,
+    };
   }
 
   /**
@@ -145,7 +267,7 @@ export class AuthService {
         entityId: 'unknown',
         ipAddress: ipAddress ?? 'system',
       });
-      throw new UnauthorizedException('Invalid login or password');
+      throw new AppError('unauthorized', 'Invalid login or password');
     }
 
     await this.helpers.verifyLoginCredentials(
@@ -182,24 +304,61 @@ export class AuthService {
   }
 
   /**
-   * Logs out a user by recording the action in the operation log.
+   * Logs out a user by invalidating the provided refresh token.
    *
-   * In medical systems, logout actions are critical for auditing purposes.
-   * This does not delete or deactivate the user account, but ensures
-   * that all logins and logouts are traceable.
+   * This method:
+   * - Finds the provided refresh token in the database,
+   * - Verifies it and ensures it is not expired,
+   * - Moves the token to the BlacklistedToken table for future checks,
+   * - Deletes the original refresh token from the DB,
+   * - Logs the logout action for auditing purposes.
    *
-   * @param userId - The ID of the user who is logging out
-   * @returns Confirmation message
-   * @throws UnauthorizedException if the user does not exist
+   * @param refreshToken - The refresh token provided by the client for logout.
+   * @param ipAddress - Optional IP address from which the logout is performed.
+   * @returns Confirmation message.
+   *
+   * @example
+   * const result = await authService.logoutUser(refreshToken, '192.168.1.1');
+   * // { message: 'Successfully logged out' }
+   *
+   * @throws UnauthorizedException if the token is already invalid or expired.
    */
-  async logoutUser(userId: string, ipAddress?: string) {
-    const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) {
-      throw new UnauthorizedException('Invalid user');
+  async logoutUser(refreshToken: string, ipAddress?: string) {
+    // 1️⃣ Find the refresh token entry in DB
+    const tokens = await this.prisma.refreshToken.findMany({
+      where: { expiresAt: { gt: new Date() } },
+      include: { user: true },
+    });
+
+    let tokenEntry: (typeof tokens)[number] | null = null;
+    for (const t of tokens) {
+      if (await verifyPassword(refreshToken, t.tokenHash)) {
+        tokenEntry = t;
+        break;
+      }
     }
 
+    if (!tokenEntry) {
+      throw new AppError('unauthorized', 'Token already invalidated or expired');
+    }
+
+    const user = tokenEntry.user;
+
+    // 2️⃣ Add token to Blacklist
+    await this.prisma.blacklistedToken.create({
+      data: {
+        jti: tokenEntry.id,
+        userId: user.id,
+        expiredAt: tokenEntry.expiresAt,
+      },
+    });
+
+    // 3️⃣ Delete original refresh token
+    await this.prisma.refreshToken.delete({ where: { id: tokenEntry.id } });
+
+    // 4️⃣ Log the logout action
     await this.dbLogger.logAction({
-      userId,
+      userId: user.id,
       action: 'logout',
       actionDetails: `User ${user.login} logged out`,
       entityType: 'User',

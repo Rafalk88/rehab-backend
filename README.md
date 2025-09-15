@@ -1,39 +1,34 @@
 # Rehab Backend
 
-⚠️ **Project Status: Integration in Progress**  
-The backend is currently being migrated to **NestJS**.  
-At this stage, the codebase is **unstable and not fully functional**.  
-Do not use in production until the migration is completed and stabilized.
-
-This repository contains the backend of the Rehabilitation Management System.
+⚡ **Project Status: Active Development**
+The codebase represents the current, stable architecture for the Rehabilitation Management System.
 
 ## 🚀 Tech Stack
 
 - Node.js
 - TypeScript
-- NestJS (built on top of Express)
+- NestJS (modular, dependency-injection-based architecture)
 - Prisma ORM
 - PostgreSQL
-- JWT for authentication and session management
+- JWT for authentication (access + refresh tokens)
 - Zod for input validation
-- Husky
-- Winston
+- Husky (pre-commit hooks)
+- Winston (structured logging)
 - REST API
 
 ## 📂 Project Structure
 
 ```bash
 src/
-├── __mocks__/ # Mocks for testing purposes
-├── config/ # Configuration (e.g. environment, Prisma client)
-├── errors/ # Handle global errors in app
-├── middlewares/ # Global and route-specific middlewares (authentication, authorization, validation, error handling)
-├── prisma/ # Prisma schema and migrations
-├── services/ # Service layer (e.g. authService)
-├── utils/ # Reusable utilities and classes (AppError, JWT utils, cache utils)
-├── app.ts # Express app setup
-├── index.ts # Server listener
-env # env variables
+├── common/ # Shared utilities, decorators, filters, guards, pipes, and interfaces used across modules
+├── lib/ # Reusable libraries or helpers (e.g., logger, JWT utils, password hashing)
+├── modules/ # Feature-specific modules (e.g., auth, users, roles)
+├── prisma/ # Prisma schema, migrations, and generated client
+├── app.controller.ts # Root application controller (optional, can handle basic health checks or default routes)
+├── app.module.ts # Root application module, imports feature modules and configures providers
+├── app.service.ts # Root application service, typically contains shared logic for the app
+├── main.ts # Application entry point, bootstrap NestJS server
+env # Environment variable configuration file
 ```
 
 ## 🛠️ Setup
@@ -68,17 +63,18 @@ pnpm run dev
 
 ## 📖 Features
 
-- Modular architecture with NestJS (dependency injection, modules, guards, interceptors)
-- User authentication & authorization (JWT-based)
+- Modular NestJS architecture (controllers, modules, services, guards)
+- JWT authentication with access + refresh tokens and DB persistence
+- Secure logout with refresh token invalidation / blacklist
 - Role-based access control with permission overrides and organizational unit checks
-- User registration with GivenName and Surname deduplication
-- Password reset and change system (admin-managed)
-- Audit logging for compliance and traceability
-- Input validation using Zod schemas
-- Permission caching for improved performance
-- Centralized error handling (via NestJS exception filters)
-- Organizational unit and role management
+- User registration with GivenName and Surname normalization
+- Admin-managed password reset and must-change-password enforcement
+- Audit logging for all critical operations
+- Input validation using Zod
+- Permission caching for performance
+- Centralized error handling via NestJS exception filters
 - Historical password storage (PasswordHistory)
+- Operation logs for compliance and traceability
 
 ## 🧪 Tests
 

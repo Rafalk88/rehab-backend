@@ -2,6 +2,8 @@
 
 This document provides an overview of the database models used in the rehab-backend.
 
+---
+
 ## 👤 User
 
 Main user table. Contains authentication, personal data, and relations.
@@ -26,6 +28,9 @@ Main user table. Contains authentication, personal data, and relations.
 - `passwordOwnerHistory`: PasswordHistory (passwords owned by user)
 - `passwordChangerHistory`: PasswordHistory (passwords changed by user)
 - `operationLogs`: OperationLog (actions performed by user)
+- `refreshTokens`: list of UserRefreshToken (active refresh tokens per user)
+
+---
 
 ## 📛 GivenName & Surname
 
@@ -40,6 +45,8 @@ Normalized tables for first names and surnames to reduce redundancy and enable r
 ### Relations
 
 - linked to multiple Users
+
+---
 
 ## 🏢 OrganizationalUnit
 
@@ -56,9 +63,11 @@ Defines organizational units such as departments or locations.
 
 - linked to multiple Users
 
+---
+
 ## ⚧️ Sex
 
-- Defines gender enumeration.
+Defines gender enumeration.
 
 ### Fields
 
@@ -69,6 +78,8 @@ Defines organizational units such as departments or locations.
 ### Relations
 
 - linked to multiple Users
+
+---
 
 ## 🔐 Role & UserRole
 
@@ -93,6 +104,8 @@ Role-based access control (RBAC) implementation.
 - `role_id`
 - `permission`: string permission name
 
+---
+
 ## 🔑 UserPermission
 
 Explicit permission overrides per user.
@@ -103,6 +116,8 @@ Explicit permission overrides per user.
 - `user_id`
 - `permission`: string
 - `allowed`: boolean (true = allow, false = deny)
+
+---
 
 ## 🔄 PasswordHistory
 
@@ -115,6 +130,8 @@ Tracks password changes over time.
 - `password_hash`
 - `changed_at`: timestamp
 - `changed_by`: user who changed the password
+
+---
 
 ## 📝 OperationLog
 
@@ -132,3 +149,41 @@ Audit logging of user actions.
 - `entity_type`: string (affected entity)
 - `entity_id`: string (affected entity id)
 - `ip_address`: string (source IP)
+
+---
+
+## 🔑 UserRefreshToken
+
+Stores refresh tokens per user for session management.
+
+### Fields
+
+- `id`: UUID, primary key
+- `user_id`: foreign key to User
+- `token`: hashed refresh token
+- `ip_address`: string (where the token was issued)
+- `user_agent`: string (optional, browser/device info)
+- `expires_at`: DateTime (when token becomes invalid)
+- `revoked_at`: DateTime? (null if active, otherwise timestamp of revocation)
+- Audit fields: `created_at`, `updated_at`
+
+### Relations
+
+- Belongs to one User
+
+---
+
+## 🚫 BlacklistedToken (optional, if implemented)
+
+Stores invalidated access tokens for early rejection before expiry.
+
+### Fields
+
+- `id`: UUID, primary key
+- `token`: hashed access token
+- `user_id`: foreign key to User
+- `revoked_at`: DateTime
+- `reason`: string (e.g., "logout", "compromised")
+- `ip_address`: string (source IP)
+
+---

@@ -1,13 +1,19 @@
 {
   "name": "rehab-backend",
-  "version": "0.2.0",
+  "version": "0.4.0",
   "description": "This repository contains the backend of the Rehabilitation Management System",
   "main": "index.js",
   "scripts": {
     "dev": "ts-node-dev src/index.ts",
     "build": "tsc",
     "start": "node build/index.js",
-    "test": "echo \"Tests temporarily disabled\""
+    "test": "echo \"Testy są jeszcze wyłączone\"",
+    "test:unit": "echo \"Testy są jeszcze wyłączone\"",
+    "test:int": "echo \"Testy są jeszcze wyłączone\"",
+    "test:watch": "echo \"Testy są jeszcze wyłączone\"",
+    "test:cov": "echo \"Testy są jeszcze wyłączone\"",
+    "lint": "eslint 'src/**/*.ts' --fix",
+    "format": "prettier --write 'src/**/*.ts'"
   },
   "keywords": [],
   "author": {
@@ -81,7 +87,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged"
+      "pre-commit": "lint-staged && npm run test:unit"
     }
   },
   "lint-staged": {

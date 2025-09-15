@@ -1,15 +1,14 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-
 import { AuthService } from './auth.service.js';
 import { PrismaService } from '@/prisma/prisma.service.js';
 import { AuthHelpers } from './helpers/auth.helpers.js';
 import { DbLoggerService, LogParams } from '@lib/DbLoggerService.js';
-import { hashPassword } from '@lib/password.util.js';
+import { hashPassword, verifyPassword } from '@lib/password.util.js';
 
 jest.mock('@lib/password.util', () => ({
   hashPassword: jest.fn().mockResolvedValue('hashed-password'),
+  verifyPassword: jest.fn(),
 }));
 
 describe('AuthService', () => {
@@ -26,10 +25,9 @@ describe('AuthService', () => {
         {
           provide: PrismaService,
           useValue: {
-            user: {
-              create: jest.fn(),
-              findUnique: jest.fn(),
-            },
+            user: { create: jest.fn(), findUnique: jest.fn() },
+            refreshToken: { findMany: jest.fn(), delete: jest.fn(), create: jest.fn() },
+            blacklistedToken: { findUnique: jest.fn(), create: jest.fn() },
           },
         },
         {
@@ -66,7 +64,7 @@ describe('AuthService', () => {
   });
 
   describe('registerUser', () => {
-    it('should create a new user and log the action', async () => {
+    it('should create a new user and return tokens', async () => {
       (prisma.user.create as jest.Mock).mockResolvedValueOnce({ id: 'user-1' } as any);
 
       const result = await service.registerUser({
@@ -89,7 +87,12 @@ describe('AuthService', () => {
         }),
       );
 
-      expect(result).toEqual({ user: { id: 'user-1' }, login: 'jsmith' });
+      expect(result).toEqual({
+        user: { id: 'user-1' },
+        login: 'jsmith',
+        access_token: 'signed-jwt-token',
+        refresh_token: 'signed-jwt-token',
+      });
     });
   });
 
@@ -107,50 +110,122 @@ describe('AuthService', () => {
         mustChangePassword: false,
       } as any);
 
-      await service.loginUser('jdoe', 'correct-pass');
+      const result = await service.loginUser('jdoe', 'correct-pass');
 
       expect(dbLogger.logAction).toHaveBeenCalledWith(
-        expect.objectContaining<Partial<LogParams>>({
+        expect.objectContaining({
           userId: 'user-1',
           action: 'login',
           entityType: 'User',
           entityId: 'user-1',
         }),
       );
+
+      expect(result).toEqual({ access_token: 'signed-jwt-token' });
     });
 
-    it('should throw UnauthorizedException if user not found', async () => {
+    it('should throw AppError if user not found', async () => {
       (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce(null);
 
-      await expect(service.loginUser('jdoe', 'wrong-pass')).rejects.toThrow(UnauthorizedException);
-
-      expect(dbLogger.logAction).not.toHaveBeenCalled();
+      await expect(service.loginUser('jdoe', 'wrong-pass')).rejects.toMatchObject({
+        statusCode: 401,
+        message: 'Invalid login or password',
+      });
     });
   });
 
   describe('logoutUser', () => {
     it('should log out user and record action', async () => {
-      (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce({
-        id: 'user-1',
-        login: 'jdoe',
-      });
+      (prisma.refreshToken.findMany as jest.Mock).mockResolvedValue([
+        {
+          id: 'token-1',
+          tokenHash: 'hashed-token',
+          expiresAt: new Date(Date.now() + 1000 * 60),
+          user: { id: 'user-1', login: 'jdoe' },
+        },
+      ]);
 
-      await service.logoutUser('user-1');
+      (verifyPassword as jest.Mock).mockResolvedValue(true);
+      (prisma.blacklistedToken.create as jest.Mock).mockResolvedValue({});
+      (prisma.refreshToken.delete as jest.Mock).mockResolvedValue({});
 
+      const result = await service.logoutUser('mock-refresh-token');
+
+      expect(prisma.blacklistedToken.create).toHaveBeenCalled();
+      expect(prisma.refreshToken.delete).toHaveBeenCalled();
       expect(dbLogger.logAction).toHaveBeenCalledWith(
         expect.objectContaining({
           userId: 'user-1',
           action: 'logout',
-          entityType: 'User',
-          entityId: 'user-1',
         }),
       );
+      expect(result).toEqual({ message: 'Successfully logged out' });
     });
 
-    it('should throw UnauthorizedException if user not found', async () => {
-      (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce(null);
+    it('should throw AppError if token not found', async () => {
+      (prisma.refreshToken.findMany as jest.Mock).mockResolvedValue([]);
 
-      await expect(service.logoutUser('unknown')).rejects.toThrow(UnauthorizedException);
+      await expect(service.logoutUser('invalid-token')).rejects.toMatchObject({
+        statusCode: 401,
+        message: 'Token already invalidated or expired',
+      });
+    });
+  });
+
+  describe('refreshTokens', () => {
+    it('should refresh tokens successfully', async () => {
+      (prisma.refreshToken.findMany as jest.Mock).mockResolvedValue([
+        {
+          id: 'token-1',
+          tokenHash: 'hashed-token',
+          expiresAt: new Date(Date.now() + 1000 * 60),
+          user: { id: 'user-1', email: 'jdoe@vitala.com' },
+        },
+      ]);
+
+      (verifyPassword as jest.Mock).mockResolvedValue(true);
+      (prisma.blacklistedToken.findUnique as jest.Mock).mockResolvedValue(null);
+      (prisma.blacklistedToken.create as jest.Mock).mockResolvedValue({});
+      (prisma.refreshToken.delete as jest.Mock).mockResolvedValue({});
+      (prisma.refreshToken.create as jest.Mock).mockResolvedValue({});
+
+      const result = await service.refreshTokens('mock-refresh-token');
+
+      expect(prisma.blacklistedToken.create).toHaveBeenCalled();
+      expect(prisma.refreshToken.delete).toHaveBeenCalled();
+      expect(prisma.refreshToken.create).toHaveBeenCalled();
+
+      expect(result).toEqual({
+        access_token: 'signed-jwt-token',
+        refresh_token: 'signed-jwt-token',
+      });
+    });
+
+    it('should throw AppError if token is blacklisted', async () => {
+      (prisma.refreshToken.findMany as jest.Mock).mockResolvedValue([
+        {
+          id: 'token-1',
+          tokenHash: 'hashed-token',
+          expiresAt: new Date(Date.now() + 1000 * 60),
+          user: { id: 'user-1', email: 'jdoe@vitala.com' },
+        },
+      ]);
+
+      (verifyPassword as jest.Mock).mockResolvedValue(true);
+      (prisma.blacklistedToken.findUnique as jest.Mock).mockResolvedValue({ id: 'token-1' });
+
+      await expect(service.refreshTokens('mock-refresh-token')).rejects.toMatchObject({
+        statusCode: 401,
+        message: 'Refresh token has been revoked',
+      });
+    });
+
+    it('should throw AppError if token not found', async () => {
+      (prisma.refreshToken.findMany as jest.Mock).mockResolvedValue([]);
+      await expect(service.refreshTokens('mock-refresh-token')).rejects.toMatchObject({
+        statusCode: 401,
+        message: 'Refresh token expired or invalid',
+      });
     });
   });
 });

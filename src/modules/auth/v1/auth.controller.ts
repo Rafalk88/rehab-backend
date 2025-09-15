@@ -2,7 +2,7 @@ import { Controller, Post, Body, Req, UseGuards } from '@nestjs/common';
 import type { Request } from 'express';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 import { AuthService } from './auth.service.js';
-import { RegisterUserSchema, LoginUserSchema } from './auth.schemas.js';
+import { RegisterUserSchema, LoginUserSchema, RefreshTokenSchema } from './auth.schemas.js';
 import { ZodValidationPipe } from '@common/pipes/zod-validation.pipe.js';
 
 interface JwtRequest extends Request {
@@ -42,5 +42,13 @@ export class AuthController {
 
     await this.authService.logoutUser(userId, ipAddress);
     return { message: 'Logged out successfully' };
+  }
+
+  @Post('refresh-token')
+  async refreshToken(
+    @Body(new ZodValidationPipe(RefreshTokenSchema)) body: { refreshToken: string },
+  ) {
+    const tokens = await this.authService.refreshTokens(body.refreshToken);
+    return tokens;
   }
 }

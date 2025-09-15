@@ -16,7 +16,6 @@ export default {
   moduleFileExtensions: ['ts', 'js', 'json'],
   clearMocks: true,
   preset: 'ts-jest',
-  setupFilesAfterEnv: ['<rootDir>/src/__mocks__/prismaClient.ts'],
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/src/$1',
     '^@config/(.*)$': '<rootDir>/src/config/$1',
