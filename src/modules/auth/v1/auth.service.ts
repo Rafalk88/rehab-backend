@@ -192,19 +192,19 @@ export class AuthService {
    * @returns Confirmation message
    * @throws UnauthorizedException if the user does not exist
    */
-  async logoutUser(userId: string) {
+  async logoutUser(userId: string, ipAddress?: string) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
       throw new UnauthorizedException('Invalid user');
     }
 
-    // Record logout in operation log for auditing
     await this.dbLogger.logAction({
       userId,
       action: 'logout',
       actionDetails: `User ${user.login} logged out`,
       entityType: 'User',
       entityId: user.id,
+      ipAddress: ipAddress ?? 'system',
     });
 
     return { message: 'Successfully logged out' };
