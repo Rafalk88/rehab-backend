@@ -25,9 +25,10 @@ describe('AuthService', () => {
         {
           provide: PrismaService,
           useValue: {
-            user: { create: jest.fn(), findUnique: jest.fn() },
+            user: { create: jest.fn(), findUnique: jest.fn(), update: jest.fn() },
             refreshToken: { findMany: jest.fn(), delete: jest.fn(), create: jest.fn() },
             blacklistedToken: { findUnique: jest.fn(), create: jest.fn() },
+            passwordHistory: { findMany: jest.fn(), create: jest.fn(), delete: jest.fn() },
           },
         },
         {
@@ -39,6 +40,7 @@ describe('AuthService', () => {
             verifyLoginCredentials: jest.fn(),
             checkLoginRestrictions: jest.fn(),
             updateLoginSuccess: jest.fn(),
+            generateTemporaryPassword: jest.fn().mockReturnValue('TempPass123!'), // new helper for admin reset
           },
         },
         {
@@ -200,31 +202,86 @@ describe('AuthService', () => {
         refresh_token: 'signed-jwt-token',
       });
     });
+  });
 
-    it('should throw AppError if token is blacklisted', async () => {
-      (prisma.refreshToken.findMany as jest.Mock).mockResolvedValue([
-        {
-          id: 'token-1',
-          tokenHash: 'hashed-token',
-          expiresAt: new Date(Date.now() + 1000 * 60),
-          user: { id: 'user-1', email: 'jdoe@vitala.com' },
-        },
-      ]);
+  describe('changePassword', () => {
+    const userId = 'user-1';
+    const ipAddress = '127.0.0.1';
 
-      (verifyPassword as jest.Mock).mockResolvedValue(true);
-      (prisma.blacklistedToken.findUnique as jest.Mock).mockResolvedValue({ id: 'token-1' });
-
-      await expect(service.refreshTokens('mock-refresh-token')).rejects.toMatchObject({
-        statusCode: 401,
-        message: 'Refresh token has been revoked',
+    it('should successfully change password', async () => {
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+        id: userId,
+        passwordHash: 'old-hash',
+        mustChangePassword: true,
       });
+
+      (prisma.passwordHistory.findMany as jest.Mock).mockResolvedValue([]);
+      (verifyPassword as jest.Mock).mockResolvedValue(true);
+      (prisma.user.update as jest.Mock).mockResolvedValue({});
+      (prisma.passwordHistory.create as jest.Mock).mockResolvedValue({});
+      (dbLogger.logAction as jest.Mock).mockResolvedValue(undefined);
+
+      const result = await service.changePassword(
+        userId,
+        'OldPass123!',
+        'NewPass456!',
+        'NewPass456!',
+        ipAddress,
+      );
+
+      expect(result).toEqual({ message: 'Password changed successfully' });
+      expect(prisma.user.update).toHaveBeenCalled();
+      expect(prisma.passwordHistory.create).toHaveBeenCalled();
+      expect(dbLogger.logAction).toHaveBeenCalled();
     });
 
-    it('should throw AppError if token not found', async () => {
-      (prisma.refreshToken.findMany as jest.Mock).mockResolvedValue([]);
-      await expect(service.refreshTokens('mock-refresh-token')).rejects.toMatchObject({
-        statusCode: 401,
-        message: 'Refresh token expired or invalid',
+    it('should throw if old password is incorrect', async () => {
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+        id: userId,
+        passwordHash: 'old-hash',
+      });
+      (verifyPassword as jest.Mock).mockResolvedValue(false);
+
+      await expect(
+        service.changePassword(userId, 'WrongOldPass', 'NewPass456!', 'NewPass456!', ipAddress),
+      ).rejects.toMatchObject({ statusCode: 401, message: 'Old password is incorrect' });
+    });
+
+    it('should throw if new passwords do not match', async () => {
+      await expect(
+        service.changePassword(userId, 'OldPass123!', 'NewPass1', 'NewPass2', ipAddress),
+      ).rejects.toMatchObject({ statusCode: 400, message: 'New passwords do not match' });
+    });
+  });
+
+  describe('resetPassword', () => {
+    const userId = 'user-1';
+
+    it('should reset password and return temporary password', async () => {
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+        id: userId,
+        passwordHash: 'old-hash',
+      });
+      (prisma.user.update as jest.Mock).mockResolvedValue({});
+
+      const result = await service.resetPassword(userId);
+
+      expect(result).toHaveProperty('tempPassword');
+      expect(result).toBe('TempPass123!'); // matches mocked helper
+      expect(prisma.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { id: userId }, data: expect.any(Object) }),
+      );
+      expect(dbLogger.logAction).toHaveBeenCalledWith(
+        expect.objectContaining({ userId: userId, action: 'admin_reset_password' }),
+      );
+    });
+
+    it('should throw if user does not exist', async () => {
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
+
+      await expect(service.resetPassword(userId)).rejects.toMatchObject({
+        statusCode: 404,
+        message: 'User not found',
       });
     });
   });

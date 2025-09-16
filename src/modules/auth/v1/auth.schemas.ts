@@ -57,3 +57,13 @@ export const RefreshTokenSchema = z.object({
 
 // & Type
 export type RefreshTokenSchema = z.infer<typeof RefreshTokenSchema>;
+
+// ChangePasswordSchema
+export const ChangePasswordSchema = z.object({
+  oldPassword: z.string().min(1),
+  newPassword: z.string().min(8),
+  confirmNewPassword: z.string().min(8),
+});
+
+// & Type
+export type ChangePasswordSchema = z.infer<typeof ChangePasswordSchema>;

@@ -368,4 +368,182 @@ export class AuthService {
 
     return { message: 'Successfully logged out' };
   }
+
+  /**
+   * Changes the user's password.
+   *
+   * This method:
+   * - Verifies that the old password matches the current one,
+   * - Checks that the new password matches the confirmation password,
+   * - Ensures the new password has not been used in the last 5 password changes,
+   * - Hashes the new password and updates it in the user's record,
+   * - Adds the new password to the password history,
+   * - Removes the oldest password from history if there are more than 5 entries,
+   * - Logs the password change action.
+   *
+   * @param userId - ID of the user changing the password.
+   * @param oldPassword - Current password of the user.
+   * @param newPassword - New password to set.
+   * @param confirmNewPassword - Confirmation of the new password.
+   * @param ipAddress - Optional IP address from which the change is performed.
+   * @returns An object with a success message.
+   *
+   * @throws AppError if validation fails (password mismatch, reuse, or incorrect old password).
+   *
+   * @example
+   * const result = await authService.changePassword(
+   *   userId,
+   *   'OldPass123!',
+   *   'NewPass456!',
+   *   'NewPass456!',
+   *   '192.168.1.1'
+   * );
+   * // { message: 'Password changed successfully' }
+   */
+  async changePassword(
+    userId: string,
+    oldPassword: string,
+    newPassword: string,
+    confirmNewPassword: string,
+    ipAddress?: string,
+  ) {
+    // 1️⃣ Validate new passwords match
+    if (newPassword !== confirmNewPassword) {
+      throw new AppError('validation', 'New passwords do not match');
+    }
+
+    // 2️⃣ Retrieve the user
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new AppError('not_found', 'User not found');
+
+    // 3️⃣ Verify old password
+    const isOldPasswordValid = await verifyPassword(oldPassword, user.passwordHash);
+    if (!isOldPasswordValid) {
+      throw new AppError('unauthorized', 'Old password is incorrect');
+    }
+
+    // 4️⃣ Check last 5 passwords to prevent reuse
+    const lastPasswords = await this.prisma.passwordHistory.findMany({
+      where: { userId },
+      orderBy: { changedAt: 'desc' },
+      take: 5,
+    });
+
+    for (const p of lastPasswords) {
+      const isUsedBefore = await verifyPassword(newPassword, p.passwordHash);
+      if (isUsedBefore) {
+        throw new AppError('validation', 'You cannot reuse a recent password');
+      }
+    }
+
+    // 5️⃣ Hash new password and update user
+    const newPasswordHash = await hashPassword(newPassword);
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash: newPasswordHash, mustChangePassword: false },
+    });
+
+    // 6️⃣ Save new password to history
+    await this.prisma.passwordHistory.create({
+      data: {
+        userId,
+        passwordHash: newPasswordHash,
+        changedById: userId,
+      },
+    });
+
+    // 7️⃣ Limit history to last 5 passwords
+    if (lastPasswords.length >= 5) {
+      const oldest = lastPasswords[lastPasswords.length - 1];
+      if (oldest) {
+        await this.prisma.passwordHistory.delete({ where: { id: oldest.id } });
+      }
+    }
+
+    // 8️⃣ Log password change
+    await this.dbLogger.logAction({
+      userId,
+      action: 'password_change',
+      actionDetails: `User changed password`,
+      entityType: 'User',
+      entityId: userId,
+      ipAddress: ipAddress ?? 'system',
+    });
+
+    return { message: 'Password changed successfully' };
+  }
+
+  /**
+   * Resets a user's password for one-time use.
+   *
+   * This method:
+   * - Generates a strong temporary password automatically,
+   * - Hashes it and updates the user's record in the database,
+   * - Sets `mustChangePassword` to true to force the user to change it on next login,
+   * - Returns the temporary password so the admin can give it to the user.
+   *
+   * @param userId - The ID of the user whose password is being reset.
+   * @returns The newly generated temporary password.
+   *
+   * @example
+   * const tempPassword = await authService.resetPassword('user-123');
+   * // tempPassword: 'Abc123!@#Example'
+   */
+  async resetPassword(userId: string): Promise<string> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new AppError('not_found', 'User not found');
+
+    // Generate a temporary password
+    const tempPassword = this.generateStrongPassword();
+
+    // Hash the password
+    const passwordHash = await hashPassword(tempPassword);
+
+    // Update user with new password and require change on next login
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordHash,
+        mustChangePassword: true,
+      },
+    });
+
+    return tempPassword;
+  }
+
+  /**
+   * Generates a strong random password satisfying security requirements:
+   * - At least 12 characters,
+   * - At least 1 uppercase letter,
+   * - At least 1 number,
+   * - At least 1 special character.
+   */
+  private generateStrongPassword(): string {
+    const upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const lower = 'abcdefghijklmnopqrstuvwxyz';
+    const digits = '0123456789';
+    const special = '!@#$%^&*()-_=+[]{}|;:,.<>?';
+
+    const all = upper + lower + digits + special;
+
+    // Ensure password contains at least one from each category
+    const password = [
+      upper[Math.floor(Math.random() * upper.length)],
+      digits[Math.floor(Math.random() * digits.length)],
+      special[Math.floor(Math.random() * special.length)],
+    ];
+
+    // Fill remaining characters randomly to reach at least 12
+    while (password.length < 12) {
+      password.push(all[Math.floor(Math.random() * all.length)]);
+    }
+
+    // Shuffle array
+    for (let i = password.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [password[i], password[j]] = [password[j], password[i]];
+    }
+
+    return password.join('');
+  }
 }

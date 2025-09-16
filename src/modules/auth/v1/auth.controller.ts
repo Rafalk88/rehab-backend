@@ -3,7 +3,12 @@ import type { Request } from 'express';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 import { AuthorizationGuard } from '@common/guards/authorization.guard.js';
 import { AuthService } from './auth.service.js';
-import { RegisterUserSchema, LoginUserSchema, RefreshTokenSchema } from './auth.schemas.js';
+import {
+  RegisterUserSchema,
+  LoginUserSchema,
+  RefreshTokenSchema,
+  ChangePasswordSchema,
+} from './auth.schemas.js';
 import { ZodValidationPipe } from '@common/pipes/zod-validation.pipe.js';
 
 interface JwtRequest extends Request {
@@ -58,16 +63,35 @@ export class AuthController {
     return tokens;
   }
 
+  @UseGuards(JwtAuthGuard)
+  @Post('change-password')
+  async changePassword(
+    @Body(new ZodValidationPipe(ChangePasswordSchema))
+    body: ChangePasswordSchema,
+    @Req() req: JwtRequest,
+  ) {
+    const userId = req.user?.sub;
+    if (!userId) return { message: 'No user logged in' };
+
+    const ipAddress = req.ip || (req.headers['x-forwarded-for'] as string) || 'unknown';
+    return this.authService.changePassword(
+      userId,
+      body.oldPassword,
+      body.newPassword,
+      body.confirmNewPassword,
+      ipAddress,
+    );
+  }
+
   @UseGuards(JwtAuthGuard, AuthorizationGuard)
   @SetMetadata('permission', 'reset_password')
-  @Post('admin/reset-password/:userId')
+  @Post('reset-password/:userId')
   async adminResetPassword(@Param('userId') userId: string, @Req() req: JwtRequest) {
     const adminId = req.user?.sub;
     if (!adminId) return { message: 'No admin logged in' };
 
-    // Call resetPassword from service
-    const temporaryPassword = await this.authService.resetPassword(userId);
+    const tempPassword = await this.authService.resetPassword(userId);
 
-    return { temporaryPassword };
+    return { tempPassword };
   }
 }

@@ -20,6 +20,7 @@ class AppError extends Error {
     validation: 400,
     unauthorized: 401,
     forbidden: 403,
+    not_found: 404,
     server: 500,
   };
   constructor(type: keyof typeof AppError.typeToCode, message: string) {
