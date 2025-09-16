@@ -1,6 +1,7 @@
-import { Controller, Post, Body, Req, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Req, UseGuards, SetMetadata, Param } from '@nestjs/common';
 import type { Request } from 'express';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
+import { AuthorizationGuard } from '@common/guards/authorization.guard.js';
 import { AuthService } from './auth.service.js';
 import { RegisterUserSchema, LoginUserSchema, RefreshTokenSchema } from './auth.schemas.js';
 import { ZodValidationPipe } from '@common/pipes/zod-validation.pipe.js';
@@ -13,12 +14,17 @@ interface JwtRequest extends Request {
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @UseGuards(JwtAuthGuard, AuthorizationGuard)
+  @SetMetadata('permission', 'register_user')
   @Post('register')
   async register(
     @Body(new ZodValidationPipe(RegisterUserSchema))
     body: RegisterUserSchema,
     @Req() req: JwtRequest,
   ) {
+    const adminId = req.user?.sub;
+    if (!adminId) return { message: 'No admin logged in' };
+
     const ipAddress = req.ip || (req.headers['x-forwarded-for'] as string) || 'unknown';
     return this.authService.registerUser(body, ipAddress);
   }
@@ -50,5 +56,18 @@ export class AuthController {
   ) {
     const tokens = await this.authService.refreshTokens(body.refreshToken);
     return tokens;
+  }
+
+  @UseGuards(JwtAuthGuard, AuthorizationGuard)
+  @SetMetadata('permission', 'reset_password')
+  @Post('admin/reset-password/:userId')
+  async adminResetPassword(@Param('userId') userId: string, @Req() req: JwtRequest) {
+    const adminId = req.user?.sub;
+    if (!adminId) return { message: 'No admin logged in' };
+
+    // Call resetPassword from service
+    const temporaryPassword = await this.authService.resetPassword(userId);
+
+    return { temporaryPassword };
   }
 }

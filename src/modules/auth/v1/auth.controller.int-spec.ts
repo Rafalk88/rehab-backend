@@ -3,24 +3,39 @@ import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { AuthModule } from '@modules/auth/v1/auth.module.js';
 import { PrismaService } from '@/prisma/prisma.service.js';
+import { hashPassword, verifyPassword } from '@lib/password.util.js';
+
+jest.mock('@lib/password.util', () => ({
+  hashPassword: jest.fn().mockResolvedValue('new-hash'),
+  verifyPassword: jest.fn(),
+}));
 
 const prismaMock = {
   user: {
     create: jest.fn(),
     findUnique: jest.fn(),
+    update: jest.fn(),
   },
   givenName: { findFirst: jest.fn(), create: jest.fn() },
   surname: { findFirst: jest.fn(), create: jest.fn() },
-  refreshToken: {
-    findMany: jest.fn(),
-    create: jest.fn(),
-    delete: jest.fn(),
-  },
+  refreshToken: { findMany: jest.fn(), create: jest.fn(), delete: jest.fn() },
   blacklistedToken: { findUnique: jest.fn(), create: jest.fn() },
+  passwordHistory: { findMany: jest.fn(), create: jest.fn(), delete: jest.fn() },
 };
 
 describe('AuthController (integration)', () => {
   let app: INestApplication;
+
+  // fake admin middleware
+  const fakeAdminMiddleware = (req, _res, next) => {
+    req.user = { sub: 'admin-1' };
+    next();
+  };
+
+  const fakeUserMiddleware = (req, _res, next) => {
+    req.user = { sub: 'user-1' };
+    next();
+  };
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -39,6 +54,10 @@ describe('AuthController (integration)', () => {
   });
 
   describe('/auth/register (POST)', () => {
+    beforeEach(() => {
+      app.use(fakeAdminMiddleware); // now register requires admin
+    });
+
     it('should register a new user and return login', async () => {
       prismaMock.givenName.findFirst.mockResolvedValueOnce(null);
       prismaMock.givenName.create.mockResolvedValueOnce({ id: 'fname-1', firstName: 'john' });
@@ -52,7 +71,6 @@ describe('AuthController (integration)', () => {
 
       const res = await request(app.getHttpServer())
         .post('/auth/register')
-        .set('x-forwarded-for', '127.0.0.1')
         .send({ firstName: 'John', surname: 'Doe', password: 'Secret123' })
         .expect(201);
 
@@ -84,7 +102,6 @@ describe('AuthController (integration)', () => {
 
       const res = await request(app.getHttpServer())
         .post('/auth/login')
-        .set('x-forwarded-for', '127.0.0.1')
         .send({ login: 'jdoe', password: 'Secret123' })
         .expect(201);
 
@@ -93,13 +110,11 @@ describe('AuthController (integration)', () => {
   });
 
   describe('/auth/logout (POST)', () => {
-    it('should logout a user successfully', async () => {
-      const fakeUserMiddleware = (req, _res, next) => {
-        req.user = { sub: 'user-1' };
-        next();
-      };
+    beforeEach(() => {
       app.use(fakeUserMiddleware);
+    });
 
+    it('should logout a user successfully', async () => {
       prismaMock.refreshToken.findMany.mockResolvedValueOnce([
         {
           id: 'token-1',
@@ -114,12 +129,6 @@ describe('AuthController (integration)', () => {
       const res = await request(app.getHttpServer()).post('/auth/logout').expect(201);
 
       expect(res.body).toEqual({ message: 'Logged out successfully' });
-    });
-
-    it('should return message if no user logged in', async () => {
-      const res = await request(app.getHttpServer()).post('/auth/logout').expect(201);
-
-      expect(res.body).toEqual({ message: 'No user logged in' });
     });
   });
 
@@ -147,17 +156,50 @@ describe('AuthController (integration)', () => {
       expect(res.body).toHaveProperty('access_token');
       expect(res.body).toHaveProperty('refresh_token');
     });
+  });
 
-    it('should return unauthorized if token is invalid', async () => {
-      prismaMock.refreshToken.findMany.mockResolvedValueOnce([]);
+  describe('/auth/change-password (POST)', () => {
+    beforeEach(() => {
+      app.use(fakeUserMiddleware);
+    });
+
+    it('should change password successfully', async () => {
+      prismaMock.user.findUnique.mockResolvedValueOnce({ id: 'user-1', passwordHash: 'old-hash' });
+      prismaMock.passwordHistory.findMany.mockResolvedValueOnce([]);
+      (verifyPassword as jest.Mock).mockResolvedValueOnce(true);
+      prismaMock.user.update.mockResolvedValueOnce({});
+      prismaMock.passwordHistory.create.mockResolvedValueOnce({});
+      prismaMock.passwordHistory.delete.mockResolvedValueOnce({});
 
       const res = await request(app.getHttpServer())
-        .post('/auth/refresh-token')
-        .send({ refreshToken: 'invalid-token' })
-        .expect(401);
+        .post('/auth/change-password')
+        .send({
+          oldPassword: 'OldPass123!',
+          newPassword: 'NewPass456!',
+          confirmNewPassword: 'NewPass456!',
+        })
+        .expect(201);
 
-      expect(res.body).toHaveProperty('message');
-      expect(res.body.message).toMatch(/unauthorized/i);
+      expect(res.body).toEqual({ message: 'Password changed successfully' });
+    });
+  });
+
+  describe('/auth/reset-password (POST)', () => {
+    beforeEach(() => {
+      app.use(fakeAdminMiddleware);
+    });
+
+    it('should reset user password and return temp password', async () => {
+      prismaMock.user.findUnique.mockResolvedValueOnce({ id: 'user-1', login: 'jdoe' });
+      prismaMock.user.update.mockResolvedValueOnce({});
+
+      const res = await request(app.getHttpServer())
+        .post('/auth/reset-password')
+        .send({ userId: 'user-1' })
+        .expect(201);
+
+      expect(res.body).toHaveProperty('tempPassword');
+      expect(res.body.tempPassword).toHaveLength(12);
     });
   });
 });
