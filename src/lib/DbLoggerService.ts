@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import type { Prisma } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service.js';
 
 export interface LogParams {
@@ -7,6 +8,8 @@ export interface LogParams {
   actionDetails: string;
   entityType: string;
   entityId: string;
+  oldValues: Prisma.InputJsonValue | typeof Prisma.JsonNull;
+  newValues: Prisma.InputJsonValue | typeof Prisma.JsonNull;
   ipAddress?: string;
 }
 
@@ -33,6 +36,8 @@ export class DbLoggerService {
     actionDetails,
     entityType,
     entityId,
+    oldValues,
+    newValues,
     ipAddress = 'system',
   }: LogParams): Promise<void> {
     try {
@@ -43,6 +48,8 @@ export class DbLoggerService {
           actionDetails,
           entityType,
           entityId,
+          oldValues,
+          newValues,
           ipAddress,
         },
       });

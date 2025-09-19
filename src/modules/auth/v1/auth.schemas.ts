@@ -67,3 +67,12 @@ export const ChangePasswordSchema = z.object({
 
 // & Type
 export type ChangePasswordSchema = z.infer<typeof ChangePasswordSchema>;
+
+// LockUserSchema
+export const LockUserSchema = z.object({
+  durationInMinutes: z.number().optional(),
+  reason: z.string().optional(),
+});
+
+// & Type
+export type LockUserSchema = z.infer<typeof LockUserSchema>;

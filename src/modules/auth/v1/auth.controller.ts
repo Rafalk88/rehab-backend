@@ -8,6 +8,7 @@ import {
   LoginUserSchema,
   RefreshTokenSchema,
   ChangePasswordSchema,
+  LockUserSchema,
 } from './auth.schemas.js';
 import { ZodValidationPipe } from '@common/pipes/zod-validation.pipe.js';
 
@@ -93,5 +94,22 @@ export class AuthController {
     const tempPassword = await this.authService.resetPassword(userId);
 
     return { tempPassword };
+  }
+
+  @UseGuards(JwtAuthGuard, AuthorizationGuard)
+  @SetMetadata('permission', 'lock_user')
+  @Post('lock-user/:userId')
+  async lockUser(
+    @Param('userId') userId: string,
+    @Body(new ZodValidationPipe(LockUserSchema))
+    body: { durationInMinutes?: number; reason?: string },
+    @Req() req: JwtRequest,
+  ) {
+    const adminId = req.user?.sub;
+    if (!adminId) return { message: 'No admin logged in' };
+
+    const adminIp = req.ip || (req.headers['x-forwarded-for'] as string) || 'unknown';
+
+    return this.authService.lockUser(userId, adminId, adminIp, body.durationInMinutes, body.reason);
   }
 }

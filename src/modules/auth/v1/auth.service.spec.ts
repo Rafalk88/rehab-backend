@@ -285,4 +285,70 @@ describe('AuthService', () => {
       });
     });
   });
+
+  describe('lockUser', () => {
+    const adminId = 'admin-1';
+    const adminIp = '127.0.0.1';
+    const userId = 'user-1';
+
+    it('should lock user temporarily', async () => {
+      const user = { id: userId, isLocked: false, lockedUntil: null, login: 'jsmith' };
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue(user);
+      (prisma.user.update as jest.Mock).mockImplementation(({ data }) => ({
+        ...user,
+        ...data,
+      }));
+
+      const result = await service.lockUser(userId, adminId, adminIp, 60, 'Test reason');
+
+      expect(prisma.user.update).toHaveBeenCalledWith({
+        where: { id: userId },
+        data: expect.objectContaining({ isLocked: true }),
+      });
+
+      expect(dbLogger.logAction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: adminId,
+          action: 'LOCK_USER',
+          actionDetails: expect.stringContaining('Test reason'),
+          oldValues: { isLocked: false, lockedUntil: null },
+          newValues: expect.objectContaining({ isLocked: true }),
+          entityType: 'User',
+          entityId: userId,
+          ipAddress: adminIp,
+        }),
+      );
+
+      expect(result).toHaveProperty('lockedUntil');
+      expect(result.reason).toBe('Test reason');
+    });
+
+    it('should lock user permanently if no duration provided', async () => {
+      const user = { id: userId, isLocked: false, lockedUntil: null, login: 'jsmith' };
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue(user);
+      (prisma.user.update as jest.Mock).mockImplementation(({ data }) => ({
+        ...user,
+        ...data,
+      }));
+
+      const result = await service.lockUser(userId, adminId, adminIp);
+
+      expect(prisma.user.update).toHaveBeenCalledWith({
+        where: { id: userId },
+        data: expect.objectContaining({ isLocked: true }),
+      });
+
+      expect(result.lockedUntil?.getFullYear()).toBe(9999);
+      expect(result.reason).toBe('Not specified');
+    });
+
+    it('should throw if user does not exist', async () => {
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
+
+      await expect(service.lockUser(userId, adminId, adminIp, 60, 'Reason')).rejects.toMatchObject({
+        statusCode: 404,
+        message: 'User not found',
+      });
+    });
+  });
 });

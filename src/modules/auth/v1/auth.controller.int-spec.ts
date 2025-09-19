@@ -202,4 +202,72 @@ describe('AuthController (integration)', () => {
       expect(res.body.tempPassword).toHaveLength(12);
     });
   });
+
+  describe('/auth/lock-user/:userId (POST)', () => {
+    beforeEach(() => {
+      app.use(fakeAdminMiddleware);
+    });
+
+    it('should lock a user temporarily', async () => {
+      const fakeUser = { id: 'user-2', isLocked: false, lockedUntil: null };
+      prismaMock.user.findUnique.mockResolvedValueOnce(fakeUser);
+      prismaMock.user.update.mockResolvedValueOnce({
+        id: 'user-2',
+        isLocked: true,
+        lockedUntil: new Date(Date.now() + 60 * 60 * 1000),
+      });
+
+      const res = await request(app.getHttpServer())
+        .post('/auth/lock-user/user-2')
+        .send({ durationInMinutes: 60, reason: 'Violation of rules' })
+        .expect(201);
+
+      expect(prismaMock.user.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'user-2' },
+          data: expect.objectContaining({ isLocked: true }),
+        }),
+      );
+
+      expect(res.body).toEqual(
+        expect.objectContaining({
+          message: 'User blocked successfully',
+          reason: 'Violation of rules',
+        }),
+      );
+    });
+
+    it('should lock a user permanently if no duration is provided', async () => {
+      const fakeUser = { id: 'user-3', isLocked: false, lockedUntil: null };
+      prismaMock.user.findUnique.mockResolvedValueOnce(fakeUser);
+      prismaMock.user.update.mockResolvedValueOnce({
+        id: 'user-3',
+        isLocked: true,
+        lockedUntil: new Date('9999-12-31T23:59:59Z'),
+      });
+
+      const res = await request(app.getHttpServer())
+        .post('/auth/lock-user/user-3')
+        .send({ reason: 'Severe violation' })
+        .expect(201);
+
+      expect(res.body).toEqual(
+        expect.objectContaining({
+          message: 'User blocked successfully',
+          reason: 'Severe violation',
+        }),
+      );
+    });
+
+    it('should return 404 if user not found', async () => {
+      prismaMock.user.findUnique.mockResolvedValueOnce(null);
+
+      const res = await request(app.getHttpServer())
+        .post('/auth/lock-user/nonexistent-user')
+        .send({ durationInMinutes: 30 })
+        .expect(404);
+
+      expect(res.body.message).toEqual('User not found');
+    });
+  });
 });

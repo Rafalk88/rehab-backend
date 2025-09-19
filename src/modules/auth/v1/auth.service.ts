@@ -1,5 +1,6 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '@/prisma/prisma.service.js';
 import { hashPassword, verifyPassword } from '@lib/password.util.js';
 import { AuthHelpers } from './helpers/auth.helpers.js';
@@ -90,18 +91,20 @@ export class AuthService {
     const email = `${login}@vitala.com`;
     const passwordHash = await hashPassword(password);
 
+    const newValues = {
+      login,
+      email,
+      passwordHash,
+      firstNameId: firstNameEntry.id,
+      surnameId: surnameEntry.id,
+      sexId: sexId ?? null,
+      organizationalUnitId: organizationalUnitId ?? null,
+      mustChangePassword: true,
+    };
+
     // 3️⃣ Create user in DB
     const user = await this.prisma.user.create({
-      data: {
-        login,
-        email,
-        passwordHash,
-        firstNameId: firstNameEntry.id,
-        surnameId: surnameEntry.id,
-        sexId: sexId ?? null,
-        organizationalUnitId: organizationalUnitId ?? null,
-        mustChangePassword: true,
-      },
+      data: newValues,
     });
 
     // 4️⃣ Log registration
@@ -109,6 +112,8 @@ export class AuthService {
       userId: user.id,
       action: 'register',
       actionDetails: `User registered with login ${login}`,
+      oldValues: Prisma.JsonNull,
+      newValues,
       entityType: 'User',
       entityId: user.id,
       ipAddress: ipAddress ?? 'system',
@@ -263,6 +268,8 @@ export class AuthService {
         userId: 'unknown',
         action: 'login_failed',
         actionDetails: `Failed login attempt for ${login}`,
+        oldValues: Prisma.JsonNull,
+        newValues: Prisma.JsonNull,
         entityType: 'User',
         entityId: 'unknown',
         ipAddress: ipAddress ?? 'system',
@@ -292,6 +299,8 @@ export class AuthService {
       userId: user.id,
       action: 'login',
       actionDetails: `User logged in successfully`,
+      oldValues: Prisma.JsonNull,
+      newValues: Prisma.JsonNull,
       entityType: 'User',
       entityId: user.id,
       ipAddress: ipAddress ?? 'system',
@@ -361,6 +370,8 @@ export class AuthService {
       userId: user.id,
       action: 'logout',
       actionDetails: `User ${user.login} logged out`,
+      oldValues: Prisma.JsonNull,
+      newValues: Prisma.JsonNull,
       entityType: 'User',
       entityId: user.id,
       ipAddress: ipAddress ?? 'system',
@@ -465,6 +476,8 @@ export class AuthService {
       userId,
       action: 'password_change',
       actionDetails: `User changed password`,
+      oldValues: { mustChangePassword: true },
+      newValues: { mustChangePassword: false },
       entityType: 'User',
       entityId: userId,
       ipAddress: ipAddress ?? 'system',
@@ -480,16 +493,21 @@ export class AuthService {
    * - Generates a strong temporary password automatically,
    * - Hashes it and updates the user's record in the database,
    * - Sets `mustChangePassword` to true to force the user to change it on next login,
+   * - Logs the action using `DbLoggerService` with abstracted old/new values (without exposing actual password),
    * - Returns the temporary password so the admin can give it to the user.
    *
    * @param userId - The ID of the user whose password is being reset.
+   * @param adminId - Optional ID of the admin performing the reset (defaults to 'system').
+   * @param adminIp - Optional IP address of the admin performing the reset.
    * @returns The newly generated temporary password.
    *
+   * @throws AppError with type 'not_found' if the user does not exist.
+   *
    * @example
-   * const tempPassword = await authService.resetPassword('user-123');
+   * const tempPassword = await authService.resetPassword('user-123', 'admin-456', '192.168.1.1');
    * // tempPassword: 'Abc123!@#Example'
    */
-  async resetPassword(userId: string): Promise<string> {
+  async resetPassword(userId: string, adminId?: string, adminIp?: string): Promise<string> {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new AppError('not_found', 'User not found');
 
@@ -506,6 +524,18 @@ export class AuthService {
         passwordHash,
         mustChangePassword: true,
       },
+    });
+
+    // Log the action
+    await this.dbLogger.logAction({
+      userId: adminId ?? 'system',
+      action: 'admin_reset_password',
+      actionDetails: `Admin reset password for user ${userId}`,
+      oldValues: { mustChangePassword: true },
+      newValues: { mustChangePassword: false },
+      entityType: 'User',
+      entityId: userId,
+      ipAddress: adminIp ?? 'system',
     });
 
     return tempPassword;
@@ -545,5 +575,81 @@ export class AuthService {
     }
 
     return password.join('');
+  }
+
+  /**
+   * Locks a user account for a specified duration or permanently.
+   *
+   * This method:
+   * - Sets the user's `isLocked` flag to true,
+   * - Sets `lockedUntil` to a future date based on duration in minutes,
+   *   or to a permanent date (`9999-12-31`) if duration is undefined,
+   * - Logs the action using `DbLoggerService`, including the admin ID, IP address,
+   *   and an optional reason for the block.
+   *
+   * @param userId - ID of the user to be blocked.
+   * @param adminId - ID of the admin performing the block.
+   * @param adminIp - IP address of the admin performing the block.
+   * @param durationInMinutes - Optional duration of the block in minutes; if omitted, the block is permanent.
+   * @param reason - Optional reason for blocking the user, stored in actionDetails.
+   *
+   * @returns An object containing:
+   *   - `message`: confirmation message,
+   *   - `lockedUntil`: the date until which the user is blocked,
+   *   - `reason`: the provided reason or 'Not specified'.
+   *
+   * @throws AppError with type 'not_found' if the user does not exist.
+   *
+   * @example
+   * await authService.blockUser('user-123', 'admin-456', '192.168.1.1', 60, 'Violation of rules');
+   * // { message: 'User blocked successfully', blockedUntil: Date, reason: 'Violation of rules' }
+   */
+  async lockUser(
+    userId: string,
+    adminId: string,
+    adminIp: string,
+    durationInMinutes?: number,
+    reason?: string,
+  ) {
+    // 1️⃣ Find user
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new AppError('not_found', 'User not found');
+
+    const oldValues = { isLocked: user.isLocked, lockedUntil: user.lockedUntil };
+
+    // 2️⃣ Set block
+    const lockedUntil = durationInMinutes
+      ? new Date(Date.now() + durationInMinutes * 60 * 1000)
+      : new Date('9999-12-31T23:59:59Z'); // permanent block
+
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        isLocked: true,
+        lockedUntil,
+      },
+    });
+
+    const newValues = { isLocked: updatedUser.isLocked, lockedUntilUntil: updatedUser.lockedUntil };
+
+    // 3️⃣ Log action using DbLoggerService with Prisma.JsonNull fallback
+    await this.dbLogger.logAction({
+      userId: adminId,
+      action: 'block_user',
+      actionDetails: `Blocked user ${userId} for ${
+        durationInMinutes ? `${durationInMinutes} minutes` : 'permanent'
+      }. Reason: ${reason ?? 'Not specified'}`,
+      oldValues: oldValues ?? Prisma.JsonNull,
+      newValues: newValues ?? Prisma.JsonNull,
+      entityType: 'User',
+      entityId: userId,
+      ipAddress: adminIp,
+    });
+
+    return {
+      message: 'User blocked successfully',
+      lockedUntil: updatedUser.lockedUntil,
+      reason: reason ?? 'Not specified',
+    };
   }
 }
