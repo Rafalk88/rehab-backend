@@ -139,6 +139,8 @@ model UserPermission {
   permission String
   allowed    Boolean @default(true) // true = explicit allow, false = explicit deny
   user       User    @relation(fields: [userId], references: [id])
+
+  @@unique([userId, permission])
 }
 
 model PasswordHistory {
