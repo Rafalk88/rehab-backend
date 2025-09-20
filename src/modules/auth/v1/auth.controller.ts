@@ -1,5 +1,6 @@
 import { Controller, Post, Body, Req, UseGuards, SetMetadata, Param } from '@nestjs/common';
 import type { Request } from 'express';
+import { Permissions } from '@modules/permissions/decorators/permission.decorator.js';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 import { AuthorizationGuard } from '@common/guards/authorization.guard.js';
 import { AuthService } from './auth.service.js';
@@ -21,7 +22,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @UseGuards(JwtAuthGuard, AuthorizationGuard)
-  @SetMetadata('permission', 'register_user')
+  @Permissions('register_user')
   @Post('register')
   async register(
     @Body(new ZodValidationPipe(RegisterUserSchema))
@@ -85,7 +86,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard, AuthorizationGuard)
-  @SetMetadata('permission', 'reset_password')
+  @Permissions('reset_password')
   @Post('reset-password/:userId')
   async adminResetPassword(@Param('userId') userId: string, @Req() req: JwtRequest) {
     const adminId = req.user?.sub;
@@ -97,7 +98,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard, AuthorizationGuard)
-  @SetMetadata('permission', 'lock_user')
+  @Permissions('lock_user')
   @Post('lock-user/:userId')
   async lockUser(
     @Param('userId') userId: string,
