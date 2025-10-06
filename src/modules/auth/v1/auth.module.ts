@@ -5,6 +5,9 @@ import { AuthService } from './auth.service.js';
 import { JwtStrategy } from './strategies/jwt.strategy.js';
 import { AuthController } from './auth.controller.js';
 import { PrismaService } from '@/prisma/prisma.service.js';
+import { AuthHelpers } from './helpers/auth.helpers.js';
+import { DbLoggerModule } from '@lib/DbLoggerService.module.js';
+import { PermissionsModule } from '@modules/permissions/permissions.module.js';
 
 @Module({
   imports: [
@@ -13,8 +16,10 @@ import { PrismaService } from '@/prisma/prisma.service.js';
       secret: process.env.JWT_SECRET || 'secretForJWT',
       signOptions: { expiresIn: '15m' },
     }),
+    DbLoggerModule,
+    PermissionsModule,
   ],
-  providers: [AuthService, JwtStrategy, PrismaService],
+  providers: [AuthService, JwtStrategy, PrismaService, AuthHelpers],
   controllers: [AuthController],
   exports: [AuthService],
 })

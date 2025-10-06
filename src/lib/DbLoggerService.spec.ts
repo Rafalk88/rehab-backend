@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { Test, TestingModule } from '@nestjs/testing';
 import { DbLoggerService, LogParams } from './DbLoggerService.js';
 import { PrismaService } from '@/prisma/prisma.service.js';
@@ -39,6 +40,8 @@ describe('LoggerService', () => {
     entityType: 'User',
     entityId: 'user-123',
     ipAddress: '127.0.0.1',
+    oldValues: Prisma.JsonNull,
+    newValues: Prisma.JsonNull,
   };
 
   it('should call prisma.operationLog.create with correct params', async () => {
@@ -63,6 +66,8 @@ describe('LoggerService', () => {
       actionDetails: 'Changed password',
       entityType: 'User',
       entityId: 'user-1',
+      oldValues: Prisma.JsonNull,
+      newValues: Prisma.JsonNull,
     });
 
     expect(prisma.operationLog.create).toHaveBeenCalledWith({

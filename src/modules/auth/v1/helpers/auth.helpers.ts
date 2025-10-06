@@ -4,44 +4,32 @@ import { AppError } from '@common/errors/app.error.js';
 import { verifyPassword } from '@lib/password.util.js';
 import type { User } from '@prisma/client';
 
+/**
+ * Constants for authentication and lockout policies.
+ */
 const MAX_FAILED_ATTEMPTS = 5;
 const LOCK_DURATION_MINUTES = 15;
 
 /**
  * AuthHelpers
  *
- * Provides utility methods for user authentication and account management.
+ * Provides reusable helper methods for authentication logic.
  *
  * Responsibilities:
- * - Verifying user credentials and password correctness
- * - Checking account restrictions (inactive, locked, must change password)
- * - Updating user login status after success or failure
- * - Generating unique logins and ensuring first name / surname records exist
+ * - Verifying passwords and login credentials,
+ * - Handling failed login attempts (incrementing counters, locking accounts),
+ * - Checking user restrictions (locked, inactive, must-change-password),
+ * - Generating unique logins and managing name records.
  *
- * This class uses:
- * - `PrismaService` for database operations
- * - `AppError` for standardized error handling
- * - Password utilities for hashing and verification
+ * Used by:
+ * - `AuthService` (for register, login, reset password, etc.)
  *
- * Example usage:
+ * Example:
  * ```ts
- * const helpers = new AuthHelpers(prismaService);
- *
- * // Verify login credentials
- * await helpers.verifyLoginCredentials(user, 'password123');
- *
- * // Check account restrictions
+ * const helpers = new AuthHelpers(prisma);
+ * await helpers.verifyLoginCredentials(user, 'Secret123!');
  * helpers.checkLoginRestrictions(user);
- *
- * // Update user after successful login
  * await helpers.updateLoginSuccess(user.id);
- *
- * // Generate unique login
- * const login = await helpers.generateUniqueLogin('Alice', 'Smith');
- *
- * // Get or create name records
- * const firstNameEntry = await helpers.getOrCreateFirstName('Alice');
- * const surnameEntry = await helpers.getOrCreateSurname('Smith');
  * ```
  */
 @Injectable()
@@ -49,16 +37,15 @@ export class AuthHelpers {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * Verifies the user's password.
+   * Verifies if the provided password matches the stored password hash.
+   * Updates failed attempts or locks account if needed.
    *
-   * @throws {AppError} 'unauthorized' or 'forbidden' if invalid or account locked
+   * @param user - User object containing id, failedLoginAttempts, and passwordHash.
+   * @param password - Plain text password to check.
+   * @throws {AppError} 'unauthorized' or 'forbidden' if credentials are invalid or locked.
    */
   async verifyLoginCredentials(
-    user: {
-      id: User['id'];
-      failedLoginAttempts: User['failedLoginAttempts'];
-      passwordHash: User['passwordHash'];
-    },
+    user: Pick<User, 'id' | 'failedLoginAttempts' | 'passwordHash'>,
     password: string,
   ) {
     const isValid = await verifyPassword(password, user.passwordHash);
@@ -72,16 +59,15 @@ export class AuthHelpers {
   }
 
   /**
-   * Checks account restrictions (inactive, locked, mustChangePassword).
+   * Checks various account restrictions before allowing login.
+   * Throws an error if any restriction is violated.
    *
-   * @throws {AppError} 'forbidden' if restriction violated
+   * @param user - Partial User with relevant restriction fields.
+   * @throws {AppError} 'forbidden' if user is inactive, locked, or must change password.
    */
-  checkLoginRestrictions(user: {
-    isActive: User['isActive'];
-    isLocked: User['isLocked'];
-    lockedUntil: User['lockedUntil'];
-    mustChangePassword: User['mustChangePassword'];
-  }) {
+  checkLoginRestrictions(
+    user: Pick<User, 'isActive' | 'isLocked' | 'lockedUntil' | 'mustChangePassword'>,
+  ) {
     if (!user.isActive) throw new AppError('forbidden', 'Account is inactive');
 
     if (user.isLocked) {
@@ -95,12 +81,15 @@ export class AuthHelpers {
       throw new AppError('forbidden', 'Account is locked');
     }
 
-    if (user.mustChangePassword)
+    if (user.mustChangePassword) {
       throw new AppError('forbidden', 'Password change required before login');
+    }
   }
 
   /**
-   * Updates user after successful login.
+   * Resets failed login attempts and updates last login timestamp.
+   *
+   * @param id - User ID to update.
    */
   async updateLoginSuccess(id: User['id']) {
     await this.prisma.user.update({
@@ -110,8 +99,10 @@ export class AuthHelpers {
   }
 
   /**
-   * Updates user after failed login attempt.
-   * Returns failedAttempts count and optional lockedUntil.
+   * Increments failed login attempts and locks account if threshold reached.
+   *
+   * @param id - User ID to update.
+   * @returns Object with `failedAttempts` and optional `lockedUntil`.
    */
   async updateLoginFailure(id: User['id']) {
     const updated = await this.prisma.user.update({
@@ -133,6 +124,7 @@ export class AuthHelpers {
 
   /**
    * Retrieves or creates a normalized first name record.
+   * Example: "Alice" → { id: 'uuid', firstName: 'alice' }
    */
   async getOrCreateFirstName(firstName: string) {
     const normalized = firstName.trim().toLowerCase();
@@ -143,6 +135,7 @@ export class AuthHelpers {
 
   /**
    * Retrieves or creates a normalized surname record.
+   * Example: "Smith" → { id: 'uuid', surname: 'smith' }
    */
   async getOrCreateSurname(surname: string) {
     const normalized = surname.trim().toLowerCase();
@@ -152,8 +145,11 @@ export class AuthHelpers {
   }
 
   /**
-   * Generates a unique login based on first letter of first name + surname.
-   * Appends numeric suffix if login already exists.
+   * Generates a unique login (e.g., "asmith", "asmith1", "asmith2"…).
+   *
+   * @param firstName - User's first name.
+   * @param surname - User's surname.
+   * @returns Unique login string.
    */
   async generateUniqueLogin(firstName: string, surname: string) {
     const base = `${firstName[0]?.trim().toLowerCase()}${surname.trim().toLowerCase()}`;

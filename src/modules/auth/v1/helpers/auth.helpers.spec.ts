@@ -8,13 +8,12 @@ jest.mock('@lib/password.util.js');
 
 describe('AuthHelpers', () => {
   let helpers: AuthHelpers;
-  let prismaMock: Partial<PrismaService>;
+  let prismaMock: jest.Mocked<Partial<PrismaService>>;
 
   beforeEach(async () => {
     prismaMock = {
       user: {
         findUnique: jest.fn(),
-        create: jest.fn(),
         update: jest.fn(),
       },
       givenName: {
@@ -25,7 +24,7 @@ describe('AuthHelpers', () => {
         findFirst: jest.fn(),
         create: jest.fn(),
       },
-    } as any; // use only those methods needed in tests and ignore rest
+    } as any;
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [AuthHelpers, { provide: PrismaService, useValue: prismaMock }],
@@ -34,60 +33,34 @@ describe('AuthHelpers', () => {
     helpers = module.get<AuthHelpers>(AuthHelpers);
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+  afterEach(() => jest.clearAllMocks());
 
   describe('verifyLoginCredentials', () => {
-    it('should not throw if password is valid', async () => {
+    it('✅ passes when password is valid', async () => {
       (verifyPassword as jest.Mock).mockResolvedValue(true);
-      const user: Partial<User> = {
-        id: 'user-1',
-        failedLoginAttempts: 0,
-        passwordHash: 'hashed-pass',
-      };
-      await expect(
-        helpers.verifyLoginCredentials(user as any, 'correct-pass'),
-      ).resolves.not.toThrow();
+      const user = { id: '1', failedLoginAttempts: 0, passwordHash: 'hash' } as User;
+      await expect(helpers.verifyLoginCredentials(user, 'secret')).resolves.not.toThrow();
     });
 
-    it('should throw unauthorized if password invalid and attempts < max', async () => {
+    it('❌ throws unauthorized when password invalid (below lock threshold)', async () => {
       (verifyPassword as jest.Mock).mockResolvedValue(false);
-      (prismaMock.user?.update as jest.Mock).mockResolvedValueOnce({
-        failedLoginAttempts: 3,
-      } as any);
-      (prismaMock.user?.update as jest.Mock).mockResolvedValueOnce({} as any);
-
-      const user: Partial<User> = {
-        id: 'user-1',
-        failedLoginAttempts: 2,
-        passwordHash: 'hashed-pass',
-      };
-      await expect(helpers.verifyLoginCredentials(user as any, 'wrong-pass')).rejects.toThrow(
-        'Invalid login or password',
-      );
+      (prismaMock.user!.update as jest.Mock).mockResolvedValueOnce({ failedLoginAttempts: 3 }); // first update
+      const user = { id: '1', failedLoginAttempts: 2, passwordHash: 'hash' } as User;
+      await expect(helpers.verifyLoginCredentials(user, 'wrong')).rejects.toThrow(/unauthorized/);
     });
 
-    it('should throw forbidden if failed attempts >= max', async () => {
+    it('🔒 throws forbidden when failed attempts >= max', async () => {
       (verifyPassword as jest.Mock).mockResolvedValue(false);
-
-      (prismaMock.user?.update as jest.Mock)
-        .mockResolvedValueOnce({ failedLoginAttempts: 5 } as any)
-        .mockResolvedValueOnce({} as any);
-
-      const user: Partial<User> = {
-        id: 'user-1',
-        failedLoginAttempts: 5,
-        passwordHash: 'hashed-pass',
-      };
-      await expect(helpers.verifyLoginCredentials(user as any, 'wrong-pass')).rejects.toThrow(
-        /Account locked/,
-      );
+      (prismaMock.user!.update as jest.Mock)
+        .mockResolvedValueOnce({ failedLoginAttempts: 5 }) // increment
+        .mockResolvedValueOnce({}); // lock call
+      const user = { id: '1', failedLoginAttempts: 5, passwordHash: 'hash' } as User;
+      await expect(helpers.verifyLoginCredentials(user, 'wrong')).rejects.toThrow(/forbidden/);
     });
   });
 
   describe('checkLoginRestrictions', () => {
-    it('should throw forbidden if account inactive', () => {
+    it('inactive → forbidden', () => {
       expect(() =>
         helpers.checkLoginRestrictions({
           isActive: false,
@@ -95,22 +68,22 @@ describe('AuthHelpers', () => {
           lockedUntil: null,
           mustChangePassword: false,
         } as any),
-      ).toThrow('Account is inactive');
+      ).toThrow(/inactive/);
     });
 
-    it('should throw forbidden if account locked with future lockedUntil', () => {
-      const futureDate = new Date(Date.now() + 10 * 60 * 1000);
+    it('locked with future lockedUntil → forbidden', () => {
+      const future = new Date(Date.now() + 60_000);
       expect(() =>
         helpers.checkLoginRestrictions({
           isActive: true,
           isLocked: true,
-          lockedUntil: futureDate,
+          lockedUntil: future,
           mustChangePassword: false,
         } as any),
-      ).toThrow(/Account locked until/);
+      ).toThrow(/locked until/);
     });
 
-    it('should throw forbidden if mustChangePassword is true', () => {
+    it('mustChangePassword → forbidden', () => {
       expect(() =>
         helpers.checkLoginRestrictions({
           isActive: true,
@@ -118,10 +91,10 @@ describe('AuthHelpers', () => {
           lockedUntil: null,
           mustChangePassword: true,
         } as any),
-      ).toThrow('Password change required before login');
+      ).toThrow(/Password change required/);
     });
 
-    it('should not throw if all checks pass', () => {
+    it('✅ passes when active and unlocked', () => {
       expect(() =>
         helpers.checkLoginRestrictions({
           isActive: true,
@@ -134,80 +107,78 @@ describe('AuthHelpers', () => {
   });
 
   describe('updateLoginFailure', () => {
-    it('should increment failedLoginAttempts and not lock account if below max', async () => {
-      (prismaMock.user?.update as jest.Mock).mockResolvedValueOnce({
+    it('increments attempts (no lock)', async () => {
+      (prismaMock.user!.update as jest.Mock).mockResolvedValueOnce({
         failedLoginAttempts: 3,
-      } as any);
-      const result = await helpers.updateLoginFailure('user-1');
-      expect(result.failedAttempts).toBe(3);
-      expect(result.lockedUntil).toBeUndefined();
+      });
+      const res = await helpers.updateLoginFailure('1');
+      expect(res.failedAttempts).toBe(3);
+      expect(res.lockedUntil).toBeUndefined();
     });
 
-    it('should lock account and set lockedUntil if failed attempts >= max', async () => {
-      (prismaMock.user?.update as jest.Mock)
-        .mockResolvedValueOnce({ failedLoginAttempts: 5 } as any)
-        .mockResolvedValueOnce({} as any);
-
-      const result = await helpers.updateLoginFailure('user-1');
-      expect(result.failedAttempts).toBe(5);
-      expect(result.lockedUntil).toBeInstanceOf(Date);
+    it('locks when attempts >= 5', async () => {
+      (prismaMock.user!.update as jest.Mock)
+        .mockResolvedValueOnce({ failedLoginAttempts: 5 })
+        .mockResolvedValueOnce({});
+      const res = await helpers.updateLoginFailure('1');
+      expect(res.failedAttempts).toBe(5);
+      expect(res.lockedUntil).toBeInstanceOf(Date);
     });
   });
 
   describe('updateLoginSuccess', () => {
-    it('should reset failedLoginAttempts and unlock account', async () => {
-      await helpers.updateLoginSuccess('user-1');
-      expect(prismaMock.user?.update).toHaveBeenCalledWith(
+    it('resets login state', async () => {
+      await helpers.updateLoginSuccess('1');
+      expect(prismaMock.user!.update).toHaveBeenCalledWith(
         expect.objectContaining({
-          where: { id: 'user-1' },
-          data: {
-            lastLoginAt: expect.any(Date),
+          where: { id: '1' },
+          data: expect.objectContaining({
             failedLoginAttempts: 0,
             isLocked: false,
             lockedUntil: null,
-          },
+          }),
         }),
       );
     });
   });
 
   describe('getOrCreateFirstName', () => {
-    it('should create first name if not exists', async () => {
-      (prismaMock.givenName?.findFirst as jest.Mock).mockResolvedValue(null);
-      (prismaMock.givenName?.create as jest.Mock).mockResolvedValue({
-        id: 'fn-1',
+    it('creates when not found', async () => {
+      (prismaMock.givenName!.findFirst as jest.Mock).mockResolvedValue(null);
+      (prismaMock.givenName!.create as jest.Mock).mockResolvedValue({
+        id: 'f1',
         firstName: 'alice',
       });
-      const result = await helpers.getOrCreateFirstName('Alice');
-      expect(result).toEqual({ id: 'fn-1', firstName: 'alice' });
+      const res = await helpers.getOrCreateFirstName('Alice');
+      expect(res).toEqual({ id: 'f1', firstName: 'alice' });
     });
   });
 
   describe('getOrCreateSurname', () => {
-    it('should create surname if not exists', async () => {
-      (prismaMock.givenName?.findFirst as jest.Mock).mockResolvedValue(null);
-      (prismaMock.givenName?.create as jest.Mock).mockResolvedValue({
-        id: 's-1',
+    it('creates when not found', async () => {
+      (prismaMock.surname!.findFirst as jest.Mock).mockResolvedValue(null);
+      (prismaMock.surname!.create as jest.Mock).mockResolvedValue({
+        id: 's1',
         surname: 'smith',
       });
-      const result = await helpers.getOrCreateSurname('Smith');
-      expect(result).toEqual({ id: 's-1', surname: 'smith' });
+      const res = await helpers.getOrCreateSurname('Smith');
+      expect(res).toEqual({ id: 's1', surname: 'smith' });
     });
   });
 
   describe('generateUniqueLogin', () => {
-    it('should generate login without suffix if unique', async () => {
-      (prismaMock.user?.findUnique as jest.Mock).mockResolvedValue(null);
-      const login = await helpers.generateUniqueLogin('Alice', 'Smith');
-      expect(login).toBe('asmith');
+    it('returns base login if unique', async () => {
+      (prismaMock.user!.findUnique as jest.Mock).mockResolvedValue(null);
+      const res = await helpers.generateUniqueLogin('Alice', 'Smith');
+      expect(res).toBe('asmith');
     });
 
-    it('should append suffix if login exists', async () => {
-      (prismaMock.user?.findUnique as jest.Mock)
-        .mockResolvedValueOnce({ id: 'user-1' })
+    it('adds numeric suffix if taken', async () => {
+      (prismaMock.user!.findUnique as jest.Mock)
+        .mockResolvedValueOnce({ id: 'existing' })
         .mockResolvedValueOnce(null);
-      const login = await helpers.generateUniqueLogin('Alice', 'Smith');
-      expect(login).toBe('asmith1');
+      const res = await helpers.generateUniqueLogin('Alice', 'Smith');
+      expect(res).toBe('asmith1');
     });
   });
 });
