@@ -1,12 +1,12 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { JwtService } from '@nestjs/jwt';
 import { AuthService } from './auth.service.js';
-import { PrismaService } from '@/prisma/prisma.service.js';
 import { AuthHelpers } from './helpers/auth.helpers.js';
+import { PrismaService } from '../../../prisma/prisma.service.js';
 import { DbLoggerService, LogParams } from '@lib/DbLoggerService.js';
 import { hashPassword, verifyPassword } from '@lib/password.util.js';
 
-jest.mock('@lib/password.util', () => ({
+jest.mock('@lib/password.util.ts', () => ({
   hashPassword: jest.fn().mockResolvedValue('hashed-password'),
   verifyPassword: jest.fn(),
 }));

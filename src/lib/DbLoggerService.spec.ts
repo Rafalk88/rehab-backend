@@ -1,8 +1,8 @@
 import { Prisma } from '@prisma/client';
+import { Logger } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { DbLoggerService, LogParams } from './DbLoggerService.js';
-import { PrismaService } from '@/prisma/prisma.service.js';
-import { Logger } from '@nestjs/common';
+import { PrismaService } from '../prisma/prisma.service.js';
 
 describe('LoggerService', () => {
   let service: DbLoggerService;

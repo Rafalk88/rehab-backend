@@ -4,24 +4,31 @@ const tsJestTransformCfg = createDefaultPreset().transform;
 
 /** @type {import('jest').Config} */
 export default {
+  preset: 'ts-jest',
   testEnvironment: 'node',
+
   transform: {
+    '^.+\\.ts$': ['ts-jest', { useESM: true }],
     ...tsJestTransformCfg,
   },
+
+  extensionsToTreatAsEsm: ['.ts'],
+
+  moduleNameMapper: {
+    '^@/(.*)$': '<rootDir>/src/$1',
+    '^@modules/(.*)$': '<rootDir>/src/modules/$1',
+    '^@common/(.*)$': '<rootDir>/src/common/$1',
+    '^@lib/(.*)$': '<rootDir>/src/lib/$1',
+    '^(\\.{1,2}/.*)\\.js$': '$1',
+  },
+
   globals: {
     'ts-jest': {
       tsconfig: './tsconfig.json',
+      useESM: true,
     },
   },
+
   moduleFileExtensions: ['ts', 'js', 'json'],
   clearMocks: true,
-  preset: 'ts-jest',
-  moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1',
-    '^@config/(.*)$': '<rootDir>/src/config/$1',
-    '^@errors/(.*)$': '<rootDir>/src/errors/$1',
-    '^@routes/(.*)$': '<rootDir>/src/routes/$1',
-    '^@services/(.*)$': '<rootDir>/src/services/$1',
-    '^@utils/(.*)$': '<rootDir>/src/utils/$1',
-  },
 };

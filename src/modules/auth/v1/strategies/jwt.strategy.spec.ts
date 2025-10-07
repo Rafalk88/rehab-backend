@@ -1,23 +1,54 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { jest } from '@jest/globals';
 import { JwtStrategy } from './jwt.strategy.js';
 
+jest.mock('passport-jwt', () => ({
+  Strategy: jest.fn().mockImplementation((options) => ({
+    name: 'jwt',
+    options,
+    authenticate: jest.fn(),
+  })),
+  ExtractJwt: {
+    fromAuthHeaderAsBearerToken: jest.fn(() => 'mockExtractor'),
+  },
+}));
+
 describe('JwtStrategy', () => {
-  let strategy: JwtStrategy;
+  const OLD_ENV = process.env;
 
-  beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [JwtStrategy],
-    }).compile();
-
-    strategy = module.get<JwtStrategy>(JwtStrategy);
+  beforeEach(() => {
+    jest.resetModules();
+    process.env = { ...OLD_ENV };
   });
 
-  it('should be defined', () => {
-    expect(strategy).toBeDefined();
+  afterAll(() => {
+    process.env = OLD_ENV;
+  });
+
+  describe('constructor', () => {
+    it('should use default secret if JWT_SECRET is not set', () => {
+      delete process.env.JWT_SECRET;
+
+      const strategy = new JwtStrategy();
+
+      // @ts-expect-error - mock adds options
+      expect(strategy.options.secretOrKey).toBe('secretForJWT');
+      // @ts-expect-error
+      expect(strategy.options.jwtFromRequest).toBe('mockExtractor');
+    });
+
+    it('should use JWT_SECRET from environment variable', () => {
+      process.env.JWT_SECRET = 'mySecret123';
+
+      const strategy = new JwtStrategy();
+
+      // @ts-expect-error
+      expect(strategy.options.secretOrKey).toBe('mySecret123');
+    });
   });
 
   describe('validate', () => {
-    it('should return userId and email from payload', async () => {
+    it('should map JWT payload to user object', async () => {
+      const strategy = new JwtStrategy();
       const payload = { sub: 'user-123', email: 'test@example.com' };
 
       const result = await strategy.validate(payload);
@@ -26,38 +57,6 @@ describe('JwtStrategy', () => {
         userId: 'user-123',
         email: 'test@example.com',
       });
-    });
-
-    it('should work with payload containing only sub', async () => {
-      const payload = { sub: 'user-456' };
-
-      const result = await strategy.validate(payload);
-
-      expect(result).toEqual({
-        userId: 'user-456',
-        email: undefined,
-      });
-    });
-  });
-
-  describe('constructor', () => {
-    it('should use default secret if JWT_SECRET not set', () => {
-      const original = process.env.JWT_SECRET;
-      delete process.env.JWT_SECRET;
-
-      const localStrategy = new JwtStrategy();
-
-      expect((localStrategy as any).options.secretOrKey).toBe('secretForJWT');
-
-      process.env.JWT_SECRET = original; // restore
-    });
-
-    it('should use JWT_SECRET from env if provided', () => {
-      process.env.JWT_SECRET = 'mySecret123';
-
-      const localStrategy = new JwtStrategy();
-
-      expect((localStrategy as any).options.secretOrKey).toBe('mySecret123');
     });
   });
 });

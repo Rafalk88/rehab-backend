@@ -1,3 +1,4 @@
+import { jest } from '@jest/globals';
 import { PermissionsCache } from './permissions.cache.js';
 
 describe('PermissionsCache', () => {

@@ -1,6 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PermissionsAdminService } from './permissions-admin.service.js';
-import { PrismaService } from '@/prisma/prisma.service.js';
+import { PrismaService } from './../../prisma/prisma.service.js';
 import { DbLoggerService } from '@lib/DbLoggerService.js';
 import { AppError } from '@common/errors/app.error.js';
 

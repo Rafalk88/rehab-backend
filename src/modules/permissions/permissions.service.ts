@@ -1,5 +1,5 @@
 import type { PrismaClient } from '@prisma/client';
-import { PrismaService } from '@/prisma/prisma.service.js';
+import { PrismaService } from '../../prisma/prisma.service.js';
 import { PermissionsCache } from './permissions.cache.js';
 /**
  * PermissionsService

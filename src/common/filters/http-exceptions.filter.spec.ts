@@ -1,7 +1,6 @@
+import { HttpException, ArgumentsHost } from '@nestjs/common';
 import { HttpExceptionFilter } from './http-exceptions.filter.js';
 import { AppError } from '@common/errors/app.error.js';
-import { HttpException } from '@nestjs/common';
-import { ArgumentsHost } from '@nestjs/common';
 import logger from '@lib/logger/winston.js';
 
 jest.mock('@lib/logger/winston.js', () => ({

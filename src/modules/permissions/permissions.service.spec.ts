@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { PermissionsService } from './permissions.service.js';
-import { PrismaService } from '@/prisma/prisma.service.js';
 import { PermissionsCache } from './permissions.cache.js';
+import { PermissionsService } from './permissions.service.js';
+import { PrismaService } from '../../prisma/prisma.service.js';
 
 describe('PermissionsService', () => {
   let service: PermissionsService;

@@ -1,7 +1,7 @@
 import { ExecutionContext } from '@nestjs/common';
-import { JwtAuthGuard } from '@modules/auth/v1/guards/jwt-auth.guard.js';
-import { JwtStrategy } from '@modules/auth/v1/strategies/jwt.strategy.js';
 import { HttpArgumentsHost } from '@nestjs/common/interfaces/index.js';
+import { JwtAuthGuard } from './jwt-auth.guard.js';
+import { JwtStrategy } from '../strategies/jwt.strategy.js';
 
 describe('JwtStrategy', () => {
   let strategy: JwtStrategy;

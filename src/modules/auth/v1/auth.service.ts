@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from '@/prisma/prisma.service.js';
-import { hashPassword, verifyPassword } from '@lib/password.util.js';
+import { PrismaService } from '../../../prisma/prisma.service.js';
 import { AuthHelpers } from './helpers/auth.helpers.js';
-import { DbLoggerService } from '@lib/DbLoggerService.js';
 import { AppError } from '@common/errors/app.error.js';
+import { hashPassword, verifyPassword } from '@lib/password.util.js';
+import { DbLoggerService } from '@lib/DbLoggerService.js';
 
 const SEVEN_DAYS_IN_MS = 7 * 24 * 60 * 60 * 1000;
 

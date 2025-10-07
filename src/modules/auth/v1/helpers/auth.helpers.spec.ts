@@ -1,10 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { AuthHelpers } from '@modules/auth/v1/helpers/auth.helpers.js';
-import { PrismaService } from '@/prisma/prisma.service.js';
+import { AuthHelpers } from './auth.helpers.js';
+import { PrismaService } from '../../../../prisma/prisma.service.js';
 import { verifyPassword } from '@lib/password.util.js';
 import type { User } from '@prisma/client';
 
-jest.mock('@lib/password.util.js');
+jest.mock('@lib/password.util.ts');
 
 describe('AuthHelpers', () => {
   let helpers: AuthHelpers;
