@@ -1,13 +1,14 @@
+import { jest } from '@jest/globals';
+import { DbLoggerService, LogParams } from './DbLoggerService.js';
+import { PrismaService } from '#prisma/prisma.service.js';
 import { Prisma } from '@prisma/client';
 import { Logger } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { DbLoggerService, LogParams } from './DbLoggerService.js';
-import { PrismaService } from '../prisma/prisma.service.js';
 
-describe('LoggerService', () => {
+describe('DbLoggerService', () => {
   let service: DbLoggerService;
   let prisma: jest.Mocked<PrismaService>;
-  let nestLogger: jest.SpyInstance;
+  let nestLogger: ReturnType<typeof jest.spyOn>;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -24,8 +25,8 @@ describe('LoggerService', () => {
       ],
     }).compile();
 
-    service = module.get<DbLoggerService>(DbLoggerService);
-    prisma = module.get(PrismaService);
+    service = module.get(DbLoggerService);
+    prisma = module.get(PrismaService) as jest.Mocked<PrismaService>;
     nestLogger = jest.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
   });
 
@@ -44,7 +45,7 @@ describe('LoggerService', () => {
     newValues: Prisma.JsonNull,
   };
 
-  it('should call prisma.operationLog.create with correct params', async () => {
+  it('✅ should call prisma.operationLog.create with correct params', async () => {
     await service.logAction(sampleLog);
 
     expect(prisma.operationLog.create).toHaveBeenCalledWith({
@@ -59,7 +60,7 @@ describe('LoggerService', () => {
     });
   });
 
-  it('should fallback ipAddress to "system" if not provided', async () => {
+  it('✅ should fallback ipAddress to "system" if not provided', async () => {
     await service.logAction({
       userId: 'user-1',
       action: 'UPDATE',
@@ -77,8 +78,8 @@ describe('LoggerService', () => {
     });
   });
 
-  it('should log error if prisma call fails', async () => {
-    (prisma.operationLog.create as jest.Mock).mockRejectedValueOnce(new Error('DB error'));
+  it('🚨 should log error if prisma call fails', async () => {
+    (prisma.operationLog.create as jest.Mock).mockRejectedValueOnce(new Error('DB error') as never);
 
     await service.logAction(sampleLog);
 

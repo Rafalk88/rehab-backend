@@ -1,5 +1,5 @@
-import { jest } from '@jest/globals';
 import { PermissionsCache } from './permissions.cache.js';
+import { jest } from '@jest/globals';
 
 describe('PermissionsCache', () => {
   let cache: PermissionsCache;

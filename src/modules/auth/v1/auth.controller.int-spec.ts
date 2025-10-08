@@ -1,9 +1,9 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { verifyPassword } from '#lib/password.util.js';
+import { AuthModule } from '#modules/auth/v1/auth.module.js';
+import { PrismaService } from '#prisma/prisma.service.js';
 import { INestApplication } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
 import request from 'supertest';
-import { AuthModule } from '@modules/auth/v1/auth.module.js';
-import { PrismaService } from '@/prisma/prisma.service.js';
-import { hashPassword, verifyPassword } from '@lib/password.util.js';
 
 jest.mock('@lib/password.util', () => ({
   hashPassword: jest.fn().mockResolvedValue('new-hash'),

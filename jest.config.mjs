@@ -4,29 +4,30 @@ const tsJestTransformCfg = createDefaultPreset().transform;
 
 /** @type {import('jest').Config} */
 export default {
-  preset: 'ts-jest',
+  preset: 'ts-jest/presets/default-esm',
   testEnvironment: 'node',
+  roots: ['<rootDir>/src'],
 
   transform: {
-    '^.+\\.ts$': ['ts-jest', { useESM: true }],
+    '^.+\\.ts$': [
+      'ts-jest',
+      {
+        useESM: true,
+        tsconfig: './tsconfig.json',
+      },
+    ],
     ...tsJestTransformCfg,
   },
 
   extensionsToTreatAsEsm: ['.ts'],
 
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/src/$1',
-    '^@modules/(.*)$': '<rootDir>/src/modules/$1',
-    '^@common/(.*)$': '<rootDir>/src/common/$1',
-    '^@lib/(.*)$': '<rootDir>/src/lib/$1',
+    '^#/(.*)\\.js$': '<rootDir>/src/$1',
+    '^#modules/(.*)\\.js$': '<rootDir>/src/modules/$1',
+    '^#common/(.*)\\.js$': '<rootDir>/src/common/$1',
+    '^#lib/(.*)\\.js$': '<rootDir>/src/lib/$1',
+    '^#prisma/(.*)\\.js$': '<rootDir>/src/prisma/$1',
     '^(\\.{1,2}/.*)\\.js$': '$1',
-  },
-
-  globals: {
-    'ts-jest': {
-      tsconfig: './tsconfig.json',
-      useESM: true,
-    },
   },
 
   moduleFileExtensions: ['ts', 'js', 'json'],

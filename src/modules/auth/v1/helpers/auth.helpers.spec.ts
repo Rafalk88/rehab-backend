@@ -1,14 +1,21 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { AuthHelpers } from './auth.helpers.js';
-import { PrismaService } from '../../../../prisma/prisma.service.js';
-import { verifyPassword } from '@lib/password.util.js';
-import type { User } from '@prisma/client';
+import { jest } from '@jest/globals';
 
-jest.mock('@lib/password.util.ts');
+await jest.unstable_mockModule('#lib/password.util.js', () => ({
+  verifyPassword: jest.fn(),
+}));
+
+const passwordUtil = await import('#lib/password.util.js');
+const { AuthHelpers } = await import('./auth.helpers.js');
+const { PrismaService } = await import('#prisma/prisma.service.js');
+const { Test } = await import('@nestjs/testing');
+
+const verifyPasswordMock = passwordUtil.verifyPassword as jest.MockedFunction<
+  typeof passwordUtil.verifyPassword
+>;
 
 describe('AuthHelpers', () => {
-  let helpers: AuthHelpers;
-  let prismaMock: jest.Mocked<Partial<PrismaService>>;
+  let helpers: InstanceType<typeof AuthHelpers>;
+  let prismaMock: jest.Mocked<Partial<InstanceType<typeof PrismaService>>>;
 
   beforeEach(async () => {
     prismaMock = {
@@ -16,46 +23,46 @@ describe('AuthHelpers', () => {
         findUnique: jest.fn(),
         update: jest.fn(),
       },
-      givenName: {
-        findFirst: jest.fn(),
-        create: jest.fn(),
-      },
-      surname: {
-        findFirst: jest.fn(),
-        create: jest.fn(),
-      },
+      givenName: { findFirst: jest.fn(), create: jest.fn() },
+      surname: { findFirst: jest.fn(), create: jest.fn() },
     } as any;
 
-    const module: TestingModule = await Test.createTestingModule({
+    const module = await Test.createTestingModule({
       providers: [AuthHelpers, { provide: PrismaService, useValue: prismaMock }],
     }).compile();
 
-    helpers = module.get<AuthHelpers>(AuthHelpers);
+    helpers = module.get(AuthHelpers);
   });
 
   afterEach(() => jest.clearAllMocks());
 
   describe('verifyLoginCredentials', () => {
     it('✅ passes when password is valid', async () => {
-      (verifyPassword as jest.Mock).mockResolvedValue(true);
-      const user = { id: '1', failedLoginAttempts: 0, passwordHash: 'hash' } as User;
+      verifyPasswordMock.mockResolvedValue(true);
+      const user = { id: '1', failedLoginAttempts: 0, passwordHash: 'hash' } as any;
       await expect(helpers.verifyLoginCredentials(user, 'secret')).resolves.not.toThrow();
     });
 
     it('❌ throws unauthorized when password invalid (below lock threshold)', async () => {
-      (verifyPassword as jest.Mock).mockResolvedValue(false);
-      (prismaMock.user!.update as jest.Mock).mockResolvedValueOnce({ failedLoginAttempts: 3 }); // first update
-      const user = { id: '1', failedLoginAttempts: 2, passwordHash: 'hash' } as User;
-      await expect(helpers.verifyLoginCredentials(user, 'wrong')).rejects.toThrow(/unauthorized/);
+      verifyPasswordMock.mockResolvedValue(false);
+      (prismaMock.user!.update as jest.Mock).mockResolvedValueOnce({
+        failedLoginAttempts: 3,
+      } as never);
+      const user = { id: '1', failedLoginAttempts: 2, passwordHash: 'hash' } as any;
+
+      await expect(helpers.verifyLoginCredentials(user, 'wrong')).rejects.toThrow(
+        /Invalid login or password/,
+      );
     });
 
     it('🔒 throws forbidden when failed attempts >= max', async () => {
-      (verifyPassword as jest.Mock).mockResolvedValue(false);
+      verifyPasswordMock.mockResolvedValue(false);
       (prismaMock.user!.update as jest.Mock)
-        .mockResolvedValueOnce({ failedLoginAttempts: 5 }) // increment
-        .mockResolvedValueOnce({}); // lock call
-      const user = { id: '1', failedLoginAttempts: 5, passwordHash: 'hash' } as User;
-      await expect(helpers.verifyLoginCredentials(user, 'wrong')).rejects.toThrow(/forbidden/);
+        .mockResolvedValueOnce({ failedLoginAttempts: 5 } as never)
+        .mockResolvedValueOnce({} as never);
+      const user = { id: '1', failedLoginAttempts: 5, passwordHash: 'hash' } as any;
+
+      await expect(helpers.verifyLoginCredentials(user, 'wrong')).rejects.toThrow(/Account locked/);
     });
   });
 
@@ -110,7 +117,7 @@ describe('AuthHelpers', () => {
     it('increments attempts (no lock)', async () => {
       (prismaMock.user!.update as jest.Mock).mockResolvedValueOnce({
         failedLoginAttempts: 3,
-      });
+      } as never);
       const res = await helpers.updateLoginFailure('1');
       expect(res.failedAttempts).toBe(3);
       expect(res.lockedUntil).toBeUndefined();
@@ -118,8 +125,8 @@ describe('AuthHelpers', () => {
 
     it('locks when attempts >= 5', async () => {
       (prismaMock.user!.update as jest.Mock)
-        .mockResolvedValueOnce({ failedLoginAttempts: 5 })
-        .mockResolvedValueOnce({});
+        .mockResolvedValueOnce({ failedLoginAttempts: 5 } as never)
+        .mockResolvedValueOnce({} as never);
       const res = await helpers.updateLoginFailure('1');
       expect(res.failedAttempts).toBe(5);
       expect(res.lockedUntil).toBeInstanceOf(Date);
@@ -144,11 +151,11 @@ describe('AuthHelpers', () => {
 
   describe('getOrCreateFirstName', () => {
     it('creates when not found', async () => {
-      (prismaMock.givenName!.findFirst as jest.Mock).mockResolvedValue(null);
+      (prismaMock.givenName!.findFirst as jest.Mock).mockResolvedValue(null as never);
       (prismaMock.givenName!.create as jest.Mock).mockResolvedValue({
         id: 'f1',
         firstName: 'alice',
-      });
+      } as never);
       const res = await helpers.getOrCreateFirstName('Alice');
       expect(res).toEqual({ id: 'f1', firstName: 'alice' });
     });
@@ -156,11 +163,11 @@ describe('AuthHelpers', () => {
 
   describe('getOrCreateSurname', () => {
     it('creates when not found', async () => {
-      (prismaMock.surname!.findFirst as jest.Mock).mockResolvedValue(null);
+      (prismaMock.surname!.findFirst as jest.Mock).mockResolvedValue(null as never);
       (prismaMock.surname!.create as jest.Mock).mockResolvedValue({
         id: 's1',
         surname: 'smith',
-      });
+      } as never);
       const res = await helpers.getOrCreateSurname('Smith');
       expect(res).toEqual({ id: 's1', surname: 'smith' });
     });
@@ -168,15 +175,15 @@ describe('AuthHelpers', () => {
 
   describe('generateUniqueLogin', () => {
     it('returns base login if unique', async () => {
-      (prismaMock.user!.findUnique as jest.Mock).mockResolvedValue(null);
+      (prismaMock.user!.findUnique as jest.Mock).mockResolvedValue(null as never);
       const res = await helpers.generateUniqueLogin('Alice', 'Smith');
       expect(res).toBe('asmith');
     });
 
     it('adds numeric suffix if taken', async () => {
       (prismaMock.user!.findUnique as jest.Mock)
-        .mockResolvedValueOnce({ id: 'existing' })
-        .mockResolvedValueOnce(null);
+        .mockResolvedValueOnce({ id: 'existing' } as never)
+        .mockResolvedValueOnce(null as never);
       const res = await helpers.generateUniqueLogin('Alice', 'Smith');
       expect(res).toBe('asmith1');
     });

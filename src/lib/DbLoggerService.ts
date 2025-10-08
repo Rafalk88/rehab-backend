@@ -1,6 +1,6 @@
+import { PrismaService } from '#prisma/prisma.service.js';
 import { Injectable, Logger } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
-import { PrismaService } from '../prisma/prisma.service.js';
 
 export interface LogParams {
   userId: string;

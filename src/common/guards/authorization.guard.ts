@@ -1,6 +1,6 @@
+import { AppError } from '#common/errors/app.error.js';
+import { PermissionsService } from '#modules/permissions/permissions.service.js';
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
-import { AppError } from '@common/errors/app.error.js';
-import { PermissionsService } from '@modules/permissions/permissions.service.js';
 
 /**
  * AuthorizationGuard

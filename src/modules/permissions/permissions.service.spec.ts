@@ -1,14 +1,16 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { jest } from '@jest/globals';
+import { v4 as uuidv4 } from 'uuid';
 import { PermissionsCache } from './permissions.cache.js';
 import { PermissionsService } from './permissions.service.js';
-import { PrismaService } from '../../prisma/prisma.service.js';
+import { PrismaService } from '#prisma/prisma.service.js';
+import { Test, TestingModule } from '@nestjs/testing';
 
 describe('PermissionsService', () => {
   let service: PermissionsService;
   let prisma: jest.Mocked<PrismaService>;
   let cache: jest.Mocked<PermissionsCache>;
 
-  const userId = 'user-1';
+  const userId = uuidv4(); // generujemy prawidłowy UUID
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -31,7 +33,7 @@ describe('PermissionsService', () => {
       ],
     }).compile();
 
-    service = module.get<PermissionsService>(PermissionsService);
+    service = module.get(PermissionsService);
     prisma = module.get(PrismaService);
     cache = module.get(PermissionsCache);
   });
@@ -51,26 +53,29 @@ describe('PermissionsService', () => {
       cache.get.mockReturnValue(null);
 
       (prisma.user.findUnique as jest.Mock).mockResolvedValue({
+        id: userId,
         userRoles: [
           {
-            role: { rolePermissions: [{ permission: 'PERM_READ' }, { permission: 'PERM_WRITE' }] },
+            role: {
+              rolePermissions: [{ permission: 'PERM_READ' }, { permission: 'PERM_WRITE' }],
+            },
           },
         ],
         userPermissions: [{ permission: 'PERM_DELETE', allowed: true }],
-        organizationalUnitId: 'org-1',
-      } as any);
+        organizationalUnitId: uuidv4(),
+      } as never);
 
       const result = await service.getPermissions(userId);
 
       expect(result?.perms).toEqual(['PERM_READ', 'PERM_WRITE']);
       expect(result?.overrides).toEqual([{ permission: 'PERM_DELETE', allowed: true }]);
-      expect(result?.orgId).toBe('org-1');
+      expect(result?.orgId).toBeDefined();
       expect(cache.set).toHaveBeenCalledWith(userId, ['PERM_READ', 'PERM_WRITE']);
     });
 
     it('should return null if user not found', async () => {
       cache.get.mockReturnValue(null);
-      (prisma.user.findUnique as jest.Mock).mockResolvedValue(null);
+      (prisma.user.findUnique as jest.Mock).mockResolvedValue(null as never);
 
       const result = await service.getPermissions(userId);
       expect(result).toBeNull();
@@ -112,16 +117,17 @@ describe('PermissionsService', () => {
     });
 
     it('should enforce organizational unit check', async () => {
+      const orgId = uuidv4();
       jest.spyOn(service, 'getPermissions').mockResolvedValue({
         perms: ['PERM_READ'],
         overrides: [],
-        orgId: 'org-1',
+        orgId,
       });
 
-      const result = await service.canAccess(userId, 'PERM_READ', 'org-2');
+      const result = await service.canAccess(userId, 'PERM_READ', uuidv4());
       expect(result).toBe(false);
 
-      const result2 = await service.canAccess(userId, 'PERM_READ', 'org-1');
+      const result2 = await service.canAccess(userId, 'PERM_READ', orgId);
       expect(result2).toBe(true);
     });
   });

@@ -1,5 +1,5 @@
-import { Injectable, LoggerService as NestLogger } from '@nestjs/common';
 import winstonLogger from './winston.js';
+import { Injectable, LoggerService as NestLogger } from '@nestjs/common';
 
 /**
  * LoggerService

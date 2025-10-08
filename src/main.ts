@@ -1,12 +1,12 @@
-import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module.js';
+import { HttpExceptionFilter } from '#common/filters/http-exceptions.filter.js';
+import { LoggerService } from '#lib/logger/logger.service.js';
 import { ValidationPipe } from '@nestjs/common';
+import { NestFactory } from '@nestjs/core';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import morgan from 'morgan';
 import express from 'express';
-import { HttpExceptionFilter } from '@common/filters/http-exceptions.filter.js';
-import { AppModule } from './app.module.js';
-import { LoggerService } from '@lib/logger/logger.service.js';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {

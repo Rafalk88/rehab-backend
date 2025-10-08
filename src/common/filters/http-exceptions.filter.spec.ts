@@ -1,15 +1,17 @@
-import { HttpException, ArgumentsHost } from '@nestjs/common';
-import { HttpExceptionFilter } from './http-exceptions.filter.js';
-import { AppError } from '@common/errors/app.error.js';
-import logger from '@lib/logger/winston.js';
+import { jest } from '@jest/globals';
+import { ArgumentsHost, HttpException } from '@nestjs/common';
+import { AppError } from '#common/errors/app.error.js';
 
-jest.mock('@lib/logger/winston.js', () => ({
-  error: jest.fn(),
+await jest.unstable_mockModule('#lib/logger/winston.js', () => ({
+  default: { error: jest.fn() },
 }));
 
+const logger = (await import('#lib/logger/winston.js')).default;
+const { HttpExceptionFilter } = await import('./http-exceptions.filter.js');
+
 describe('HttpExceptionFilter', () => {
-  let filter: HttpExceptionFilter;
-  let mockResponse: any;
+  let filter;
+  let mockResponse: { status: jest.Mock; json: jest.Mock };
   let mockRequest: any;
   let mockHost: ArgumentsHost;
 
@@ -34,6 +36,8 @@ describe('HttpExceptionFilter', () => {
         getResponse: () => mockResponse,
         getRequest: () => mockRequest,
       }),
+      getClass: () => HttpExceptionFilter,
+      getHandler: () => () => {},
     } as unknown as ArgumentsHost;
   });
 

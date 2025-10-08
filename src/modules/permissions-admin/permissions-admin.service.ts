@@ -1,12 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
-import { PrismaService } from '../../prisma/prisma.service.js';
-import { DbLoggerService } from '@lib/DbLoggerService.js';
-import { AppError } from '@common/errors/app.error.js';
-
 import type {
   AssignPermissionSchema,
   OverridePermissionSchema,
 } from './permissions-admin.schemas.js';
+import { AppError } from '#common/errors/app.error.js';
+import { DbLoggerService } from '#lib/DbLoggerService.js';
+import { PrismaService } from '#prisma/prisma.service.js';
+import { Injectable } from '@nestjs/common';
 
 @Injectable()
 export class PermissionsAdminService {

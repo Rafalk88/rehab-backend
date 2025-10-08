@@ -1,8 +1,9 @@
-import { Test, TestingModule } from '@nestjs/testing';
+import { jest } from '@jest/globals';
 import { PermissionsAdminService } from './permissions-admin.service.js';
-import { PrismaService } from './../../prisma/prisma.service.js';
-import { DbLoggerService } from '@lib/DbLoggerService.js';
-import { AppError } from '@common/errors/app.error.js';
+import { AppError } from '#common/errors/app.error.js';
+import { DbLoggerService } from '#lib/DbLoggerService.js';
+import { PrismaService } from '#prisma/prisma.service.js';
+import { Test, TestingModule } from '@nestjs/testing';
 
 describe('PermissionsAdminService', () => {
   let service: PermissionsAdminService;
@@ -49,12 +50,12 @@ describe('PermissionsAdminService', () => {
       (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce({
         id: 'user-1',
         email: 'test@a.com',
-      } as any);
+      } as never);
       (prisma.role.findUnique as jest.Mock).mockResolvedValueOnce({
         id: 'role-1',
         name: 'Admin',
-      } as any);
-      (prisma.userRole.create as jest.Mock).mockResolvedValueOnce({ id: 'userRole-1' } as any);
+      } as never);
+      (prisma.userRole.create as jest.Mock).mockResolvedValueOnce({ id: 'userRole-1' } as never);
 
       const result = await service.assignRoleToUser('user-1', 'role-1', adminId, ipAddress);
 
@@ -68,8 +69,8 @@ describe('PermissionsAdminService', () => {
     });
 
     it('should throw if user not found', async () => {
-      (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce(null);
-      (prisma.role.findUnique as jest.Mock).mockResolvedValueOnce({ id: 'role-1' } as any);
+      (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce(null as never);
+      (prisma.role.findUnique as jest.Mock).mockResolvedValueOnce({ id: 'role-1' } as never);
 
       await expect(
         service.assignRoleToUser('user-1', 'role-1', adminId, ipAddress),
@@ -77,8 +78,8 @@ describe('PermissionsAdminService', () => {
     });
 
     it('should throw if role not found', async () => {
-      (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce({ id: 'user-1' } as any);
-      (prisma.role.findUnique as jest.Mock).mockResolvedValueOnce(null);
+      (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce({ id: 'user-1' } as never);
+      (prisma.role.findUnique as jest.Mock).mockResolvedValueOnce(null as never);
 
       await expect(
         service.assignRoleToUser('user-1', 'role-1', adminId, ipAddress),
@@ -91,8 +92,8 @@ describe('PermissionsAdminService', () => {
       (prisma.role.findUnique as jest.Mock).mockResolvedValueOnce({
         id: 'role-1',
         name: 'Admin',
-      } as any);
-      (prisma.rolePermission.create as jest.Mock).mockResolvedValueOnce({ id: 'perm-1' } as any);
+      } as never);
+      (prisma.rolePermission.create as jest.Mock).mockResolvedValueOnce({ id: 'perm-1' } as never);
 
       const result = await service.assignPermissionToRole(
         'role-1',
@@ -111,7 +112,7 @@ describe('PermissionsAdminService', () => {
     });
 
     it('should throw if role not found', async () => {
-      (prisma.role.findUnique as jest.Mock).mockResolvedValueOnce(null);
+      (prisma.role.findUnique as jest.Mock).mockResolvedValueOnce(null as never);
 
       await expect(
         service.assignPermissionToRole('role-1', { permission: 'user.read' }, adminId, ipAddress),
@@ -124,10 +125,10 @@ describe('PermissionsAdminService', () => {
       (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce({
         id: 'user-1',
         email: 'test@a.com',
-      } as any);
+      } as never);
       (prisma.userPermission.upsert as jest.Mock).mockResolvedValueOnce({
         id: 'override-1',
-      } as any);
+      } as never);
 
       const result = await service.overridePermissionForUser(
         'user-1',
@@ -148,7 +149,7 @@ describe('PermissionsAdminService', () => {
     });
 
     it('should throw if user not found', async () => {
-      (prisma.role.findUnique as jest.Mock).mockResolvedValueOnce(null);
+      (prisma.role.findUnique as jest.Mock).mockResolvedValueOnce(null as never);
 
       await expect(
         service.overridePermissionForUser(

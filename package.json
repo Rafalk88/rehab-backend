@@ -95,7 +95,8 @@
     "ts-node-dev": "^2.0.0",
     "tsc-alias": "^1.8.16",
     "tsconfig-paths": "^4.2.0",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "uuid": "^13.0.0"
   },
   "husky": {
     "hooks": {
@@ -106,6 +107,11 @@
     "*.ts": [
       "prettier --write",
       "eslint --cache --fix"
+    ]
+  },
+  "jest": {
+    "roots": [
+      "<rootDir/src"
     ]
   }
 }

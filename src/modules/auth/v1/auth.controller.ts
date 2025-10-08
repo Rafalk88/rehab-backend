@@ -1,8 +1,3 @@
-import { Controller, Post, Body, Req, UseGuards, SetMetadata, Param } from '@nestjs/common';
-import type { Request } from 'express';
-import { Permissions } from '@modules/permissions/decorators/permission.decorator.js';
-import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
-import { AuthorizationGuard } from '@common/guards/authorization.guard.js';
 import { AuthService } from './auth.service.js';
 import {
   RegisterUserSchema,
@@ -11,7 +6,12 @@ import {
   ChangePasswordSchema,
   LockUserSchema,
 } from './auth.schemas.js';
-import { ZodValidationPipe } from '@common/pipes/zod-validation.pipe.js';
+import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
+import { AuthorizationGuard } from '#common/guards/authorization.guard.js';
+import { ZodValidationPipe } from '#common/pipes/zod-validation.pipe.js';
+import { Permissions } from '#modules/permissions/decorators/permission.decorator.js';
+import { Controller, Post, Body, Req, UseGuards, Param } from '@nestjs/common';
+import type { Request } from 'express';
 
 interface JwtRequest extends Request {
   user?: { sub: string };

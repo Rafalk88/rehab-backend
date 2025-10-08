@@ -1,5 +1,5 @@
-import { AppError } from '@common/errors/app.error.js';
-import logger from '@lib/logger/winston.js';
+import { AppError } from '#common/errors/app.error.js';
+import logger from '#lib/logger/winston.js';
 import { ExceptionFilter, Catch, ArgumentsHost, HttpException } from '@nestjs/common';
 import type { Request, Response } from 'express';
 

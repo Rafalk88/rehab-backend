@@ -32,7 +32,7 @@
     "allowSyntheticDefaultImports": true,
     "target": "ES2023",
     "sourceMap": true,
-    "baseUrl": "./",
+    "baseUrl": "./src",
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": true,
@@ -58,10 +58,11 @@
 
     // Wwn config
     "paths": {
-      "@/*": ["./src/*"],
-      "@common/*": ["./src/common/*"],
-      "@modules/*": ["./src/modules/*"],
-      "@lib/*": ["./src/lib/*"]
+      "#/*": ["*"],
+      "#common/*": ["common/*"],
+      "#modules/*": ["modules/*"],
+      "#lib/*": ["lib/*"],
+      "#prisma/*": ["prisma/*"]
     }
   },
   "exclude": ["node_modules", "dist", "jest.config.mjs", "eslint.config.mjs"]

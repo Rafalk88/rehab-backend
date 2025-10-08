@@ -1,16 +1,23 @@
 import { jest } from '@jest/globals';
-import { JwtStrategy } from './jwt.strategy.js';
+jest.unstable_mockModule('passport-jwt', () => {
+  const Strategy = jest.fn().mockImplementation(function (options) {
+    // @ts-ignore - this is mock class
+    this.options = options;
+    // @ts-ignore - this is mock class
+    this.authenticate = jest.fn();
+    // @ts-ignore - this is mock class
+    this.name = 'jwt';
+  });
 
-jest.mock('passport-jwt', () => ({
-  Strategy: jest.fn().mockImplementation((options) => ({
-    name: 'jwt',
-    options,
-    authenticate: jest.fn(),
-  })),
-  ExtractJwt: {
-    fromAuthHeaderAsBearerToken: jest.fn(() => 'mockExtractor'),
-  },
-}));
+  return {
+    Strategy,
+    ExtractJwt: {
+      fromAuthHeaderAsBearerToken: jest.fn(() => 'mockExtractor'),
+    },
+  };
+});
+
+const { JwtStrategy } = await import('./jwt.strategy.js');
 
 describe('JwtStrategy', () => {
   const OLD_ENV = process.env;

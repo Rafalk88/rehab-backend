@@ -1,13 +1,13 @@
+import { AuthController } from './auth.controller.js';
+import { AuthService } from './auth.service.js';
+import { AuthHelpers } from './helpers/auth.helpers.js';
+import { JwtStrategy } from './strategies/jwt.strategy.js';
+import { DbLoggerModule } from '#lib/DbLoggerService.module.js';
+import { PermissionsModule } from '#modules/permissions/permissions.module.js';
+import { PrismaService } from '#prisma/prisma.service.js';
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
-import { AuthService } from './auth.service.js';
-import { JwtStrategy } from './strategies/jwt.strategy.js';
-import { AuthController } from './auth.controller.js';
-import { PrismaService } from '@/prisma/prisma.service.js';
-import { AuthHelpers } from './helpers/auth.helpers.js';
-import { DbLoggerModule } from '@lib/DbLoggerService.module.js';
-import { PermissionsModule } from '@modules/permissions/permissions.module.js';
 
 @Module({
   imports: [

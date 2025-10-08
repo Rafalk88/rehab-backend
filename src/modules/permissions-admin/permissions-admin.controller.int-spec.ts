@@ -1,8 +1,8 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
-import request from 'supertest';
 import { PermissionsAdminController } from './permissions-admin.controller.js';
 import { PermissionsAdminService } from './permissions-admin.service.js';
+import { INestApplication } from '@nestjs/common';
+import { Test, TestingModule } from '@nestjs/testing';
+import request from 'supertest';
 
 const serviceMock = {
   assignRoleToUser: jest.fn(),
