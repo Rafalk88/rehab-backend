@@ -10,7 +10,7 @@ describe('PermissionsService', () => {
   let prisma: jest.Mocked<PrismaService>;
   let cache: jest.Mocked<PermissionsCache>;
 
-  const userId = uuidv4(); // generujemy prawidłowy UUID
+  const userId = uuidv4();
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({

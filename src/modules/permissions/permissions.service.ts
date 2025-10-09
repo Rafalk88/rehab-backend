@@ -1,6 +1,5 @@
 import { PermissionsCache } from './permissions.cache.js';
 import { PrismaService } from '#prisma/prisma.service.js';
-import type { PrismaClient } from '@prisma/client';
 /**
  * PermissionsService
  *
@@ -8,8 +7,8 @@ import type { PrismaClient } from '@prisma/client';
  */
 export class PermissionsService {
   constructor(
-    private readonly prismaInstance: PrismaClient = new PrismaService(),
-    private readonly cache = new PermissionsCache(),
+    private readonly prismaInstance: PrismaService,
+    private readonly cache: PermissionsCache,
   ) {}
 
   /**
