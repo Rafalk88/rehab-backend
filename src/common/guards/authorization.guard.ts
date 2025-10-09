@@ -10,7 +10,7 @@ import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
  */
 @Injectable()
 export class AuthorizationGuard implements CanActivate {
-  constructor(private readonly permissionsService: PermissionsService = new PermissionsService()) {}
+  constructor(private readonly permissionsService: PermissionsService) {}
 
   /**
    * Validates whether the current user can access the route.
