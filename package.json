@@ -1,6 +1,6 @@
 {
   "name": "rehab-backend",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "This repository contains the backend of the Rehabilitation Management System",
   "main": "index.js",
   "scripts": {
@@ -9,7 +9,7 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node --loader tsconfig-paths/esm dist/main.js",
     "build": "nest build && tsc-alias",
-    "test": "echo \"Testy są jeszcze wyłączone\"",
+    "test": "NODE_OPTIONS=--experimental-vm-modules jest --config ./jest.config.mjs",
     "test:unit": "echo \"Testy są jeszcze wyłączone\"",
     "test:int": "echo \"Testy są jeszcze wyłączone\"",
     "test:watch": "echo \"Testy są jeszcze wyłączone\"",

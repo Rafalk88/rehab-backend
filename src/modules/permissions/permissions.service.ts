@@ -1,10 +1,13 @@
 import { PermissionsCache } from './permissions.cache.js';
 import { PrismaService } from '#prisma/prisma.service.js';
+import { Injectable } from '@nestjs/common';
+
 /**
  * PermissionsService
  *
  * Handles fetching and validating user permissions from DB and cache.
  */
+@Injectable()
 export class PermissionsService {
   constructor(
     private readonly prismaInstance: PrismaService,

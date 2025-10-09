@@ -39,8 +39,8 @@ describe('AuthorizationGuard', () => {
 
     await expect(guard.canActivate(mockContext as ExecutionContext)).rejects.toMatchObject({
       name: 'AppError',
-      code: 'unauthorized',
       message: 'Not authenticated',
+      statusCode: 401,
     });
   });
 
@@ -61,8 +61,8 @@ describe('AuthorizationGuard', () => {
 
     await expect(guard.canActivate(mockContext as ExecutionContext)).rejects.toMatchObject({
       name: 'AppError',
-      code: 'forbidden',
       message: 'Insufficient permissions',
+      statusCode: 403,
     });
   });
 

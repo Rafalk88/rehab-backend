@@ -6,15 +6,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ---
 
+## [0.4.1] - 2025-10-09
+
+### Fixed
+
+- Fixed and stabilized all unit and integration tests across the project.
+- Correctly mocked dependencies in guards, services, and other modules.
+- Verified server starts correctly and all tests run successfully in CI/CD.
+
+### Changed
+
+- Minor refactoring in tests for readability and maintainability.
+
+---
+
 ## [0.4.0] - 2025-09-14
 
 ### Added
+
 - Added **refresh token blacklist** to prevent reuse of old refresh tokens.
 - Improved **refresh token rotation** to ensure old tokens are invalidated before saving new ones.
 - Added explicit type safety for `tokenEntry` in `refreshTokens` and `logoutUser`.
 - Updated tests to reflect new behavior of token rotation and blacklist handling.
 
 ### Changed
+
 - `AuthService.refreshTokens` now:
   - Checks if the refresh token is already blacklisted.
   - Moves old token to blacklist before deleting from DB.
@@ -29,6 +45,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 ## [0.3.0] - 2025-09-14
 
 ### Added
+
 - Migrated backend framework from Express to **NestJS** with modular architecture.
 - Implemented **JWT authentication with Access & Refresh tokens**:
   - Access tokens are short-lived (15m), refresh tokens are persisted in DB.
@@ -41,6 +58,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 - Extended **DECISIONS.md** with decision on JWT persistence in DB.
 
 ### Changed
+
 - Updated `User` model relations to include `refreshTokens`.
 - Refactored `AuthService`:
   - `loginUser` now generates both `access_token` and `refresh_token`.
