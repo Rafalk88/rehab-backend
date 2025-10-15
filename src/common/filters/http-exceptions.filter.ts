@@ -42,13 +42,16 @@ export class HttpExceptionFilter implements ExceptionFilter {
           ? exception.message
           : 'Oops! Something went wrong...';
 
+    const safeBody = { ...request.body };
+    if ('password' in safeBody) safeBody.password = '[REDACTED]';
+
     logger.error({
       message: (exception as any).message,
       stack: (exception as any).stack || 'No stack trace',
       name: (exception as any).name,
       method: request.method,
       url: request.originalUrl,
-      body: request.body,
+      body: safeBody,
       params: request.params,
       query: request.query,
     });
