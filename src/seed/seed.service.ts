@@ -8,24 +8,24 @@ export class SeedService {
 
   async seedTestUser() {
     const firstName = await this.prisma.givenName.upsert({
-      where: { firstName: 'Test' },
+      where: { firstName: 'test' },
       update: {},
-      create: { firstName: 'Test' },
+      create: { firstName: 'test' },
     });
 
     const surname = await this.prisma.surname.upsert({
-      where: { surname: 'User' },
+      where: { surname: 'user' },
       update: {},
-      create: { surname: 'User' },
+      create: { surname: 'user' },
     });
 
     const passwordHash = await hashPassword('Test2025!!!!');
 
     await this.prisma.user.upsert({
-      where: { login: 'TUser' },
+      where: { login: 'tuser' },
       update: {},
       create: {
-        login: 'TUser',
+        login: 'tuser',
         email: 'tuser@vitala.com',
         passwordHash,
         mustChangePassword: false,

@@ -1,9 +1,10 @@
+import { PermissionsCache } from './permissions.cache.js';
 import { PermissionsService } from './permissions.service.js';
 import { AuthorizationGuard } from '#common/guards/authorization.guard.js';
 import { Module } from '@nestjs/common';
 
 @Module({
-  providers: [PermissionsService, AuthorizationGuard],
+  providers: [PermissionsService, PermissionsCache, AuthorizationGuard],
   exports: [PermissionsService],
 })
 export class PermissionsModule {}
