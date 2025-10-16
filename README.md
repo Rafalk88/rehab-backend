@@ -44,6 +44,8 @@ pnpm install
 Create a .env file in the root directory and configure your environment variables:
 
 ```bash
+NODE_ENV="development" | "production"
+FRONTEND_URL=your_frontend_connection_string
 DATABASE_URL=your_database_connection_string
 JWT_SECRET=your_jwt_secret_key
 PORT=your_desired_port_number
@@ -52,7 +54,9 @@ PORT=your_desired_port_number
 3. **Run migrations**
 
 ```bash
-npx prisma migrate dev --name init --schema=./src/prisma/schema.prisma
+pnpm prisma:generate
+pnpm prisma:migrate
+pnpm prisma:studio
 ```
 
 4. **Start the server**
