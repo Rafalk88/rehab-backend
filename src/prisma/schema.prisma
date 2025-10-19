@@ -163,7 +163,7 @@ model OperationLog {
   newValues     Json?    @map("new_values")
   timestamp     DateTime @default(now())
   entityType    String   @map("entity_type")
-  entityId      String   @map("entity_id")
+  entityId      String   @db.Uuid @map("entity_id")
   ipAddress     String   @map("ip_address")
 
   user          User     @relation(fields: [userId], references: [id])
