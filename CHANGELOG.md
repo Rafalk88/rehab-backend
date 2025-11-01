@@ -6,6 +6,45 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ---
 
+## [0.5.0] - 2025-11-01
+
+### Added
+
+- **Automatic Prisma auditing middleware (`AuditMiddleware`)**
+  - Automatically logs all `create`, `update`, `delete`, and `upsert` operations.
+  - Writes detailed entries to `OperationLog` with old and new record snapshots.
+  - Retains logs for 5 years.
+- **Request-scoped context handling (`RequestContextService`)**
+  - Uses `AsyncLocalStorage` to persist `userId` and `ipAddress` per request.
+  - Enables transparent access to request metadata across Prisma and other services.
+- **Prisma session middleware (`PrismaSessionMiddleware`)**
+  - Automatically extracts `user` and `IP` from each incoming request.
+  - Stores request context for use in audit and other Prisma operations.
+- **Unit tests**
+  - Added comprehensive tests for:
+    - `DbLoggerService`
+    - `AuditMiddleware`
+    - `PrismaSessionMiddleware`
+  - Validated Prisma hooks, context propagation, and audit record creation.
+
+### Changed
+
+- **Refactored `DbLoggerService`**
+  - Now handles errors gracefully and logs them using NestJS `Logger`.
+  - Unified `LogParams` interface for consistent audit metadata.
+- **Updated `PrismaModule`**
+  - Ensures global availability of Prisma auditing and context services.
+- **Improved code clarity**
+  - All audit-related comments and documentation are now in English.
+  - Code reorganized for better separation between Prisma extensions and middleware.
+
+### Fixed
+
+- Corrected type handling for `userId` (now supports `string | null`).
+- Prevented recursive logging of `OperationLog`, `BlacklistedToken`, and `RefreshToken` models.
+
+---
+
 ## [0.4.1] - 2025-10-09
 
 ### Fixed
