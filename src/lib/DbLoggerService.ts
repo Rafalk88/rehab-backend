@@ -1,9 +1,9 @@
 import { PrismaService } from '#prisma/prisma.service.js';
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 
 export interface LogParams {
-  userId: string;
+  userId: string | null;
   action: string;
   actionDetails: string;
   entityType: string;
@@ -26,9 +26,9 @@ export class DbLoggerService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * Saves a log entry in the database.
+   * Persists a new audit log entry in the database.
    *
-   * @param params - Information about the performed action.
+   * @param params - Audit metadata including user, action type, and entity details.
    */
   async logAction({
     userId,
@@ -54,7 +54,7 @@ export class DbLoggerService {
         },
       });
     } catch (error) {
-      this.logger.error(`Failed to log action for user ${userId}`, error as any);
+      this.logger.error(`Failed to log action: ${action} on ${entityType}`, error as Error);
     }
   }
 }

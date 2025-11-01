@@ -25,6 +25,7 @@ export default {
     '^#/(.*)\\.js$': '<rootDir>/src/$1',
     '^#modules/(.*)\\.js$': '<rootDir>/src/modules/$1',
     '^#common/(.*)\\.js$': '<rootDir>/src/common/$1',
+    '^#context/(.*)\\.js$': '<rootDir>/src/context/$1',
     '^#lib/(.*)\\.js$': '<rootDir>/src/lib/$1',
     '^#prisma/(.*)\\.js$': '<rootDir>/src/prisma/$1',
     '^(\\.{1,2}/.*)\\.js$': '$1',

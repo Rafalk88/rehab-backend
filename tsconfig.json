@@ -60,6 +60,7 @@
     "paths": {
       "#/*": ["*"],
       "#common/*": ["common/*"],
+      "#context/*": ["context/*"],
       "#modules/*": ["modules/*"],
       "#lib/*": ["lib/*"],
       "#prisma/*": ["prisma/*"]

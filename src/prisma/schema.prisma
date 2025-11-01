@@ -156,7 +156,7 @@ model PasswordHistory {
 
 model OperationLog {
   id            String   @id @default(uuid()) @db.Uuid
-  userId        String   @db.Uuid @map("user_id")
+  userId        String?   @db.Uuid @map("user_id")
   action        String   
   actionDetails String   @map("action_details")
   oldValues     Json?    @map("old_values")
@@ -166,7 +166,7 @@ model OperationLog {
   entityId      String   @db.Uuid @map("entity_id")
   ipAddress     String   @map("ip_address")
 
-  user          User     @relation(fields: [userId], references: [id])
+  user          User?     @relation(fields: [userId], references: [id])
 }
 
 model RefreshToken {

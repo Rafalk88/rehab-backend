@@ -1,25 +1,18 @@
 import { PrismaService } from './prisma.service.js';
-import { Global, Module } from '@nestjs/common';
+import { DbLoggerService } from '#lib/DbLoggerService.js';
+import { Global, Module, forwardRef } from '@nestjs/common';
 
 /**
  * PrismaModule
  *
- * A globally available NestJS module that provides the {@link PrismaService}.
- *
- * - Decorated with `@Global()`, making it accessible throughout the application
- *   without the need to import it in every module.
- * - Registers `PrismaService` as a provider for database access using Prisma.
- * - Exports `PrismaService` so it can be injected via NestJS dependency injection
- *   in any other module.
- *
- * Example usage in another service:
- * ```ts
- * constructor(private readonly prisma: PrismaService) {}
- * ```
+ * A global module that provides database access and auditing functionality.
+ * - Exposes a single PrismaService instance (singleton).
+ * - Integrates the DbLoggerService used for audit logging.
+ * - Can be injected anywhere in the app without re-importing (due to @Global()).
  */
 @Global()
 @Module({
-  providers: [PrismaService],
-  exports: [PrismaService],
+  providers: [PrismaService, DbLoggerService],
+  exports: [PrismaService, DbLoggerService],
 })
 export class PrismaModule {}
