@@ -1,5 +1,5 @@
 import { AuditMiddleware } from './audit-middleware.js';
-import { RequestContextService } from '#context/request-context.service.js';
+import { RequestContextService } from '../../context/request-context.service.js';
 import { DbLoggerService } from '#lib/DbLoggerService.js';
 import { PrismaService } from '#prisma/prisma.service.js';
 import { jest } from '@jest/globals';

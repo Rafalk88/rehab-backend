@@ -1,5 +1,6 @@
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
+import { RequestContextModule } from '#context/request-context.module.js';
 import { PrismaSessionMiddleware } from '#prisma/middleware/prisma-session.js';
 import { PrismaModule } from '#prisma/prisma.module.js';
 import { LoggerModule } from '#lib/logger/logger.module.js';
@@ -36,6 +37,9 @@ import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
     // Permissions
     PermissionsModule,
     PermissionsAdminModule,
+
+    // Middleware
+    RequestContextModule,
   ],
   controllers: [AppController],
   providers: [AppService],

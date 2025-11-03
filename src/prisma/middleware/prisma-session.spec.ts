@@ -1,5 +1,8 @@
 import { PrismaSessionMiddleware } from './prisma-session.js';
-import { RequestContextService, RequestContextData } from '#context/request-context.service.js';
+import {
+  RequestContextService,
+  RequestContextData,
+} from '../../context/request-context.service.js';
 import { Request, Response } from 'express';
 import { jest } from '@jest/globals';
 import { Test, TestingModule } from '@nestjs/testing';

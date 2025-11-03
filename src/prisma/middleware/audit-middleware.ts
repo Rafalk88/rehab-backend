@@ -1,4 +1,4 @@
-import { RequestContextService } from '#context/request-context.service.js';
+import { RequestContextService } from '../../context/request-context.service.js';
 import { DbLoggerService } from '#lib/DbLoggerService.js';
 import { PrismaService } from '#prisma/prisma.service.js';
 import { Prisma } from '@prisma/client';

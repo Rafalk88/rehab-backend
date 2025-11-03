@@ -1,6 +1,9 @@
+import { AuditMiddleware } from './middleware/audit-middleware.js';
+import { PrismaSessionMiddleware } from './middleware/prisma-session.js';
 import { PrismaService } from './prisma.service.js';
+import { RequestContextModule } from '../context/request-context.module.js';
 import { DbLoggerService } from '#lib/DbLoggerService.js';
-import { Global, Module, forwardRef } from '@nestjs/common';
+import { Global, Module } from '@nestjs/common';
 
 /**
  * PrismaModule
@@ -12,7 +15,8 @@ import { Global, Module, forwardRef } from '@nestjs/common';
  */
 @Global()
 @Module({
-  providers: [PrismaService, DbLoggerService],
+  imports: [RequestContextModule],
+  providers: [PrismaService, DbLoggerService, PrismaSessionMiddleware, AuditMiddleware],
   exports: [PrismaService, DbLoggerService],
 })
 export class PrismaModule {}
