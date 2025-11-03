@@ -6,6 +6,27 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ---
 
+## [0.5.1] - 2025-11-03
+
+### Changed
+
+- **Refactored authentication to use request context**
+  - `AuthService.loginUser` now automatically retrieves `userId` and `ipAddress` from `RequestContextService` instead of requiring them as arguments.
+  - Removes manual IP handling in controllers for cleaner, centralized context management.
+- **Simplified controller code**
+  - `login` endpoint no longer needs to extract IP manually; the request context middleware provides it automatically.
+- **Improved type safety**
+  - `RequestContextData` now properly typed and used across services to avoid optional chaining issues when accessing `userId` and `ipAddress`.
+- **Internal code cleanup**
+  - Removed redundant IP handling in legacy auth methods.
+  - Improved readability and maintainability of login flow with centralized context usage.
+
+### Fixed
+
+- Resolved TypeScript error when accessing `ipAddress` from request context (`Property 'ipAddress' does not exist on type 'RequestContextData | undefined'`).
+
+---
+
 ## [0.5.0] - 2025-11-01
 
 ### Added

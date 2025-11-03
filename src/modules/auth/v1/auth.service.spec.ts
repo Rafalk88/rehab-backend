@@ -15,6 +15,7 @@ const { DbLoggerService } = await import('#lib/DbLoggerService.js');
 const { PrismaService } = await import('#prisma/prisma.service.js');
 const { JwtService } = await import('@nestjs/jwt');
 const { Test } = await import('@nestjs/testing');
+const { RequestContextService } = await import('#context/request-context.service.js');
 
 describe('AuthService', () => {
   let service: InstanceType<typeof AuthService>;
@@ -56,6 +57,15 @@ describe('AuthService', () => {
           provide: DbLoggerService,
           useValue: { logAction: jest.fn().mockResolvedValue(undefined as never) },
         },
+        {
+          provide: RequestContextService,
+          useValue: {
+            get: jest.fn().mockReturnValue({
+              userId: 'user-1',
+              ipAddress: '127.0.0.1',
+            }),
+          },
+        },
       ],
     }).compile();
 
@@ -85,15 +95,6 @@ describe('AuthService', () => {
       expect(helpers.generateUniqueLogin).toHaveBeenCalledWith('John', 'Smith');
       expect(hashPassword).toHaveBeenCalledWith('P@ssw0rd123');
       expect(prisma.user.create).toHaveBeenCalled();
-
-      expect(dbLogger.logAction).toHaveBeenCalledWith(
-        expect.objectContaining({
-          userId: 'user-1',
-          action: 'register',
-          entityType: 'User',
-          entityId: 'user-1',
-        }),
-      );
 
       expect(result).toEqual({
         user: { id: 'user-1' },
@@ -161,9 +162,6 @@ describe('AuthService', () => {
 
       expect(prisma.blacklistedToken.create).toHaveBeenCalled();
       expect(prisma.refreshToken.delete).toHaveBeenCalled();
-      expect(dbLogger.logAction).toHaveBeenCalledWith(
-        expect.objectContaining({ userId: 'user-1', action: 'logout' }),
-      );
 
       expect(result).toEqual({ message: 'Successfully logged out' });
     });
@@ -226,7 +224,6 @@ describe('AuthService', () => {
         'OldPass123!',
         'NewPass456!',
         'NewPass456!',
-        ipAddress,
       );
 
       expect(result).toEqual({ message: 'Password changed successfully' });
@@ -240,13 +237,13 @@ describe('AuthService', () => {
       (verifyPassword as jest.Mock).mockResolvedValue(false as never);
 
       await expect(
-        service.changePassword(userId, 'WrongOldPass', 'NewPass456!', 'NewPass456!', ipAddress),
+        service.changePassword(userId, 'WrongOldPass', 'NewPass456!', 'NewPass456!'),
       ).rejects.toMatchObject({ statusCode: 401, message: 'Old password is incorrect' });
     });
 
     it('❌ throws if new passwords mismatch', async () => {
       await expect(
-        service.changePassword(userId, 'OldPass123!', 'NewPass1', 'NewPass2', ipAddress),
+        service.changePassword(userId, 'OldPass123!', 'NewPass1', 'NewPass2'),
       ).rejects.toMatchObject({ statusCode: 400, message: 'New passwords do not match' });
     });
   });

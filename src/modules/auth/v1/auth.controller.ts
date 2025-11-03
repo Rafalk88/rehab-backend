@@ -32,8 +32,7 @@ export class AuthController {
     const adminId = req.user?.sub;
     if (!adminId) return { message: 'No admin logged in' };
 
-    const ipAddress = req.ip || (req.headers['x-forwarded-for'] as string) || 'unknown';
-    return this.authService.registerUser(body, ipAddress);
+    return this.authService.registerUser(body);
   }
 
   @Post('login')
@@ -42,18 +41,17 @@ export class AuthController {
     body: LoginUserSchema,
     @Req() req: JwtRequest,
   ) {
-    const ipAddress = req.ip || (req.headers['x-forwarded-for'] as string) || 'unknown';
-    return this.authService.loginUser(body.login, body.password, ipAddress);
+    return this.authService.loginUser(body.login, body.password);
   }
 
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   async logout(@Req() req: JwtRequest) {
     const userId = req.user?.sub;
-    const ipAddress = req.ip || (req.headers['x-forwarded-for'] as string) || 'unknown';
+
     if (!userId) return { message: 'No user logged in' };
 
-    await this.authService.logoutUser(userId, ipAddress);
+    await this.authService.logoutUser(userId);
     return { message: 'Logged out successfully' };
   }
 
@@ -75,13 +73,11 @@ export class AuthController {
     const userId = req.user?.sub;
     if (!userId) return { message: 'No user logged in' };
 
-    const ipAddress = req.ip || (req.headers['x-forwarded-for'] as string) || 'unknown';
     return this.authService.changePassword(
       userId,
       body.oldPassword,
       body.newPassword,
       body.confirmNewPassword,
-      ipAddress,
     );
   }
 
@@ -109,8 +105,6 @@ export class AuthController {
     const adminId = req.user?.sub;
     if (!adminId) return { message: 'No admin logged in' };
 
-    const adminIp = req.ip || (req.headers['x-forwarded-for'] as string) || 'unknown';
-
-    return this.authService.lockUser(userId, adminId, adminIp, body.durationInMinutes, body.reason);
+    return this.authService.lockUser(userId, body.durationInMinutes, body.reason);
   }
 }

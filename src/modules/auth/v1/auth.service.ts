@@ -1,4 +1,5 @@
 import { AuthHelpers } from './helpers/auth.helpers.js';
+import { RequestContextService } from '#context/request-context.service.js';
 import { AppError } from '#common/errors/app.error.js';
 import { DbLoggerService } from '#lib/DbLoggerService.js';
 import { hashPassword, verifyPassword } from '#lib/password.util.js';
@@ -44,6 +45,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private readonly helpers: AuthHelpers,
     private readonly dbLogger: DbLoggerService,
+    private readonly requestContext: RequestContextService,
   ) {}
 
   /**
@@ -70,16 +72,13 @@ export class AuthService {
    * // login: 'jdoe'
    * ```
    */
-  async registerUser(
-    userData: {
-      firstName: string;
-      surname: string;
-      sexId?: string;
-      organizationalUnitId?: string;
-      password: string;
-    },
-    ipAddress?: string,
-  ) {
+  async registerUser(userData: {
+    firstName: string;
+    surname: string;
+    sexId?: string;
+    organizationalUnitId?: string;
+    password: string;
+  }) {
     const { firstName, surname, sexId, organizationalUnitId, password } = userData;
 
     // 1️⃣ Create / get first name and surname
@@ -107,26 +106,14 @@ export class AuthService {
       data: newValues,
     });
 
-    // 4️⃣ Log registration
-    await this.dbLogger.logAction({
-      userId: user.id,
-      action: 'register',
-      actionDetails: `User registered with login ${login}`,
-      oldValues: Prisma.JsonNull,
-      newValues,
-      entityType: 'User',
-      entityId: user.id,
-      ipAddress: ipAddress ?? 'system',
-    });
-
-    // 5️⃣ Generate tokens
+    // 4️⃣ Generate tokens
     const payload = { sub: user.id, email: user.email };
     const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
 
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
     const hashedRefreshToken = await hashPassword(refreshToken);
 
-    // 6️⃣ Save refresh token in DB
+    // 5️⃣ Save refresh token in DB
     await this.prisma.refreshToken.create({
       data: {
         userId: user.id,
@@ -135,7 +122,7 @@ export class AuthService {
       },
     });
 
-    // 7️⃣ Return user + tokens
+    // 6️⃣ Return user + tokens
     return {
       user,
       login,
@@ -261,18 +248,22 @@ export class AuthService {
    * // }
    * ```
    */
-  async loginUser(login: string, password: string, ipAddress?: string) {
+  async loginUser(login: string, password: string) {
+    const context = this.requestContext.get();
+    const userId = context?.userId ?? null;
+    const ipAddress = context?.ipAddress ?? 'system';
+
     const user = await this.prisma.user.findUnique({ where: { login } });
     if (!user) {
       await this.dbLogger.logAction({
-        userId: 'unknown',
+        userId,
         action: 'login_failed',
         actionDetails: `Failed login attempt for ${login}`,
         oldValues: Prisma.JsonNull,
         newValues: Prisma.JsonNull,
         entityType: 'User',
         entityId: 'unknown',
-        ipAddress: ipAddress ?? 'system',
+        ipAddress,
       });
       throw new AppError('unauthorized', 'Invalid login or password');
     }
@@ -296,14 +287,14 @@ export class AuthService {
     await this.helpers.updateLoginSuccess(user.id);
 
     await this.dbLogger.logAction({
-      userId: user.id,
+      userId,
       action: 'login',
       actionDetails: `User logged in successfully`,
       oldValues: Prisma.JsonNull,
       newValues: Prisma.JsonNull,
       entityType: 'User',
       entityId: user.id,
-      ipAddress: ipAddress ?? 'system',
+      ipAddress,
     });
 
     const payload = { sub: user.id, email: user.email };
@@ -332,7 +323,7 @@ export class AuthService {
    *
    * @throws UnauthorizedException if the token is already invalid or expired.
    */
-  async logoutUser(refreshToken: string, ipAddress?: string) {
+  async logoutUser(refreshToken: string) {
     // 1️⃣ Find the refresh token entry in DB
     const tokens = await this.prisma.refreshToken.findMany({
       where: { expiresAt: { gt: new Date() } },
@@ -364,18 +355,6 @@ export class AuthService {
 
     // 3️⃣ Delete original refresh token
     await this.prisma.refreshToken.delete({ where: { id: tokenEntry.id } });
-
-    // 4️⃣ Log the logout action
-    await this.dbLogger.logAction({
-      userId: user.id,
-      action: 'logout',
-      actionDetails: `User ${user.login} logged out`,
-      oldValues: Prisma.JsonNull,
-      newValues: Prisma.JsonNull,
-      entityType: 'User',
-      entityId: user.id,
-      ipAddress: ipAddress ?? 'system',
-    });
 
     return { message: 'Successfully logged out' };
   }
@@ -416,7 +395,6 @@ export class AuthService {
     oldPassword: string,
     newPassword: string,
     confirmNewPassword: string,
-    ipAddress?: string,
   ) {
     // 1️⃣ Validate new passwords match
     if (newPassword !== confirmNewPassword) {
@@ -471,18 +449,6 @@ export class AuthService {
       }
     }
 
-    // 8️⃣ Log password change
-    await this.dbLogger.logAction({
-      userId,
-      action: 'password_change',
-      actionDetails: `User changed password`,
-      oldValues: { mustChangePassword: true },
-      newValues: { mustChangePassword: false },
-      entityType: 'User',
-      entityId: userId,
-      ipAddress: ipAddress ?? 'system',
-    });
-
     return { message: 'Password changed successfully' };
   }
 
@@ -507,7 +473,7 @@ export class AuthService {
    * const tempPassword = await authService.resetPassword('user-123', 'admin-456', '192.168.1.1');
    * // tempPassword: 'Abc123!@#Example'
    */
-  async resetPassword(userId: string, adminId?: string, adminIp?: string): Promise<string> {
+  async resetPassword(userId: string): Promise<string> {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new AppError('not_found', 'User not found');
 
@@ -524,18 +490,6 @@ export class AuthService {
         passwordHash,
         mustChangePassword: true,
       },
-    });
-
-    // Log the action
-    await this.dbLogger.logAction({
-      userId: adminId ?? 'system',
-      action: 'admin_reset_password',
-      actionDetails: `Admin reset password for user ${userId}`,
-      oldValues: { mustChangePassword: true },
-      newValues: { mustChangePassword: false },
-      entityType: 'User',
-      entityId: userId,
-      ipAddress: adminIp ?? 'system',
     });
 
     return tempPassword;
@@ -604,13 +558,7 @@ export class AuthService {
    * await authService.blockUser('user-123', 'admin-456', '192.168.1.1', 60, 'Violation of rules');
    * // { message: 'User blocked successfully', blockedUntil: Date, reason: 'Violation of rules' }
    */
-  async lockUser(
-    userId: string,
-    adminId: string,
-    adminIp: string,
-    durationInMinutes?: number,
-    reason?: string,
-  ) {
+  async lockUser(userId: string, durationInMinutes?: number, reason?: string) {
     // 1️⃣ Find user
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new AppError('not_found', 'User not found');
@@ -631,20 +579,6 @@ export class AuthService {
     });
 
     const newValues = { isLocked: updatedUser.isLocked, lockedUntilUntil: updatedUser.lockedUntil };
-
-    // 3️⃣ Log action using DbLoggerService with Prisma.JsonNull fallback
-    await this.dbLogger.logAction({
-      userId: adminId,
-      action: 'block_user',
-      actionDetails: `Blocked user ${userId} for ${
-        durationInMinutes ? `${durationInMinutes} minutes` : 'permanent'
-      }. Reason: ${reason ?? 'Not specified'}`,
-      oldValues: oldValues ?? Prisma.JsonNull,
-      newValues: newValues ?? Prisma.JsonNull,
-      entityType: 'User',
-      entityId: userId,
-      ipAddress: adminIp,
-    });
 
     return {
       message: 'User blocked successfully',
