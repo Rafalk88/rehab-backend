@@ -1,12 +1,10 @@
 import { jest } from '@jest/globals';
 
-// ✅ ESM mocks
 await jest.unstable_mockModule('#lib/password.util.js', () => ({
   hashPassword: jest.fn().mockResolvedValue('hashed-password' as never),
   verifyPassword: jest.fn(),
 }));
 
-// ✅ dynamiczne importy po mockach
 const passwordUtil = await import('#lib/password.util.js');
 const { hashPassword, verifyPassword } = passwordUtil;
 const { AuthService } = await import('./auth.service.js');
@@ -99,14 +97,12 @@ describe('AuthService', () => {
       expect(result).toEqual({
         user: { id: 'user-1' },
         login: 'jsmith',
-        access_token: 'signed-jwt-token',
-        refresh_token: 'signed-jwt-token',
       });
     });
   });
 
   describe('loginUser', () => {
-    it('✅ logs successful login', async () => {
+    it('✅ logs successful login and returns access + refresh tokens', async () => {
       (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce({
         id: 'user-1',
         login: 'jdoe',
@@ -119,6 +115,12 @@ describe('AuthService', () => {
         mustChangePassword: false,
       } as never);
 
+      (jwtService.sign as jest.Mock)
+        .mockReturnValueOnce('mock-access-token')
+        .mockReturnValueOnce('mock-refresh-token');
+
+      (prisma.refreshToken.create as jest.Mock).mockResolvedValue({} as never);
+
       const result = await service.loginUser('jdoe', 'correct-pass');
 
       expect(dbLogger.logAction).toHaveBeenCalledWith(
@@ -130,7 +132,20 @@ describe('AuthService', () => {
         }),
       );
 
-      expect(result).toEqual({ access_token: 'signed-jwt-token' });
+      expect(result).toEqual({
+        access_token: 'mock-access-token',
+        refresh_token: 'mock-refresh-token',
+      });
+
+      expect(prisma.refreshToken.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            userId: 'user-1',
+            tokenHash: expect.any(String),
+            expiresAt: expect.any(Date),
+          }),
+        }),
+      );
     });
 
     it('❌ throws when user not found', async () => {
@@ -144,7 +159,7 @@ describe('AuthService', () => {
   });
 
   describe('logoutUser', () => {
-    it('✅ logs out user', async () => {
+    it('✅ logs out user and logs operation', async () => {
       (prisma.refreshToken.findMany as jest.Mock).mockResolvedValue([
         {
           id: 'token-1',
@@ -157,11 +172,28 @@ describe('AuthService', () => {
       (verifyPassword as jest.Mock).mockResolvedValue(true as never);
       (prisma.blacklistedToken.create as jest.Mock).mockResolvedValue({} as never);
       (prisma.refreshToken.delete as jest.Mock).mockResolvedValue({} as never);
+      (dbLogger.logAction as jest.Mock).mockResolvedValue({} as never);
 
       const result = await service.logoutUser('mock-refresh-token');
 
-      expect(prisma.blacklistedToken.create).toHaveBeenCalled();
-      expect(prisma.refreshToken.delete).toHaveBeenCalled();
+      expect(prisma.blacklistedToken.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({ userId: 'user-1' }),
+        }),
+      );
+
+      expect(prisma.refreshToken.delete).toHaveBeenCalledWith(
+        expect.objectContaining({ where: { id: 'token-1' } }),
+      );
+
+      expect(dbLogger.logAction).toHaveBeenCalledWith(
+        expect.objectContaining({
+          userId: 'user-1',
+          action: 'logout',
+          entityType: 'User',
+          entityId: 'user-1',
+        }),
+      );
 
       expect(result).toEqual({ message: 'Successfully logged out' });
     });

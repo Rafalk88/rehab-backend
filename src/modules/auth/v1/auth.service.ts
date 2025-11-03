@@ -90,6 +90,7 @@ export class AuthService {
     const email = `${login}@vitala.com`;
     const passwordHash = await hashPassword(password);
 
+    //! TODO - PASS TO TRIGGER OPERATIONLOG
     const newValues = {
       login,
       email,
@@ -106,28 +107,10 @@ export class AuthService {
       data: newValues,
     });
 
-    // 4️⃣ Generate tokens
-    const payload = { sub: user.id, email: user.email };
-    const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
-
-    const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
-    const hashedRefreshToken = await hashPassword(refreshToken);
-
-    // 5️⃣ Save refresh token in DB
-    await this.prisma.refreshToken.create({
-      data: {
-        userId: user.id,
-        tokenHash: hashedRefreshToken,
-        expiresAt: new Date(Date.now() + SEVEN_DAYS_IN_MS),
-      },
-    });
-
     // 6️⃣ Return user + tokens
     return {
       user,
       login,
-      access_token: accessToken,
-      refresh_token: refreshToken,
     };
   }
 
@@ -224,27 +207,30 @@ export class AuthService {
   }
 
   /**
-   * Authenticates a user by verifying login credentials and account restrictions.
+   * Authenticates a user by verifying login credentials and account restrictions,
+   * then generates JWT access and refresh tokens.
    *
    * This method:
    * - Finds the user by login,
    * - Verifies the provided password against the stored hash,
    * - Checks account restrictions (active, locked, mustChangePassword, etc.),
    * - Resets failed login attempts on success,
-   * - Generates and returns a signed JWT access token.
+   * - Generates a signed JWT access token (short-lived),
+   * - Generates a signed JWT refresh token (long-lived) and stores its hash in DB.
    *
    * @param login - The user's login string.
    * @param password - The plain-text password to validate.
-   * @returns Object containing a signed JWT access token.
+   * @returns Object containing a signed JWT access token and refresh token.
    *
    * @throws UnauthorizedException if the login or password is invalid,
    *   or if the account is locked/inactive.
    *
    * Example:
    * ```ts
-   * const token = await authService.loginUser('jdoe', 'P@ssw0rd123');
+   * const tokens = await authService.loginUser('jdoe', 'P@ssw0rd123');
    * // {
-   * //   access_token: 'eyJhbGciOiJIUzI1NiIsInR...'
+   * //   access_token: 'eyJhbGciOiJIUzI1NiIsInR...',
+   * //   refresh_token: 'eyJhbGciOiJIUzI1NiIsInR...'
    * // }
    * ```
    */
@@ -298,8 +284,23 @@ export class AuthService {
     });
 
     const payload = { sub: user.id, email: user.email };
+
+    const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
+
+    const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
+    const hashedRefreshToken = await hashPassword(refreshToken);
+
+    await this.prisma.refreshToken.create({
+      data: {
+        userId: user.id,
+        tokenHash: hashedRefreshToken,
+        expiresAt: new Date(Date.now() + SEVEN_DAYS_IN_MS),
+      },
+    });
+
     return {
-      access_token: this.jwtService.sign(payload),
+      access_token: accessToken,
+      refresh_token: refreshToken,
     };
   }
 
@@ -324,10 +325,17 @@ export class AuthService {
    * @throws UnauthorizedException if the token is already invalid or expired.
    */
   async logoutUser(refreshToken: string) {
+    const context = this.requestContext.get();
+    const userId = context?.userId;
+    const ipAddress = context?.ipAddress ?? 'system';
+
+    if (!userId) {
+      throw new AppError('unauthorized', 'User must be logged in to logout');
+    }
+
     // 1️⃣ Find the refresh token entry in DB
     const tokens = await this.prisma.refreshToken.findMany({
-      where: { expiresAt: { gt: new Date() } },
-      include: { user: true },
+      where: { userId, expiresAt: { gt: new Date() } },
     });
 
     let tokenEntry: (typeof tokens)[number] | null = null;
@@ -342,19 +350,28 @@ export class AuthService {
       throw new AppError('unauthorized', 'Token already invalidated or expired');
     }
 
-    const user = tokenEntry.user;
-
     // 2️⃣ Add token to Blacklist
     await this.prisma.blacklistedToken.create({
       data: {
         jti: tokenEntry.id,
-        userId: user.id,
+        userId,
         expiredAt: tokenEntry.expiresAt,
       },
     });
 
     // 3️⃣ Delete original refresh token
     await this.prisma.refreshToken.delete({ where: { id: tokenEntry.id } });
+
+    await this.dbLogger.logAction({
+      userId,
+      action: 'logout',
+      actionDetails: 'User logged out successfully',
+      oldValues: Prisma.JsonNull,
+      newValues: Prisma.JsonNull,
+      entityType: 'User',
+      entityId: userId,
+      ipAddress,
+    });
 
     return { message: 'Successfully logged out' };
   }
