@@ -2,6 +2,7 @@ import { AuthHelpers } from './helpers/auth.helpers.js';
 import { RequestContextService } from '#context/request-context.service.js';
 import { AppError } from '#common/errors/app.error.js';
 import { DbLoggerService } from '#lib/DbLoggerService.js';
+import { encrypt, maskString } from '#/lib/logger/encryption.util.js';
 import { hashPassword, verifyPassword } from '#lib/password.util.js';
 import { PrismaService } from '#prisma/prisma.service.js';
 import { Injectable } from '@nestjs/common';
@@ -236,17 +237,19 @@ export class AuthService {
    */
   async loginUser(login: string, password: string) {
     const context = this.requestContext.get();
-    const userId = context?.userId ?? null;
     const ipAddress = context?.ipAddress ?? 'system';
 
     const user = await this.prisma.user.findUnique({ where: { login } });
     if (!user) {
+      const maskedLogin = maskString(login);
+      const encryptedLogin = encrypt(login);
+
       await this.dbLogger.logAction({
-        userId,
+        userId: null,
         action: 'login_failed',
-        actionDetails: `Failed login attempt for ${login}`,
+        actionDetails: `Failed login attempt for ${maskedLogin}`,
         oldValues: Prisma.JsonNull,
-        newValues: Prisma.JsonNull,
+        newValues: { encryptedLogin },
         entityType: 'User',
         entityId: 'unknown',
         ipAddress,
@@ -273,7 +276,7 @@ export class AuthService {
     await this.helpers.updateLoginSuccess(user.id);
 
     await this.dbLogger.logAction({
-      userId,
+      userId: user.id,
       action: 'login',
       actionDetails: `User logged in successfully`,
       oldValues: Prisma.JsonNull,
@@ -324,7 +327,7 @@ export class AuthService {
    *
    * @throws UnauthorizedException if the token is already invalid or expired.
    */
-  async logoutUser(refreshToken: string) {
+  async logoutUser() {
     const context = this.requestContext.get();
     const userId = context?.userId;
     const ipAddress = context?.ipAddress ?? 'system';
@@ -338,29 +341,21 @@ export class AuthService {
       where: { userId, expiresAt: { gt: new Date() } },
     });
 
-    let tokenEntry: (typeof tokens)[number] | null = null;
-    for (const t of tokens) {
-      if (await verifyPassword(refreshToken, t.tokenHash)) {
-        tokenEntry = t;
-        break;
-      }
+    if (!tokens.length) {
+      throw new AppError('unauthorized', 'No active tokens found');
     }
 
-    if (!tokenEntry) {
-      throw new AppError('unauthorized', 'Token already invalidated or expired');
-    }
-
-    // 2️⃣ Add token to Blacklist
-    await this.prisma.blacklistedToken.create({
-      data: {
-        jti: tokenEntry.id,
+    await this.prisma.blacklistedToken.createMany({
+      data: tokens.map((t) => ({
+        jti: t.id,
         userId,
-        expiredAt: tokenEntry.expiresAt,
-      },
+        expiredAt: t.expiresAt,
+      })),
     });
 
-    // 3️⃣ Delete original refresh token
-    await this.prisma.refreshToken.delete({ where: { id: tokenEntry.id } });
+    await this.prisma.refreshToken.deleteMany({
+      where: { userId },
+    });
 
     await this.dbLogger.logAction({
       userId,
