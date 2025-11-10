@@ -6,6 +6,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ---
 
+## [0.6.0] - 2025-11-10
+
+### Added
+
+- **Encryption feature**
+  - `AuthService.loginUser` now encrypts sensitive data.
+  - Improves overall authentication security.
+- **Support for Prisma 6.13**
+  - Migrated all Prisma imports to `generated/prisma/client.js`.
+  - Updated `PrismaService` to extend new PrismaClient with proper hooks.
+- **Updated DbLoggerService types**
+  - Improved JSON type handling for `oldValues` and `newValues` in audit logs.
+
+### Changed
+
+- Refactored tests to support Prisma 6.13 and updated DbLoggerService typings.
+- `AuditMiddleware` now works with new Prisma client structure.
+- Minor refactors to ensure backward-compatible context handling in `RequestContextService`.
+
+### Fixed
+
+- Resolved TypeScript errors related to JSON fields in audit logs.
+- Fixed Jest ESM import issues for Prisma.
+- Ensured all middleware and Prisma hooks correctly handle missing or excluded models.
+
+---
+
 ## [0.5.1] - 2025-11-03
 
 ### Changed

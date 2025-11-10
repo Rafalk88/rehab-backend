@@ -1,32 +1,23 @@
 import { jest } from '@jest/globals';
-import { DbLoggerService, LogParams } from './DbLoggerService.js';
-import { PrismaService } from '#prisma/prisma.service.js';
-import { Prisma } from '@prisma/client';
-import { Logger } from '@nestjs/common';
-import { Test, TestingModule } from '@nestjs/testing';
+
+await jest.unstable_mockModule('#prisma/prisma.service.js', () => ({
+  PrismaService: class {
+    operationLog = { create: jest.fn() };
+  },
+}));
+
+const { PrismaService } = await import('#prisma/prisma.service.js');
+const { DbLoggerService } = await import('./DbLoggerService.js');
+const { Logger } = await import('@nestjs/common');
 
 describe('DbLoggerService', () => {
-  let service: DbLoggerService;
-  let prisma: jest.Mocked<PrismaService>;
+  let service: InstanceType<typeof DbLoggerService>;
+  let prisma: jest.Mocked<InstanceType<typeof PrismaService>>;
   let nestLogger: ReturnType<typeof jest.spyOn>;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        DbLoggerService,
-        {
-          provide: PrismaService,
-          useValue: {
-            operationLog: {
-              create: jest.fn(),
-            },
-          },
-        },
-      ],
-    }).compile();
-
-    service = module.get(DbLoggerService);
-    prisma = module.get(PrismaService) as jest.Mocked<PrismaService>;
+    service = new DbLoggerService(new PrismaService());
+    prisma = service['prisma'] as jest.Mocked<InstanceType<typeof PrismaService>>;
     nestLogger = jest.spyOn(Logger.prototype, 'error').mockImplementation(() => {});
   });
 
@@ -34,15 +25,15 @@ describe('DbLoggerService', () => {
     jest.clearAllMocks();
   });
 
-  const sampleLog: LogParams = {
+  const sampleLog = {
     userId: 'user-123',
     action: 'CREATE',
     actionDetails: 'Created new record',
     entityType: 'User',
     entityId: 'user-123',
     ipAddress: '127.0.0.1',
-    oldValues: Prisma.JsonNull,
-    newValues: Prisma.JsonNull,
+    oldValues: null,
+    newValues: null,
   };
 
   it('✅ should call prisma.operationLog.create with correct params', async () => {
@@ -67,8 +58,8 @@ describe('DbLoggerService', () => {
       actionDetails: 'Changed password',
       entityType: 'User',
       entityId: 'user-1',
-      oldValues: Prisma.JsonNull,
-      newValues: Prisma.JsonNull,
+      oldValues: null,
+      newValues: null,
     });
 
     expect(prisma.operationLog.create).toHaveBeenCalledWith({

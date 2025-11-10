@@ -7,7 +7,6 @@ import { hashPassword, verifyPassword } from '#lib/password.util.js';
 import { PrismaService } from '#prisma/prisma.service.js';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { Prisma } from '@prisma/client';
 
 const SEVEN_DAYS_IN_MS = 7 * 24 * 60 * 60 * 1000;
 
@@ -248,7 +247,7 @@ export class AuthService {
         userId: null,
         action: 'login_failed',
         actionDetails: `Failed login attempt for ${maskedLogin}`,
-        oldValues: Prisma.JsonNull,
+        oldValues: null,
         newValues: { encryptedLogin },
         entityType: 'User',
         entityId: 'unknown',
@@ -279,8 +278,8 @@ export class AuthService {
       userId: user.id,
       action: 'login',
       actionDetails: `User logged in successfully`,
-      oldValues: Prisma.JsonNull,
-      newValues: Prisma.JsonNull,
+      oldValues: null,
+      newValues: null,
       entityType: 'User',
       entityId: user.id,
       ipAddress,
@@ -361,8 +360,8 @@ export class AuthService {
       userId,
       action: 'logout',
       actionDetails: 'User logged out successfully',
-      oldValues: Prisma.JsonNull,
-      newValues: Prisma.JsonNull,
+      oldValues: null,
+      newValues: null,
       entityType: 'User',
       entityId: userId,
       ipAddress,

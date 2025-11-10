@@ -1,8 +1,8 @@
 import { jest } from '@jest/globals';
+import { PrismaService } from '#prisma/prisma.service.js';
 import { PermissionsAdminService } from './permissions-admin.service.js';
 import { AppError } from '#common/errors/app.error.js';
 import { DbLoggerService } from '#lib/DbLoggerService.js';
-import { PrismaService } from '#prisma/prisma.service.js';
 import { Test, TestingModule } from '@nestjs/testing';
 
 describe('PermissionsAdminService', () => {

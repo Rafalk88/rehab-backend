@@ -1,8 +1,8 @@
 import { RequestContextService } from '../../context/request-context.service.js';
 import { DbLoggerService } from '#lib/DbLoggerService.js';
 import { PrismaService } from '#prisma/prisma.service.js';
-import { Prisma } from '@prisma/client';
-import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
+import { Prisma } from '#/generated/prisma/client.js';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 
 /**
  * AuditMiddleware

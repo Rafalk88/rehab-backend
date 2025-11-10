@@ -1,59 +1,53 @@
-import { AuditMiddleware } from './audit-middleware.js';
 import { RequestContextService } from '../../context/request-context.service.js';
 import { DbLoggerService } from '#lib/DbLoggerService.js';
-import { PrismaService } from '#prisma/prisma.service.js';
 import { jest } from '@jest/globals';
-import { Test, TestingModule } from '@nestjs/testing';
+
+await jest.unstable_mockModule('#prisma/prisma.service.js', () => ({
+  PrismaService: class {
+    $connect = jest.fn();
+    $disconnect = jest.fn();
+    $use = jest.fn();
+    operationLog = {
+      create: jest.fn(),
+    };
+    user = {
+      findUnique: jest.fn(),
+    };
+  },
+}));
+
+const { PrismaService } = await import('#prisma/prisma.service.js');
+const { AuditMiddleware } = await import('./audit-middleware.js');
 
 describe('AuditMiddleware', () => {
-  let middleware: AuditMiddleware;
-  let prisma: jest.Mocked<PrismaService>;
+  let middleware: InstanceType<typeof AuditMiddleware>;
+  let prisma: jest.Mocked<typeof PrismaService>;
   let dbLogger: jest.Mocked<DbLoggerService>;
   let requestContext: jest.Mocked<RequestContextService>;
 
   beforeEach(async () => {
-    const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        AuditMiddleware,
-        {
-          provide: PrismaService,
-          useValue: {
-            $use: jest.fn(),
-          },
-        },
-        {
-          provide: DbLoggerService,
-          useValue: {
-            logAction: jest.fn(),
-          },
-        },
-        {
-          provide: RequestContextService,
-          useValue: {
-            get: jest.fn().mockReturnValue({ userId: 'user-123', ipAddress: '127.0.0.1' }),
-          },
-        },
-      ],
-    }).compile();
+    dbLogger = { logAction: jest.fn() } as any;
+    requestContext = {
+      get: jest.fn().mockReturnValue({ userId: 'user-123', ipAddress: '127.0.0.1' }),
+    } as any;
 
-    middleware = module.get(AuditMiddleware);
-    prisma = module.get(PrismaService) as jest.Mocked<PrismaService>;
-    dbLogger = module.get(DbLoggerService) as jest.Mocked<DbLoggerService>;
-    requestContext = module.get(RequestContextService) as jest.Mocked<RequestContextService>;
+    prisma = new PrismaService() as any;
+
+    middleware = new AuditMiddleware(prisma as any, dbLogger, requestContext);
   });
 
   afterEach(() => jest.clearAllMocks());
 
   it('✅ should register Prisma $use middleware on module init', () => {
     middleware.onModuleInit();
-    expect(prisma.$use as unknown as jest.Mock).toHaveBeenCalledTimes(1);
-    expect(typeof (prisma.$use.mock.calls[0] as unknown as jest.Mock)[0]).toBe('function');
+    expect((prisma as any).$use).toHaveBeenCalledTimes(1);
+    expect(typeof (prisma as any).$use.mock.calls[0][0]).toBe('function');
   });
 
   it('✅ should call dbLogger.logAction on create mutation', async () => {
     middleware.onModuleInit();
 
-    const prismaMiddleware = (prisma.$use.mock.calls[0] as unknown as jest.Mock)[0];
+    const prismaMiddleware = (prisma as any).$use.mock.calls[0][0];
 
     const params = {
       model: 'User',
@@ -79,11 +73,12 @@ describe('AuditMiddleware', () => {
 
   it('✅ should skip excluded models', async () => {
     middleware.onModuleInit();
-    const prismaMiddleware = (prisma.$use.mock.calls[0] as unknown as jest.Mock)[0];
+    const prismaMiddleware = (prisma as any).$use.mock.calls[0][0];
 
     const params = {
       model: 'OperationLog',
       action: 'create',
+      args: { data: {} },
     };
 
     const next = jest.fn().mockResolvedValue({} as never);
@@ -95,11 +90,12 @@ describe('AuditMiddleware', () => {
 
   it('✅ should handle missing model safely', async () => {
     middleware.onModuleInit();
-    const prismaMiddleware = (prisma.$use.mock.calls[0] as unknown as jest.Mock)[0];
+    const prismaMiddleware = (prisma as any).$use.mock.calls[0][0];
 
     const params = {
       model: undefined,
       action: 'create',
+      args: { data: {} },
     };
 
     const next = jest.fn().mockResolvedValue({} as never);
@@ -114,7 +110,7 @@ describe('AuditMiddleware', () => {
     (prisma as any).user = { findUnique };
 
     middleware.onModuleInit();
-    const prismaMiddleware = (prisma.$use.mock.calls[0] as unknown as jest.Mock)[0];
+    const prismaMiddleware = (prisma as any).$use.mock.calls[0][0];
 
     const params = {
       model: 'User',
@@ -140,7 +136,7 @@ describe('AuditMiddleware', () => {
     (prisma as any).user = { findUnique };
 
     middleware.onModuleInit();
-    const prismaMiddleware = (prisma.$use.mock.calls[0] as unknown as jest.Mock)[0];
+    const prismaMiddleware = (prisma as any).$use.mock.calls[0][0];
 
     const params = {
       model: 'User',

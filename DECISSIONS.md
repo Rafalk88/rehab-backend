@@ -8,6 +8,7 @@ This document outlines key design and architecture decisions for the rehab-backe
 
 ## Table of Contents
 
+- [Decision 014 - Encryption of sensitive data](#decision-013---encryption-of-sensitive-data)
 - [Decision 013 - Automated Audit Logging via Prisma Middleware](#decision-013---automated-audit-logging-via-prisma-middleware)
 - [Decision 012 - JWT Access & Refresh Tokens with Database Persistence](#decision-012---jwt-access--refresh-tokens-with-database-persistence)
 - [Decision 011 - NestJS as Backend Framework](#decision-011---nestjs-as-backend-framework)
@@ -190,3 +191,18 @@ This document outlines key design and architecture decisions for the rehab-backe
   - Currently in experimental testing phase — implementation exists locally but is not committed to main.
   - The developer is validating performance impact and correctness of audit transaction handling.
   - A follow-up decision will mark this approach as “Accepted” once verified in staging.
+
+## Decision 014 - Encryption of sensitive data
+
+- **Date**: 2025-11-10
+- **Status**: Accepted
+- **Context**: The system handles sensitive user data (authentication, medical, personal info). To improve security and comply with audit/regulatory standards, all sensitive fields must be stored encrypted.
+- **Decision**:
+  - Currently, login-related data (passwords, email, etc.) are encrypted.
+  - All existing and future fields containing sensitive data will be encrypted at rest.
+  - Encryption and verification are handled transparently in relevant services (e.g., `AuthService`).
+  - Future developers must ensure new sensitive fields are automatically included in the encryption scheme.
+- **Rationale**:
+  - Protects user privacy and sensitive medical or personal information.
+  - Aligns with best practices, HIPAA/GDPR compliance, and audit requirements.
+  - Centralized encryption approach ensures consistency and reduces risk of accidental leaks.

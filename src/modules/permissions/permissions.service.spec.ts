@@ -1,8 +1,8 @@
 import { jest } from '@jest/globals';
+import { PrismaService } from '#prisma/prisma.service.js';
 import { v4 as uuidv4 } from 'uuid';
 import { PermissionsCache } from './permissions.cache.js';
 import { PermissionsService } from './permissions.service.js';
-import { PrismaService } from '#prisma/prisma.service.js';
 import { Test, TestingModule } from '@nestjs/testing';
 
 describe('PermissionsService', () => {
@@ -13,23 +13,18 @@ describe('PermissionsService', () => {
   const userId = uuidv4();
 
   beforeEach(async () => {
+    const prismaMock = {
+      $connect: jest.fn(),
+      $disconnect: jest.fn(),
+      user: { findUnique: jest.fn() },
+      userPermission: { findMany: jest.fn() },
+    } as unknown as jest.Mocked<PrismaService>;
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PermissionsService,
-        {
-          provide: PrismaService,
-          useValue: {
-            user: { findUnique: jest.fn() },
-            userPermission: { findMany: jest.fn() },
-          },
-        },
-        {
-          provide: PermissionsCache,
-          useValue: {
-            get: jest.fn(),
-            set: jest.fn(),
-          },
-        },
+        { provide: PrismaService, useValue: prismaMock },
+        { provide: PermissionsCache, useValue: { get: jest.fn(), set: jest.fn() } },
       ],
     }).compile();
 

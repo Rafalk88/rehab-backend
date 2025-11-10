@@ -1,12 +1,13 @@
 import { jest } from '@jest/globals';
 
+const { PrismaService } = await import('#prisma/prisma.service.js');
+
 await jest.unstable_mockModule('#lib/password.util.js', () => ({
   verifyPassword: jest.fn(),
 }));
 
 const passwordUtil = await import('#lib/password.util.js');
 const { AuthHelpers } = await import('./auth.helpers.js');
-const { PrismaService } = await import('#prisma/prisma.service.js');
 const { Test } = await import('@nestjs/testing');
 
 const verifyPasswordMock = passwordUtil.verifyPassword as jest.MockedFunction<

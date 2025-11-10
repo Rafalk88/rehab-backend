@@ -1,6 +1,5 @@
 import { jest } from '@jest/globals';
 import { AuthorizationGuard } from './authorization.guard.js';
-import { AppError } from '#common/errors/app.error.js';
 import { PermissionsService } from '#modules/permissions/permissions.service.js';
 import { ExecutionContext } from '@nestjs/common';
 

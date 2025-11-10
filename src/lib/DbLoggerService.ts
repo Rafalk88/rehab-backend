@@ -1,6 +1,6 @@
 import { PrismaService } from '#prisma/prisma.service.js';
-import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
-import type { Prisma } from '@prisma/client';
+import { Injectable, Logger } from '@nestjs/common';
+import type { Prisma } from '#/generated/prisma/client.js';
 
 export interface LogParams {
   userId: string | null;
@@ -8,8 +8,8 @@ export interface LogParams {
   actionDetails: string;
   entityType: string;
   entityId: string;
-  oldValues: Prisma.InputJsonValue | typeof Prisma.JsonNull;
-  newValues: Prisma.InputJsonValue | typeof Prisma.JsonNull;
+  oldValues: Prisma.InputJsonValue | typeof Prisma.DbNull;
+  newValues: Prisma.InputJsonValue | typeof Prisma.DbNull;
   ipAddress?: string;
 }
 
