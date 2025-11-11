@@ -37,7 +37,7 @@ export class PermissionsAdminService {
     await this.dbLogger.logAction({
       userId: adminId,
       action: 'assign_role',
-      actionDetails: `Assigned role "${role.name}" to user "${user.email}"`,
+      actionDetails: `Assigned role "${role.name}" to user "${user.loginMasked}"`,
       entityType: 'UserRole',
       entityId: userRole.id,
       oldValues: {},
@@ -104,7 +104,7 @@ export class PermissionsAdminService {
       action: 'override_permission',
       actionDetails: `Override ${data.allowed ? 'granted' : 'revoked'} for permission "${
         data.permission
-      }" on user ${user.email}`,
+      }" on user ${user.loginMasked}`,
       entityType: 'UserPermission',
       entityId: override.id,
       oldValues: {},

@@ -1,8 +1,11 @@
 import { AppError } from '#common/errors/app.error.js';
+import { computeHmac } from '#lib/encryption.util.js';
 import { verifyPassword } from '#lib/password.util.js';
 import { PrismaService } from '#prisma/prisma.service.js';
 import { Injectable } from '@nestjs/common';
-import type { User } from '@prisma/client';
+import type { UserModel } from '#/generated/prisma/models/User.js';
+
+const CURRENT_KEY_VERSION = 1;
 
 /**
  * Constants for authentication and lockout policies.
@@ -45,7 +48,7 @@ export class AuthHelpers {
    * @throws {AppError} 'unauthorized' or 'forbidden' if credentials are invalid or locked.
    */
   async verifyLoginCredentials(
-    user: Pick<User, 'id' | 'failedLoginAttempts' | 'passwordHash'>,
+    user: Pick<UserModel, 'id' | 'failedLoginAttempts' | 'passwordHash'>,
     password: string,
   ) {
     const isValid = await verifyPassword(password, user.passwordHash);
@@ -66,7 +69,7 @@ export class AuthHelpers {
    * @throws {AppError} 'forbidden' if user is inactive, locked, or must change password.
    */
   checkLoginRestrictions(
-    user: Pick<User, 'isActive' | 'isLocked' | 'lockedUntil' | 'mustChangePassword'>,
+    user: Pick<UserModel, 'isActive' | 'isLocked' | 'lockedUntil' | 'mustChangePassword'>,
   ) {
     if (!user.isActive) throw new AppError('forbidden', 'Account is inactive');
 
@@ -91,7 +94,7 @@ export class AuthHelpers {
    *
    * @param id - User ID to update.
    */
-  async updateLoginSuccess(id: User['id']) {
+  async updateLoginSuccess(id: UserModel['id']) {
     await this.prisma.user.update({
       where: { id },
       data: { lastLoginAt: new Date(), failedLoginAttempts: 0, isLocked: false, lockedUntil: null },
@@ -104,7 +107,7 @@ export class AuthHelpers {
    * @param id - User ID to update.
    * @returns Object with `failedAttempts` and optional `lockedUntil`.
    */
-  async updateLoginFailure(id: User['id']) {
+  async updateLoginFailure(id: UserModel['id']) {
     const updated = await this.prisma.user.update({
       where: { id },
       data: { failedLoginAttempts: { increment: 1 }, lastFailedLoginAt: new Date() },
@@ -156,7 +159,12 @@ export class AuthHelpers {
     let login = base;
     let suffix = 1;
 
-    while (await this.prisma.user.findUnique({ where: { login } })) {
+    while (true) {
+      const loginHmac = computeHmac(login, CURRENT_KEY_VERSION);
+
+      const existing = await this.prisma.user.findUnique({ where: { loginHmac } });
+      if (!existing) break;
+
       login = `${base}${suffix}`;
       suffix++;
     }

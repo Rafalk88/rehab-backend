@@ -14,6 +14,8 @@ const verifyPasswordMock = passwordUtil.verifyPassword as jest.MockedFunction<
   typeof passwordUtil.verifyPassword
 >;
 
+import 'dotenv/config';
+
 describe('AuthHelpers', () => {
   let helpers: InstanceType<typeof AuthHelpers>;
   let prismaMock: jest.Mocked<Partial<InstanceType<typeof PrismaService>>>;
