@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import { NestFactory } from '@nestjs/core';
 import { SeedModule } from './seed.module.js';
 import { SeedService } from './seed.service.js';

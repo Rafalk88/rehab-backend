@@ -14,7 +14,7 @@
     "test:int": "echo \"Testy są jeszcze wyłączone\"",
     "test:watch": "echo \"Testy są jeszcze wyłączone\"",
     "test:cov": "echo \"Testy są jeszcze wyłączone\"",
-    "seed": "node --loader ts-node/esm -r tsconfig-paths/register src/seed/main.ts",
+    "seed": "node -r dotenv/config --loader ts-node/esm -r tsconfig-paths/register src/seed/main.ts",
     "lint": "eslint 'src/**/*.ts' --fix",
     "format": "prettier --write 'src/**/*.ts'",
     "prisma:generate": "prisma generate --schema=src/prisma/schema.prisma",
