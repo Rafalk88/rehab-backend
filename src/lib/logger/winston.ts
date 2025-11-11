@@ -1,14 +1,23 @@
-import winston from 'winston';
+import { createLogger, format, transports, addColors } from 'winston';
 import 'winston-daily-rotate-file';
 
-const { combine, timestamp, printf, errors, colorize } = winston.format;
+const { combine, timestamp, printf, errors, colorize } = format;
 
-// Log form: time, level, message, stack trace
+const customColors = {
+  info: 'green',
+  warn: 'yellow',
+  error: 'red',
+  debug: 'blue',
+  verbose: 'cyan',
+};
+
+addColors(customColors);
+
 const logFormat = printf(({ level, message, timestamp, stack }) => {
   return `${timestamp} [${level}]: ${stack || message}`;
 });
 
-const transport = new winston.transports.DailyRotateFile({
+const transport = new transports.DailyRotateFile({
   filename: 'logs/application-%DATE%.log',
   datePattern: 'YYYY-MM-DD',
   maxFiles: '14d', // keep logs 14 days
@@ -16,12 +25,17 @@ const transport = new winston.transports.DailyRotateFile({
   maxSize: '20m',
 });
 
-const winstonLogger = winston.createLogger({
+const winstonLogger = createLogger({
   level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-  format: combine(timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }), errors({ stack: true }), logFormat),
+  format: combine(
+    colorize({ all: true }),
+    timestamp({ format: 'YYYY-MM-DD HH:mm:ss' }),
+    errors({ stack: true }),
+    logFormat,
+  ),
   transports: [
     transport,
-    new winston.transports.Console({
+    new transports.Console({
       format: combine(colorize(), logFormat),
     }),
   ],

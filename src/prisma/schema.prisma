@@ -141,6 +141,7 @@ model UserRole {
   user        User     @relation(fields: [userId], references: [id])
   role        Role     @relation(fields: [roleId], references: [id])
   assignedBy  User     @relation("AssignedBy", fields: [assignedById], references: [id])
+  @@unique([userId, roleId])
 }
 
 model UserPermission {
