@@ -14,8 +14,12 @@ datasource db {
 
 model User {
   id                    String   @id @default(uuid()) @db.Uuid
-  login                 String   @unique
-  email                 String   @unique
+  loginHmac             String   @map("login_hmac") @unique
+  loginEncrypted        String   @map("login_encrypted")
+  loginMasked           String   @map("login_masked")
+  emailHmac             String   @map("email_hmac") @unique
+  emailEncrypted        String   @map("email_encrypted")
+  emailMasked           String   @map("email_masked")
   passwordHash          String   @map("password_hash")
   mustChangePassword    Boolean  @default(false) @map("must_change_password")
   passwordChangedAt     DateTime? @map("password_changed_at")
@@ -30,6 +34,7 @@ model User {
   sexId                 String?  @db.Uuid @map("sex_id")
   firstNameId           String?  @db.Uuid @map("first_name_id")
   surnameId             String?  @db.Uuid @map("surname_id")
+  keyVersion            Int      @map("key_version") @default(1)
   createdAt             DateTime @default(now()) @map("created_at")
   updatedAt             DateTime @default(now()) @updatedAt @map("updated_at")
   createdBy             String?  @db.Uuid @map("created_by")

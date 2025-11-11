@@ -1463,8 +1463,12 @@ export type TransactionIsolationLevel =
 
 export const UserScalarFieldEnum = {
   id: 'id',
-  login: 'login',
-  email: 'email',
+  loginHmac: 'loginHmac',
+  loginEncrypted: 'loginEncrypted',
+  loginMasked: 'loginMasked',
+  emailHmac: 'emailHmac',
+  emailEncrypted: 'emailEncrypted',
+  emailMasked: 'emailMasked',
   passwordHash: 'passwordHash',
   mustChangePassword: 'mustChangePassword',
   passwordChangedAt: 'passwordChangedAt',
@@ -1479,6 +1483,7 @@ export const UserScalarFieldEnum = {
   sexId: 'sexId',
   firstNameId: 'firstNameId',
   surnameId: 'surnameId',
+  keyVersion: 'keyVersion',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt',
   createdBy: 'createdBy',

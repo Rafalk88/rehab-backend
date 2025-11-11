@@ -1,14 +1,16 @@
 import { AuthHelpers } from './helpers/auth.helpers.js';
 import { RequestContextService } from '#context/request-context.service.js';
 import { AppError } from '#common/errors/app.error.js';
+import { Prisma } from '#/generated/prisma/client.js';
 import { DbLoggerService } from '#lib/DbLoggerService.js';
-import { encrypt, maskString } from '#/lib/logger/encryption.util.js';
+import { computeHmac, aesGcmEncrypt, maskString } from '#/lib/encryption.util.js';
 import { hashPassword, verifyPassword } from '#lib/password.util.js';
 import { PrismaService } from '#prisma/prisma.service.js';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 
 const SEVEN_DAYS_IN_MS = 7 * 24 * 60 * 60 * 1000;
+const CURRENT_KEY_VERSION = 1;
 
 /**
  * AuthService
@@ -85,16 +87,28 @@ export class AuthService {
     const firstNameEntry = await this.helpers.getOrCreateFirstName(firstName);
     const surnameEntry = await this.helpers.getOrCreateSurname(surname);
 
-    // 2️⃣ Generate login, email, password hash
+    // 2️⃣ Generate login, email, password
     const login = await this.helpers.generateUniqueLogin(firstName, surname);
-    const email = `${login}@vitala.com`;
+    const loginHmac = computeHmac(login, CURRENT_KEY_VERSION);
+    const loginEncrypted = aesGcmEncrypt(login, CURRENT_KEY_VERSION);
+    const loginMasked = maskString(login);
+
+    const emailHmac = computeHmac(`${login}@vitala.com`, CURRENT_KEY_VERSION);
+    const emailEncrypted = aesGcmEncrypt(`${login}@vitala.com`, CURRENT_KEY_VERSION);
+    const emailMasked = maskString(`${login}@vitala.com`);
+
     const passwordHash = await hashPassword(password);
 
     //! TODO - PASS TO TRIGGER OPERATIONLOG
     const newValues = {
-      login,
-      email,
+      loginHmac,
+      loginEncrypted,
+      loginMasked,
+      emailHmac,
+      emailEncrypted,
+      emailMasked,
       passwordHash,
+      keyVersion: CURRENT_KEY_VERSION,
       firstNameId: firstNameEntry.id,
       surnameId: surnameEntry.id,
       sexId: sexId ?? null,
@@ -172,7 +186,7 @@ export class AuthService {
     }
 
     // 4️⃣ Generate new access token
-    const payload = { sub: user.id, email: user.email };
+    const payload = { sub: user.id, email_masked: user.emailMasked };
     const newAccessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
 
     // 5️⃣ Generate new refresh token, hash it
@@ -238,16 +252,18 @@ export class AuthService {
     const context = this.requestContext.get();
     const ipAddress = context?.ipAddress ?? 'system';
 
-    const user = await this.prisma.user.findUnique({ where: { login } });
+    const loginHmac = computeHmac(login, CURRENT_KEY_VERSION);
+
+    const user = await this.prisma.user.findUnique({ where: { loginHmac } });
     if (!user) {
       const maskedLogin = maskString(login);
-      const encryptedLogin = encrypt(login);
+      const encryptedLogin = aesGcmEncrypt(login, CURRENT_KEY_VERSION);
 
       await this.dbLogger.logAction({
         userId: null,
         action: 'login_failed',
         actionDetails: `Failed login attempt for ${maskedLogin}`,
-        oldValues: null,
+        oldValues: Prisma.DbNull,
         newValues: { encryptedLogin },
         entityType: 'User',
         entityId: 'unknown',
@@ -278,14 +294,14 @@ export class AuthService {
       userId: user.id,
       action: 'login',
       actionDetails: `User logged in successfully`,
-      oldValues: null,
-      newValues: null,
+      oldValues: Prisma.DbNull,
+      newValues: Prisma.DbNull,
       entityType: 'User',
       entityId: user.id,
       ipAddress,
     });
 
-    const payload = { sub: user.id, email: user.email };
+    const payload = { sub: user.id, email_masked: user.emailMasked };
 
     const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
 
@@ -360,8 +376,8 @@ export class AuthService {
       userId,
       action: 'logout',
       actionDetails: 'User logged out successfully',
-      oldValues: null,
-      newValues: null,
+      oldValues: Prisma.DbNull,
+      newValues: Prisma.DbNull,
       entityType: 'User',
       entityId: userId,
       ipAddress,

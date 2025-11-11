@@ -7,19 +7,25 @@ await jest.unstable_mockModule('#lib/password.util.js', () => ({
   verifyPassword: jest.fn(),
 }));
 
-await jest.unstable_mockModule('#/lib/logger/encryption.util.js', () => ({
-  encrypt: jest.fn().mockReturnValue('encrypted-login' as never),
-  maskString: jest.fn((s) => s),
+jest.unstable_mockModule('#lib/encryption.util.js', () => ({
+  computeHmac: jest.fn((s) => `hmac-${s}`),
+  aesGcmEncrypt: jest.fn((s) => `enc-${s}`),
+  maskString: jest.fn((s) => `mask-${s}`),
 }));
 
+const encryptionUtil = await import('#lib/encryption.util.js');
+const { computeHmac, aesGcmEncrypt, maskString } = encryptionUtil;
+
 const passwordUtil = await import('#lib/password.util.js');
-const { hashPassword, verifyPassword } = passwordUtil;
+const { verifyPassword } = passwordUtil;
 const { AuthService } = await import('./auth.service.js');
 const { AuthHelpers } = await import('./helpers/auth.helpers.js');
 const { DbLoggerService } = await import('#lib/DbLoggerService.js');
 const { JwtService } = await import('@nestjs/jwt');
 const { Test } = await import('@nestjs/testing');
 const { RequestContextService } = await import('#context/request-context.service.js');
+
+import 'dotenv/config';
 
 describe('AuthService', () => {
   let service: InstanceType<typeof AuthService>;
@@ -91,7 +97,7 @@ describe('AuthService', () => {
   });
 
   describe('registerUser', () => {
-    it('✅ creates new user and returns tokens', async () => {
+    it('✅ creates new user with encrypted fields', async () => {
       (prisma.user.create as jest.Mock).mockResolvedValueOnce({ id: 'user-1' } as never);
 
       const result = await service.registerUser({
@@ -103,8 +109,28 @@ describe('AuthService', () => {
       expect(helpers.getOrCreateFirstName).toHaveBeenCalledWith('John');
       expect(helpers.getOrCreateSurname).toHaveBeenCalledWith('Smith');
       expect(helpers.generateUniqueLogin).toHaveBeenCalledWith('John', 'Smith');
-      expect(hashPassword).toHaveBeenCalledWith('P@ssw0rd123');
-      expect(prisma.user.create).toHaveBeenCalled();
+
+      expect(computeHmac).toHaveBeenCalledWith('jsmith', 1);
+      expect(aesGcmEncrypt).toHaveBeenCalledWith('jsmith', 1);
+      expect(maskString).toHaveBeenCalledWith('jsmith');
+
+      expect(computeHmac).toHaveBeenCalledWith('jsmith@vitala.com', 1);
+      expect(aesGcmEncrypt).toHaveBeenCalledWith('jsmith@vitala.com', 1);
+      expect(maskString).toHaveBeenCalledWith('jsmith@vitala.com');
+
+      expect(prisma.user.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            loginHmac: 'hmac-jsmith',
+            loginEncrypted: 'enc-jsmith',
+            loginMasked: 'mask-jsmith',
+            emailHmac: 'hmac-jsmith@vitala.com',
+            emailEncrypted: 'enc-jsmith@vitala.com',
+            emailMasked: 'mask-jsmith@vitala.com',
+            passwordHash: 'hashed-password',
+          }),
+        }),
+      );
 
       expect(result).toEqual({
         user: { id: 'user-1' },
@@ -117,8 +143,12 @@ describe('AuthService', () => {
     it('✅ logs successful login and returns access + refresh tokens', async () => {
       (prisma.user.findUnique as jest.Mock).mockResolvedValueOnce({
         id: 'user-1',
-        login: 'jdoe',
-        email: 'jdoe@vitala.com',
+        loginHmac: 'jdoe',
+        loginEncrypted: 'enc-jdoe',
+        loginMasked: 'mask-jdoe',
+        emailHmac: 'hmac-jdoe@vitala.com',
+        emailEncrypted: 'enc-jdoe@vitala.com',
+        emailMasked: 'mask-jdoe@vitala.com',
         passwordHash: 'hashed-pass',
         failedLoginAttempts: 0,
         isActive: true,

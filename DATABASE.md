@@ -11,7 +11,7 @@ Main user table. Contains authentication, personal data, and relations.
 ### Fields
 
 - `id`: UUID, primary key
-- `login`, `email`, `password_hash`
+- `login_hmac`, `login_encrypted`, `login_masked`, `email_hmac`, `email_encrypted`, `email_masked`, `password_hash`, `key_version`
 - Flags and timestamps: `must_change_password`, `password_changed_at`, `password_changed_by`, `is_active`, `is_locked`, `locked_until`, `failed_login_attempts`, `last_failed_login_at`, `last_login_at`
 - Foreign keys: `first_name_id`, `surname_id`, `organizational_unit_id`, `sex_id`
 - Audit fields: `created_at`, `updated_at`, `created_by`, `updated_by`, `deleted_at`, `retention_until`

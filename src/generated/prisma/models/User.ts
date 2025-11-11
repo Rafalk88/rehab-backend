@@ -26,16 +26,22 @@ export type AggregateUser = {
 
 export type UserAvgAggregateOutputType = {
   failedLoginAttempts: number | null;
+  keyVersion: number | null;
 };
 
 export type UserSumAggregateOutputType = {
   failedLoginAttempts: number | null;
+  keyVersion: number | null;
 };
 
 export type UserMinAggregateOutputType = {
   id: string | null;
-  login: string | null;
-  email: string | null;
+  loginHmac: string | null;
+  loginEncrypted: string | null;
+  loginMasked: string | null;
+  emailHmac: string | null;
+  emailEncrypted: string | null;
+  emailMasked: string | null;
   passwordHash: string | null;
   mustChangePassword: boolean | null;
   passwordChangedAt: Date | null;
@@ -50,6 +56,7 @@ export type UserMinAggregateOutputType = {
   sexId: string | null;
   firstNameId: string | null;
   surnameId: string | null;
+  keyVersion: number | null;
   createdAt: Date | null;
   updatedAt: Date | null;
   createdBy: string | null;
@@ -60,8 +67,12 @@ export type UserMinAggregateOutputType = {
 
 export type UserMaxAggregateOutputType = {
   id: string | null;
-  login: string | null;
-  email: string | null;
+  loginHmac: string | null;
+  loginEncrypted: string | null;
+  loginMasked: string | null;
+  emailHmac: string | null;
+  emailEncrypted: string | null;
+  emailMasked: string | null;
   passwordHash: string | null;
   mustChangePassword: boolean | null;
   passwordChangedAt: Date | null;
@@ -76,6 +87,7 @@ export type UserMaxAggregateOutputType = {
   sexId: string | null;
   firstNameId: string | null;
   surnameId: string | null;
+  keyVersion: number | null;
   createdAt: Date | null;
   updatedAt: Date | null;
   createdBy: string | null;
@@ -86,8 +98,12 @@ export type UserMaxAggregateOutputType = {
 
 export type UserCountAggregateOutputType = {
   id: number;
-  login: number;
-  email: number;
+  loginHmac: number;
+  loginEncrypted: number;
+  loginMasked: number;
+  emailHmac: number;
+  emailEncrypted: number;
+  emailMasked: number;
   passwordHash: number;
   mustChangePassword: number;
   passwordChangedAt: number;
@@ -102,6 +118,7 @@ export type UserCountAggregateOutputType = {
   sexId: number;
   firstNameId: number;
   surnameId: number;
+  keyVersion: number;
   createdAt: number;
   updatedAt: number;
   createdBy: number;
@@ -113,16 +130,22 @@ export type UserCountAggregateOutputType = {
 
 export type UserAvgAggregateInputType = {
   failedLoginAttempts?: true;
+  keyVersion?: true;
 };
 
 export type UserSumAggregateInputType = {
   failedLoginAttempts?: true;
+  keyVersion?: true;
 };
 
 export type UserMinAggregateInputType = {
   id?: true;
-  login?: true;
-  email?: true;
+  loginHmac?: true;
+  loginEncrypted?: true;
+  loginMasked?: true;
+  emailHmac?: true;
+  emailEncrypted?: true;
+  emailMasked?: true;
   passwordHash?: true;
   mustChangePassword?: true;
   passwordChangedAt?: true;
@@ -137,6 +160,7 @@ export type UserMinAggregateInputType = {
   sexId?: true;
   firstNameId?: true;
   surnameId?: true;
+  keyVersion?: true;
   createdAt?: true;
   updatedAt?: true;
   createdBy?: true;
@@ -147,8 +171,12 @@ export type UserMinAggregateInputType = {
 
 export type UserMaxAggregateInputType = {
   id?: true;
-  login?: true;
-  email?: true;
+  loginHmac?: true;
+  loginEncrypted?: true;
+  loginMasked?: true;
+  emailHmac?: true;
+  emailEncrypted?: true;
+  emailMasked?: true;
   passwordHash?: true;
   mustChangePassword?: true;
   passwordChangedAt?: true;
@@ -163,6 +191,7 @@ export type UserMaxAggregateInputType = {
   sexId?: true;
   firstNameId?: true;
   surnameId?: true;
+  keyVersion?: true;
   createdAt?: true;
   updatedAt?: true;
   createdBy?: true;
@@ -173,8 +202,12 @@ export type UserMaxAggregateInputType = {
 
 export type UserCountAggregateInputType = {
   id?: true;
-  login?: true;
-  email?: true;
+  loginHmac?: true;
+  loginEncrypted?: true;
+  loginMasked?: true;
+  emailHmac?: true;
+  emailEncrypted?: true;
+  emailMasked?: true;
   passwordHash?: true;
   mustChangePassword?: true;
   passwordChangedAt?: true;
@@ -189,6 +222,7 @@ export type UserCountAggregateInputType = {
   sexId?: true;
   firstNameId?: true;
   surnameId?: true;
+  keyVersion?: true;
   createdAt?: true;
   updatedAt?: true;
   createdBy?: true;
@@ -287,8 +321,12 @@ export type UserGroupByArgs<
 
 export type UserGroupByOutputType = {
   id: string;
-  login: string;
-  email: string;
+  loginHmac: string;
+  loginEncrypted: string;
+  loginMasked: string;
+  emailHmac: string;
+  emailEncrypted: string;
+  emailMasked: string;
   passwordHash: string;
   mustChangePassword: boolean;
   passwordChangedAt: Date | null;
@@ -303,6 +341,7 @@ export type UserGroupByOutputType = {
   sexId: string | null;
   firstNameId: string | null;
   surnameId: string | null;
+  keyVersion: number;
   createdAt: Date;
   updatedAt: Date;
   createdBy: string | null;
@@ -333,8 +372,12 @@ export type UserWhereInput = {
   OR?: Prisma.UserWhereInput[];
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[];
   id?: Prisma.UuidFilter<'User'> | string;
-  login?: Prisma.StringFilter<'User'> | string;
-  email?: Prisma.StringFilter<'User'> | string;
+  loginHmac?: Prisma.StringFilter<'User'> | string;
+  loginEncrypted?: Prisma.StringFilter<'User'> | string;
+  loginMasked?: Prisma.StringFilter<'User'> | string;
+  emailHmac?: Prisma.StringFilter<'User'> | string;
+  emailEncrypted?: Prisma.StringFilter<'User'> | string;
+  emailMasked?: Prisma.StringFilter<'User'> | string;
   passwordHash?: Prisma.StringFilter<'User'> | string;
   mustChangePassword?: Prisma.BoolFilter<'User'> | boolean;
   passwordChangedAt?: Prisma.DateTimeNullableFilter<'User'> | Date | string | null;
@@ -349,6 +392,7 @@ export type UserWhereInput = {
   sexId?: Prisma.UuidNullableFilter<'User'> | string | null;
   firstNameId?: Prisma.UuidNullableFilter<'User'> | string | null;
   surnameId?: Prisma.UuidNullableFilter<'User'> | string | null;
+  keyVersion?: Prisma.IntFilter<'User'> | number;
   createdAt?: Prisma.DateTimeFilter<'User'> | Date | string;
   updatedAt?: Prisma.DateTimeFilter<'User'> | Date | string;
   createdBy?: Prisma.UuidNullableFilter<'User'> | string | null;
@@ -377,8 +421,12 @@ export type UserWhereInput = {
 
 export type UserOrderByWithRelationInput = {
   id?: Prisma.SortOrder;
-  login?: Prisma.SortOrder;
-  email?: Prisma.SortOrder;
+  loginHmac?: Prisma.SortOrder;
+  loginEncrypted?: Prisma.SortOrder;
+  loginMasked?: Prisma.SortOrder;
+  emailHmac?: Prisma.SortOrder;
+  emailEncrypted?: Prisma.SortOrder;
+  emailMasked?: Prisma.SortOrder;
   passwordHash?: Prisma.SortOrder;
   mustChangePassword?: Prisma.SortOrder;
   passwordChangedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -393,6 +441,7 @@ export type UserOrderByWithRelationInput = {
   sexId?: Prisma.SortOrderInput | Prisma.SortOrder;
   firstNameId?: Prisma.SortOrderInput | Prisma.SortOrder;
   surnameId?: Prisma.SortOrderInput | Prisma.SortOrder;
+  keyVersion?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
   createdBy?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -416,11 +465,15 @@ export type UserOrderByWithRelationInput = {
 export type UserWhereUniqueInput = Prisma.AtLeast<
   {
     id?: string;
-    login?: string;
-    email?: string;
+    loginHmac?: string;
+    emailHmac?: string;
     AND?: Prisma.UserWhereInput | Prisma.UserWhereInput[];
     OR?: Prisma.UserWhereInput[];
     NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[];
+    loginEncrypted?: Prisma.StringFilter<'User'> | string;
+    loginMasked?: Prisma.StringFilter<'User'> | string;
+    emailEncrypted?: Prisma.StringFilter<'User'> | string;
+    emailMasked?: Prisma.StringFilter<'User'> | string;
     passwordHash?: Prisma.StringFilter<'User'> | string;
     mustChangePassword?: Prisma.BoolFilter<'User'> | boolean;
     passwordChangedAt?: Prisma.DateTimeNullableFilter<'User'> | Date | string | null;
@@ -435,6 +488,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<
     sexId?: Prisma.UuidNullableFilter<'User'> | string | null;
     firstNameId?: Prisma.UuidNullableFilter<'User'> | string | null;
     surnameId?: Prisma.UuidNullableFilter<'User'> | string | null;
+    keyVersion?: Prisma.IntFilter<'User'> | number;
     createdAt?: Prisma.DateTimeFilter<'User'> | Date | string;
     updatedAt?: Prisma.DateTimeFilter<'User'> | Date | string;
     createdBy?: Prisma.UuidNullableFilter<'User'> | string | null;
@@ -463,13 +517,17 @@ export type UserWhereUniqueInput = Prisma.AtLeast<
     refreshTokens?: Prisma.RefreshTokenListRelationFilter;
     blacklistedTokens?: Prisma.BlacklistedTokenListRelationFilter;
   },
-  'id' | 'login' | 'email'
+  'id' | 'loginHmac' | 'emailHmac'
 >;
 
 export type UserOrderByWithAggregationInput = {
   id?: Prisma.SortOrder;
-  login?: Prisma.SortOrder;
-  email?: Prisma.SortOrder;
+  loginHmac?: Prisma.SortOrder;
+  loginEncrypted?: Prisma.SortOrder;
+  loginMasked?: Prisma.SortOrder;
+  emailHmac?: Prisma.SortOrder;
+  emailEncrypted?: Prisma.SortOrder;
+  emailMasked?: Prisma.SortOrder;
   passwordHash?: Prisma.SortOrder;
   mustChangePassword?: Prisma.SortOrder;
   passwordChangedAt?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -484,6 +542,7 @@ export type UserOrderByWithAggregationInput = {
   sexId?: Prisma.SortOrderInput | Prisma.SortOrder;
   firstNameId?: Prisma.SortOrderInput | Prisma.SortOrder;
   surnameId?: Prisma.SortOrderInput | Prisma.SortOrder;
+  keyVersion?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
   createdBy?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -502,8 +561,12 @@ export type UserScalarWhereWithAggregatesInput = {
   OR?: Prisma.UserScalarWhereWithAggregatesInput[];
   NOT?: Prisma.UserScalarWhereWithAggregatesInput | Prisma.UserScalarWhereWithAggregatesInput[];
   id?: Prisma.UuidWithAggregatesFilter<'User'> | string;
-  login?: Prisma.StringWithAggregatesFilter<'User'> | string;
-  email?: Prisma.StringWithAggregatesFilter<'User'> | string;
+  loginHmac?: Prisma.StringWithAggregatesFilter<'User'> | string;
+  loginEncrypted?: Prisma.StringWithAggregatesFilter<'User'> | string;
+  loginMasked?: Prisma.StringWithAggregatesFilter<'User'> | string;
+  emailHmac?: Prisma.StringWithAggregatesFilter<'User'> | string;
+  emailEncrypted?: Prisma.StringWithAggregatesFilter<'User'> | string;
+  emailMasked?: Prisma.StringWithAggregatesFilter<'User'> | string;
   passwordHash?: Prisma.StringWithAggregatesFilter<'User'> | string;
   mustChangePassword?: Prisma.BoolWithAggregatesFilter<'User'> | boolean;
   passwordChangedAt?: Prisma.DateTimeNullableWithAggregatesFilter<'User'> | Date | string | null;
@@ -518,6 +581,7 @@ export type UserScalarWhereWithAggregatesInput = {
   sexId?: Prisma.UuidNullableWithAggregatesFilter<'User'> | string | null;
   firstNameId?: Prisma.UuidNullableWithAggregatesFilter<'User'> | string | null;
   surnameId?: Prisma.UuidNullableWithAggregatesFilter<'User'> | string | null;
+  keyVersion?: Prisma.IntWithAggregatesFilter<'User'> | number;
   createdAt?: Prisma.DateTimeWithAggregatesFilter<'User'> | Date | string;
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<'User'> | Date | string;
   createdBy?: Prisma.UuidNullableWithAggregatesFilter<'User'> | string | null;
@@ -528,8 +592,12 @@ export type UserScalarWhereWithAggregatesInput = {
 
 export type UserCreateInput = {
   id?: string;
-  login: string;
-  email: string;
+  loginHmac: string;
+  loginEncrypted: string;
+  loginMasked: string;
+  emailHmac: string;
+  emailEncrypted: string;
+  emailMasked: string;
   passwordHash: string;
   mustChangePassword?: boolean;
   passwordChangedAt?: Date | string | null;
@@ -540,6 +608,7 @@ export type UserCreateInput = {
   failedLoginAttempts?: number;
   lastFailedLoginAt?: Date | string | null;
   lastLoginAt?: Date | string | null;
+  keyVersion?: number;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   createdBy?: string | null;
@@ -562,8 +631,12 @@ export type UserCreateInput = {
 
 export type UserUncheckedCreateInput = {
   id?: string;
-  login: string;
-  email: string;
+  loginHmac: string;
+  loginEncrypted: string;
+  loginMasked: string;
+  emailHmac: string;
+  emailEncrypted: string;
+  emailMasked: string;
   passwordHash: string;
   mustChangePassword?: boolean;
   passwordChangedAt?: Date | string | null;
@@ -578,6 +651,7 @@ export type UserUncheckedCreateInput = {
   sexId?: string | null;
   firstNameId?: string | null;
   surnameId?: string | null;
+  keyVersion?: number;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   createdBy?: string | null;
@@ -596,8 +670,12 @@ export type UserUncheckedCreateInput = {
 
 export type UserUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  login?: Prisma.StringFieldUpdateOperationsInput | string;
-  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginMasked?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailMasked?: Prisma.StringFieldUpdateOperationsInput | string;
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -608,6 +686,7 @@ export type UserUpdateInput = {
   failedLoginAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
   lastFailedLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  keyVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -630,8 +709,12 @@ export type UserUpdateInput = {
 
 export type UserUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  login?: Prisma.StringFieldUpdateOperationsInput | string;
-  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginMasked?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailMasked?: Prisma.StringFieldUpdateOperationsInput | string;
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -646,6 +729,7 @@ export type UserUncheckedUpdateInput = {
   sexId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   firstNameId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   surnameId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  keyVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -664,8 +748,12 @@ export type UserUncheckedUpdateInput = {
 
 export type UserCreateManyInput = {
   id?: string;
-  login: string;
-  email: string;
+  loginHmac: string;
+  loginEncrypted: string;
+  loginMasked: string;
+  emailHmac: string;
+  emailEncrypted: string;
+  emailMasked: string;
   passwordHash: string;
   mustChangePassword?: boolean;
   passwordChangedAt?: Date | string | null;
@@ -680,6 +768,7 @@ export type UserCreateManyInput = {
   sexId?: string | null;
   firstNameId?: string | null;
   surnameId?: string | null;
+  keyVersion?: number;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   createdBy?: string | null;
@@ -690,8 +779,12 @@ export type UserCreateManyInput = {
 
 export type UserUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  login?: Prisma.StringFieldUpdateOperationsInput | string;
-  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginMasked?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailMasked?: Prisma.StringFieldUpdateOperationsInput | string;
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -702,6 +795,7 @@ export type UserUpdateManyMutationInput = {
   failedLoginAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
   lastFailedLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  keyVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -712,8 +806,12 @@ export type UserUpdateManyMutationInput = {
 
 export type UserUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  login?: Prisma.StringFieldUpdateOperationsInput | string;
-  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginMasked?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailMasked?: Prisma.StringFieldUpdateOperationsInput | string;
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -728,6 +826,7 @@ export type UserUncheckedUpdateManyInput = {
   sexId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   firstNameId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   surnameId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  keyVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -738,8 +837,12 @@ export type UserUncheckedUpdateManyInput = {
 
 export type UserCountOrderByAggregateInput = {
   id?: Prisma.SortOrder;
-  login?: Prisma.SortOrder;
-  email?: Prisma.SortOrder;
+  loginHmac?: Prisma.SortOrder;
+  loginEncrypted?: Prisma.SortOrder;
+  loginMasked?: Prisma.SortOrder;
+  emailHmac?: Prisma.SortOrder;
+  emailEncrypted?: Prisma.SortOrder;
+  emailMasked?: Prisma.SortOrder;
   passwordHash?: Prisma.SortOrder;
   mustChangePassword?: Prisma.SortOrder;
   passwordChangedAt?: Prisma.SortOrder;
@@ -754,6 +857,7 @@ export type UserCountOrderByAggregateInput = {
   sexId?: Prisma.SortOrder;
   firstNameId?: Prisma.SortOrder;
   surnameId?: Prisma.SortOrder;
+  keyVersion?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
   createdBy?: Prisma.SortOrder;
@@ -764,12 +868,17 @@ export type UserCountOrderByAggregateInput = {
 
 export type UserAvgOrderByAggregateInput = {
   failedLoginAttempts?: Prisma.SortOrder;
+  keyVersion?: Prisma.SortOrder;
 };
 
 export type UserMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder;
-  login?: Prisma.SortOrder;
-  email?: Prisma.SortOrder;
+  loginHmac?: Prisma.SortOrder;
+  loginEncrypted?: Prisma.SortOrder;
+  loginMasked?: Prisma.SortOrder;
+  emailHmac?: Prisma.SortOrder;
+  emailEncrypted?: Prisma.SortOrder;
+  emailMasked?: Prisma.SortOrder;
   passwordHash?: Prisma.SortOrder;
   mustChangePassword?: Prisma.SortOrder;
   passwordChangedAt?: Prisma.SortOrder;
@@ -784,6 +893,7 @@ export type UserMaxOrderByAggregateInput = {
   sexId?: Prisma.SortOrder;
   firstNameId?: Prisma.SortOrder;
   surnameId?: Prisma.SortOrder;
+  keyVersion?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
   createdBy?: Prisma.SortOrder;
@@ -794,8 +904,12 @@ export type UserMaxOrderByAggregateInput = {
 
 export type UserMinOrderByAggregateInput = {
   id?: Prisma.SortOrder;
-  login?: Prisma.SortOrder;
-  email?: Prisma.SortOrder;
+  loginHmac?: Prisma.SortOrder;
+  loginEncrypted?: Prisma.SortOrder;
+  loginMasked?: Prisma.SortOrder;
+  emailHmac?: Prisma.SortOrder;
+  emailEncrypted?: Prisma.SortOrder;
+  emailMasked?: Prisma.SortOrder;
   passwordHash?: Prisma.SortOrder;
   mustChangePassword?: Prisma.SortOrder;
   passwordChangedAt?: Prisma.SortOrder;
@@ -810,6 +924,7 @@ export type UserMinOrderByAggregateInput = {
   sexId?: Prisma.SortOrder;
   firstNameId?: Prisma.SortOrder;
   surnameId?: Prisma.SortOrder;
+  keyVersion?: Prisma.SortOrder;
   createdAt?: Prisma.SortOrder;
   updatedAt?: Prisma.SortOrder;
   createdBy?: Prisma.SortOrder;
@@ -820,6 +935,7 @@ export type UserMinOrderByAggregateInput = {
 
 export type UserSumOrderByAggregateInput = {
   failedLoginAttempts?: Prisma.SortOrder;
+  keyVersion?: Prisma.SortOrder;
 };
 
 export type UserListRelationFilter = {
@@ -1414,8 +1530,12 @@ export type UserUpdateOneRequiredWithoutBlacklistedTokensNestedInput = {
 
 export type UserCreateWithoutFirstNameInput = {
   id?: string;
-  login: string;
-  email: string;
+  loginHmac: string;
+  loginEncrypted: string;
+  loginMasked: string;
+  emailHmac: string;
+  emailEncrypted: string;
+  emailMasked: string;
   passwordHash: string;
   mustChangePassword?: boolean;
   passwordChangedAt?: Date | string | null;
@@ -1426,6 +1546,7 @@ export type UserCreateWithoutFirstNameInput = {
   failedLoginAttempts?: number;
   lastFailedLoginAt?: Date | string | null;
   lastLoginAt?: Date | string | null;
+  keyVersion?: number;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   createdBy?: string | null;
@@ -1447,8 +1568,12 @@ export type UserCreateWithoutFirstNameInput = {
 
 export type UserUncheckedCreateWithoutFirstNameInput = {
   id?: string;
-  login: string;
-  email: string;
+  loginHmac: string;
+  loginEncrypted: string;
+  loginMasked: string;
+  emailHmac: string;
+  emailEncrypted: string;
+  emailMasked: string;
   passwordHash: string;
   mustChangePassword?: boolean;
   passwordChangedAt?: Date | string | null;
@@ -1462,6 +1587,7 @@ export type UserUncheckedCreateWithoutFirstNameInput = {
   organizationalUnitId?: string | null;
   sexId?: string | null;
   surnameId?: string | null;
+  keyVersion?: number;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   createdBy?: string | null;
@@ -1524,8 +1650,12 @@ export type UserScalarWhereInput = {
   OR?: Prisma.UserScalarWhereInput[];
   NOT?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[];
   id?: Prisma.UuidFilter<'User'> | string;
-  login?: Prisma.StringFilter<'User'> | string;
-  email?: Prisma.StringFilter<'User'> | string;
+  loginHmac?: Prisma.StringFilter<'User'> | string;
+  loginEncrypted?: Prisma.StringFilter<'User'> | string;
+  loginMasked?: Prisma.StringFilter<'User'> | string;
+  emailHmac?: Prisma.StringFilter<'User'> | string;
+  emailEncrypted?: Prisma.StringFilter<'User'> | string;
+  emailMasked?: Prisma.StringFilter<'User'> | string;
   passwordHash?: Prisma.StringFilter<'User'> | string;
   mustChangePassword?: Prisma.BoolFilter<'User'> | boolean;
   passwordChangedAt?: Prisma.DateTimeNullableFilter<'User'> | Date | string | null;
@@ -1540,6 +1670,7 @@ export type UserScalarWhereInput = {
   sexId?: Prisma.UuidNullableFilter<'User'> | string | null;
   firstNameId?: Prisma.UuidNullableFilter<'User'> | string | null;
   surnameId?: Prisma.UuidNullableFilter<'User'> | string | null;
+  keyVersion?: Prisma.IntFilter<'User'> | number;
   createdAt?: Prisma.DateTimeFilter<'User'> | Date | string;
   updatedAt?: Prisma.DateTimeFilter<'User'> | Date | string;
   createdBy?: Prisma.UuidNullableFilter<'User'> | string | null;
@@ -1550,8 +1681,12 @@ export type UserScalarWhereInput = {
 
 export type UserCreateWithoutSurnameInput = {
   id?: string;
-  login: string;
-  email: string;
+  loginHmac: string;
+  loginEncrypted: string;
+  loginMasked: string;
+  emailHmac: string;
+  emailEncrypted: string;
+  emailMasked: string;
   passwordHash: string;
   mustChangePassword?: boolean;
   passwordChangedAt?: Date | string | null;
@@ -1562,6 +1697,7 @@ export type UserCreateWithoutSurnameInput = {
   failedLoginAttempts?: number;
   lastFailedLoginAt?: Date | string | null;
   lastLoginAt?: Date | string | null;
+  keyVersion?: number;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   createdBy?: string | null;
@@ -1583,8 +1719,12 @@ export type UserCreateWithoutSurnameInput = {
 
 export type UserUncheckedCreateWithoutSurnameInput = {
   id?: string;
-  login: string;
-  email: string;
+  loginHmac: string;
+  loginEncrypted: string;
+  loginMasked: string;
+  emailHmac: string;
+  emailEncrypted: string;
+  emailMasked: string;
   passwordHash: string;
   mustChangePassword?: boolean;
   passwordChangedAt?: Date | string | null;
@@ -1598,6 +1738,7 @@ export type UserUncheckedCreateWithoutSurnameInput = {
   organizationalUnitId?: string | null;
   sexId?: string | null;
   firstNameId?: string | null;
+  keyVersion?: number;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   createdBy?: string | null;
@@ -1657,8 +1798,12 @@ export type UserUpdateManyWithWhereWithoutSurnameInput = {
 
 export type UserCreateWithoutSexInput = {
   id?: string;
-  login: string;
-  email: string;
+  loginHmac: string;
+  loginEncrypted: string;
+  loginMasked: string;
+  emailHmac: string;
+  emailEncrypted: string;
+  emailMasked: string;
   passwordHash: string;
   mustChangePassword?: boolean;
   passwordChangedAt?: Date | string | null;
@@ -1669,6 +1814,7 @@ export type UserCreateWithoutSexInput = {
   failedLoginAttempts?: number;
   lastFailedLoginAt?: Date | string | null;
   lastLoginAt?: Date | string | null;
+  keyVersion?: number;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   createdBy?: string | null;
@@ -1690,8 +1836,12 @@ export type UserCreateWithoutSexInput = {
 
 export type UserUncheckedCreateWithoutSexInput = {
   id?: string;
-  login: string;
-  email: string;
+  loginHmac: string;
+  loginEncrypted: string;
+  loginMasked: string;
+  emailHmac: string;
+  emailEncrypted: string;
+  emailMasked: string;
   passwordHash: string;
   mustChangePassword?: boolean;
   passwordChangedAt?: Date | string | null;
@@ -1705,6 +1855,7 @@ export type UserUncheckedCreateWithoutSexInput = {
   organizationalUnitId?: string | null;
   firstNameId?: string | null;
   surnameId?: string | null;
+  keyVersion?: number;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   createdBy?: string | null;
@@ -1752,8 +1903,12 @@ export type UserUpdateManyWithWhereWithoutSexInput = {
 
 export type UserCreateWithoutOrganizationalUnitInput = {
   id?: string;
-  login: string;
-  email: string;
+  loginHmac: string;
+  loginEncrypted: string;
+  loginMasked: string;
+  emailHmac: string;
+  emailEncrypted: string;
+  emailMasked: string;
   passwordHash: string;
   mustChangePassword?: boolean;
   passwordChangedAt?: Date | string | null;
@@ -1764,6 +1919,7 @@ export type UserCreateWithoutOrganizationalUnitInput = {
   failedLoginAttempts?: number;
   lastFailedLoginAt?: Date | string | null;
   lastLoginAt?: Date | string | null;
+  keyVersion?: number;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   createdBy?: string | null;
@@ -1785,8 +1941,12 @@ export type UserCreateWithoutOrganizationalUnitInput = {
 
 export type UserUncheckedCreateWithoutOrganizationalUnitInput = {
   id?: string;
-  login: string;
-  email: string;
+  loginHmac: string;
+  loginEncrypted: string;
+  loginMasked: string;
+  emailHmac: string;
+  emailEncrypted: string;
+  emailMasked: string;
   passwordHash: string;
   mustChangePassword?: boolean;
   passwordChangedAt?: Date | string | null;
@@ -1800,6 +1960,7 @@ export type UserUncheckedCreateWithoutOrganizationalUnitInput = {
   sexId?: string | null;
   firstNameId?: string | null;
   surnameId?: string | null;
+  keyVersion?: number;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   createdBy?: string | null;
@@ -1861,8 +2022,12 @@ export type UserUpdateManyWithWhereWithoutOrganizationalUnitInput = {
 
 export type UserCreateWithoutUserRolesInput = {
   id?: string;
-  login: string;
-  email: string;
+  loginHmac: string;
+  loginEncrypted: string;
+  loginMasked: string;
+  emailHmac: string;
+  emailEncrypted: string;
+  emailMasked: string;
   passwordHash: string;
   mustChangePassword?: boolean;
   passwordChangedAt?: Date | string | null;
@@ -1873,6 +2038,7 @@ export type UserCreateWithoutUserRolesInput = {
   failedLoginAttempts?: number;
   lastFailedLoginAt?: Date | string | null;
   lastLoginAt?: Date | string | null;
+  keyVersion?: number;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   createdBy?: string | null;
@@ -1894,8 +2060,12 @@ export type UserCreateWithoutUserRolesInput = {
 
 export type UserUncheckedCreateWithoutUserRolesInput = {
   id?: string;
-  login: string;
-  email: string;
+  loginHmac: string;
+  loginEncrypted: string;
+  loginMasked: string;
+  emailHmac: string;
+  emailEncrypted: string;
+  emailMasked: string;
   passwordHash: string;
   mustChangePassword?: boolean;
   passwordChangedAt?: Date | string | null;
@@ -1910,6 +2080,7 @@ export type UserUncheckedCreateWithoutUserRolesInput = {
   sexId?: string | null;
   firstNameId?: string | null;
   surnameId?: string | null;
+  keyVersion?: number;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   createdBy?: string | null;
@@ -1935,8 +2106,12 @@ export type UserCreateOrConnectWithoutUserRolesInput = {
 
 export type UserCreateWithoutAssignedRolesInput = {
   id?: string;
-  login: string;
-  email: string;
+  loginHmac: string;
+  loginEncrypted: string;
+  loginMasked: string;
+  emailHmac: string;
+  emailEncrypted: string;
+  emailMasked: string;
   passwordHash: string;
   mustChangePassword?: boolean;
   passwordChangedAt?: Date | string | null;
@@ -1947,6 +2122,7 @@ export type UserCreateWithoutAssignedRolesInput = {
   failedLoginAttempts?: number;
   lastFailedLoginAt?: Date | string | null;
   lastLoginAt?: Date | string | null;
+  keyVersion?: number;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   createdBy?: string | null;
@@ -1968,8 +2144,12 @@ export type UserCreateWithoutAssignedRolesInput = {
 
 export type UserUncheckedCreateWithoutAssignedRolesInput = {
   id?: string;
-  login: string;
-  email: string;
+  loginHmac: string;
+  loginEncrypted: string;
+  loginMasked: string;
+  emailHmac: string;
+  emailEncrypted: string;
+  emailMasked: string;
   passwordHash: string;
   mustChangePassword?: boolean;
   passwordChangedAt?: Date | string | null;
@@ -1984,6 +2164,7 @@ export type UserUncheckedCreateWithoutAssignedRolesInput = {
   sexId?: string | null;
   firstNameId?: string | null;
   surnameId?: string | null;
+  keyVersion?: number;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   createdBy?: string | null;
@@ -2029,8 +2210,12 @@ export type UserUpdateToOneWithWhereWithoutUserRolesInput = {
 
 export type UserUpdateWithoutUserRolesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  login?: Prisma.StringFieldUpdateOperationsInput | string;
-  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginMasked?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailMasked?: Prisma.StringFieldUpdateOperationsInput | string;
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -2041,6 +2226,7 @@ export type UserUpdateWithoutUserRolesInput = {
   failedLoginAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
   lastFailedLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  keyVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -2062,8 +2248,12 @@ export type UserUpdateWithoutUserRolesInput = {
 
 export type UserUncheckedUpdateWithoutUserRolesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  login?: Prisma.StringFieldUpdateOperationsInput | string;
-  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginMasked?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailMasked?: Prisma.StringFieldUpdateOperationsInput | string;
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -2078,6 +2268,7 @@ export type UserUncheckedUpdateWithoutUserRolesInput = {
   sexId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   firstNameId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   surnameId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  keyVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -2115,8 +2306,12 @@ export type UserUpdateToOneWithWhereWithoutAssignedRolesInput = {
 
 export type UserUpdateWithoutAssignedRolesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  login?: Prisma.StringFieldUpdateOperationsInput | string;
-  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginMasked?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailMasked?: Prisma.StringFieldUpdateOperationsInput | string;
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -2127,6 +2322,7 @@ export type UserUpdateWithoutAssignedRolesInput = {
   failedLoginAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
   lastFailedLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  keyVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -2148,8 +2344,12 @@ export type UserUpdateWithoutAssignedRolesInput = {
 
 export type UserUncheckedUpdateWithoutAssignedRolesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  login?: Prisma.StringFieldUpdateOperationsInput | string;
-  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginMasked?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailMasked?: Prisma.StringFieldUpdateOperationsInput | string;
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -2164,6 +2364,7 @@ export type UserUncheckedUpdateWithoutAssignedRolesInput = {
   sexId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   firstNameId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   surnameId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  keyVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -2181,8 +2382,12 @@ export type UserUncheckedUpdateWithoutAssignedRolesInput = {
 
 export type UserCreateWithoutUserPermissionsInput = {
   id?: string;
-  login: string;
-  email: string;
+  loginHmac: string;
+  loginEncrypted: string;
+  loginMasked: string;
+  emailHmac: string;
+  emailEncrypted: string;
+  emailMasked: string;
   passwordHash: string;
   mustChangePassword?: boolean;
   passwordChangedAt?: Date | string | null;
@@ -2193,6 +2398,7 @@ export type UserCreateWithoutUserPermissionsInput = {
   failedLoginAttempts?: number;
   lastFailedLoginAt?: Date | string | null;
   lastLoginAt?: Date | string | null;
+  keyVersion?: number;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   createdBy?: string | null;
@@ -2214,8 +2420,12 @@ export type UserCreateWithoutUserPermissionsInput = {
 
 export type UserUncheckedCreateWithoutUserPermissionsInput = {
   id?: string;
-  login: string;
-  email: string;
+  loginHmac: string;
+  loginEncrypted: string;
+  loginMasked: string;
+  emailHmac: string;
+  emailEncrypted: string;
+  emailMasked: string;
   passwordHash: string;
   mustChangePassword?: boolean;
   passwordChangedAt?: Date | string | null;
@@ -2230,6 +2440,7 @@ export type UserUncheckedCreateWithoutUserPermissionsInput = {
   sexId?: string | null;
   firstNameId?: string | null;
   surnameId?: string | null;
+  keyVersion?: number;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   createdBy?: string | null;
@@ -2275,8 +2486,12 @@ export type UserUpdateToOneWithWhereWithoutUserPermissionsInput = {
 
 export type UserUpdateWithoutUserPermissionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  login?: Prisma.StringFieldUpdateOperationsInput | string;
-  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginMasked?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailMasked?: Prisma.StringFieldUpdateOperationsInput | string;
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -2287,6 +2502,7 @@ export type UserUpdateWithoutUserPermissionsInput = {
   failedLoginAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
   lastFailedLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  keyVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -2308,8 +2524,12 @@ export type UserUpdateWithoutUserPermissionsInput = {
 
 export type UserUncheckedUpdateWithoutUserPermissionsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  login?: Prisma.StringFieldUpdateOperationsInput | string;
-  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginMasked?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailMasked?: Prisma.StringFieldUpdateOperationsInput | string;
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -2324,6 +2544,7 @@ export type UserUncheckedUpdateWithoutUserPermissionsInput = {
   sexId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   firstNameId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   surnameId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  keyVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -2341,8 +2562,12 @@ export type UserUncheckedUpdateWithoutUserPermissionsInput = {
 
 export type UserCreateWithoutPasswordOwnerHistoryInput = {
   id?: string;
-  login: string;
-  email: string;
+  loginHmac: string;
+  loginEncrypted: string;
+  loginMasked: string;
+  emailHmac: string;
+  emailEncrypted: string;
+  emailMasked: string;
   passwordHash: string;
   mustChangePassword?: boolean;
   passwordChangedAt?: Date | string | null;
@@ -2353,6 +2578,7 @@ export type UserCreateWithoutPasswordOwnerHistoryInput = {
   failedLoginAttempts?: number;
   lastFailedLoginAt?: Date | string | null;
   lastLoginAt?: Date | string | null;
+  keyVersion?: number;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   createdBy?: string | null;
@@ -2374,8 +2600,12 @@ export type UserCreateWithoutPasswordOwnerHistoryInput = {
 
 export type UserUncheckedCreateWithoutPasswordOwnerHistoryInput = {
   id?: string;
-  login: string;
-  email: string;
+  loginHmac: string;
+  loginEncrypted: string;
+  loginMasked: string;
+  emailHmac: string;
+  emailEncrypted: string;
+  emailMasked: string;
   passwordHash: string;
   mustChangePassword?: boolean;
   passwordChangedAt?: Date | string | null;
@@ -2390,6 +2620,7 @@ export type UserUncheckedCreateWithoutPasswordOwnerHistoryInput = {
   sexId?: string | null;
   firstNameId?: string | null;
   surnameId?: string | null;
+  keyVersion?: number;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   createdBy?: string | null;
@@ -2415,8 +2646,12 @@ export type UserCreateOrConnectWithoutPasswordOwnerHistoryInput = {
 
 export type UserCreateWithoutPasswordChangerHistoryInput = {
   id?: string;
-  login: string;
-  email: string;
+  loginHmac: string;
+  loginEncrypted: string;
+  loginMasked: string;
+  emailHmac: string;
+  emailEncrypted: string;
+  emailMasked: string;
   passwordHash: string;
   mustChangePassword?: boolean;
   passwordChangedAt?: Date | string | null;
@@ -2427,6 +2662,7 @@ export type UserCreateWithoutPasswordChangerHistoryInput = {
   failedLoginAttempts?: number;
   lastFailedLoginAt?: Date | string | null;
   lastLoginAt?: Date | string | null;
+  keyVersion?: number;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   createdBy?: string | null;
@@ -2448,8 +2684,12 @@ export type UserCreateWithoutPasswordChangerHistoryInput = {
 
 export type UserUncheckedCreateWithoutPasswordChangerHistoryInput = {
   id?: string;
-  login: string;
-  email: string;
+  loginHmac: string;
+  loginEncrypted: string;
+  loginMasked: string;
+  emailHmac: string;
+  emailEncrypted: string;
+  emailMasked: string;
   passwordHash: string;
   mustChangePassword?: boolean;
   passwordChangedAt?: Date | string | null;
@@ -2464,6 +2704,7 @@ export type UserUncheckedCreateWithoutPasswordChangerHistoryInput = {
   sexId?: string | null;
   firstNameId?: string | null;
   surnameId?: string | null;
+  keyVersion?: number;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   createdBy?: string | null;
@@ -2509,8 +2750,12 @@ export type UserUpdateToOneWithWhereWithoutPasswordOwnerHistoryInput = {
 
 export type UserUpdateWithoutPasswordOwnerHistoryInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  login?: Prisma.StringFieldUpdateOperationsInput | string;
-  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginMasked?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailMasked?: Prisma.StringFieldUpdateOperationsInput | string;
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -2521,6 +2766,7 @@ export type UserUpdateWithoutPasswordOwnerHistoryInput = {
   failedLoginAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
   lastFailedLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  keyVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -2542,8 +2788,12 @@ export type UserUpdateWithoutPasswordOwnerHistoryInput = {
 
 export type UserUncheckedUpdateWithoutPasswordOwnerHistoryInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  login?: Prisma.StringFieldUpdateOperationsInput | string;
-  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginMasked?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailMasked?: Prisma.StringFieldUpdateOperationsInput | string;
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -2558,6 +2808,7 @@ export type UserUncheckedUpdateWithoutPasswordOwnerHistoryInput = {
   sexId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   firstNameId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   surnameId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  keyVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -2595,8 +2846,12 @@ export type UserUpdateToOneWithWhereWithoutPasswordChangerHistoryInput = {
 
 export type UserUpdateWithoutPasswordChangerHistoryInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  login?: Prisma.StringFieldUpdateOperationsInput | string;
-  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginMasked?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailMasked?: Prisma.StringFieldUpdateOperationsInput | string;
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -2607,6 +2862,7 @@ export type UserUpdateWithoutPasswordChangerHistoryInput = {
   failedLoginAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
   lastFailedLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  keyVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -2628,8 +2884,12 @@ export type UserUpdateWithoutPasswordChangerHistoryInput = {
 
 export type UserUncheckedUpdateWithoutPasswordChangerHistoryInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  login?: Prisma.StringFieldUpdateOperationsInput | string;
-  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginMasked?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailMasked?: Prisma.StringFieldUpdateOperationsInput | string;
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -2644,6 +2904,7 @@ export type UserUncheckedUpdateWithoutPasswordChangerHistoryInput = {
   sexId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   firstNameId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   surnameId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  keyVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -2661,8 +2922,12 @@ export type UserUncheckedUpdateWithoutPasswordChangerHistoryInput = {
 
 export type UserCreateWithoutOperationLogsInput = {
   id?: string;
-  login: string;
-  email: string;
+  loginHmac: string;
+  loginEncrypted: string;
+  loginMasked: string;
+  emailHmac: string;
+  emailEncrypted: string;
+  emailMasked: string;
   passwordHash: string;
   mustChangePassword?: boolean;
   passwordChangedAt?: Date | string | null;
@@ -2673,6 +2938,7 @@ export type UserCreateWithoutOperationLogsInput = {
   failedLoginAttempts?: number;
   lastFailedLoginAt?: Date | string | null;
   lastLoginAt?: Date | string | null;
+  keyVersion?: number;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   createdBy?: string | null;
@@ -2694,8 +2960,12 @@ export type UserCreateWithoutOperationLogsInput = {
 
 export type UserUncheckedCreateWithoutOperationLogsInput = {
   id?: string;
-  login: string;
-  email: string;
+  loginHmac: string;
+  loginEncrypted: string;
+  loginMasked: string;
+  emailHmac: string;
+  emailEncrypted: string;
+  emailMasked: string;
   passwordHash: string;
   mustChangePassword?: boolean;
   passwordChangedAt?: Date | string | null;
@@ -2710,6 +2980,7 @@ export type UserUncheckedCreateWithoutOperationLogsInput = {
   sexId?: string | null;
   firstNameId?: string | null;
   surnameId?: string | null;
+  keyVersion?: number;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   createdBy?: string | null;
@@ -2755,8 +3026,12 @@ export type UserUpdateToOneWithWhereWithoutOperationLogsInput = {
 
 export type UserUpdateWithoutOperationLogsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  login?: Prisma.StringFieldUpdateOperationsInput | string;
-  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginMasked?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailMasked?: Prisma.StringFieldUpdateOperationsInput | string;
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -2767,6 +3042,7 @@ export type UserUpdateWithoutOperationLogsInput = {
   failedLoginAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
   lastFailedLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  keyVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -2788,8 +3064,12 @@ export type UserUpdateWithoutOperationLogsInput = {
 
 export type UserUncheckedUpdateWithoutOperationLogsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  login?: Prisma.StringFieldUpdateOperationsInput | string;
-  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginMasked?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailMasked?: Prisma.StringFieldUpdateOperationsInput | string;
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -2804,6 +3084,7 @@ export type UserUncheckedUpdateWithoutOperationLogsInput = {
   sexId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   firstNameId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   surnameId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  keyVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -2821,8 +3102,12 @@ export type UserUncheckedUpdateWithoutOperationLogsInput = {
 
 export type UserCreateWithoutRefreshTokensInput = {
   id?: string;
-  login: string;
-  email: string;
+  loginHmac: string;
+  loginEncrypted: string;
+  loginMasked: string;
+  emailHmac: string;
+  emailEncrypted: string;
+  emailMasked: string;
   passwordHash: string;
   mustChangePassword?: boolean;
   passwordChangedAt?: Date | string | null;
@@ -2833,6 +3118,7 @@ export type UserCreateWithoutRefreshTokensInput = {
   failedLoginAttempts?: number;
   lastFailedLoginAt?: Date | string | null;
   lastLoginAt?: Date | string | null;
+  keyVersion?: number;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   createdBy?: string | null;
@@ -2854,8 +3140,12 @@ export type UserCreateWithoutRefreshTokensInput = {
 
 export type UserUncheckedCreateWithoutRefreshTokensInput = {
   id?: string;
-  login: string;
-  email: string;
+  loginHmac: string;
+  loginEncrypted: string;
+  loginMasked: string;
+  emailHmac: string;
+  emailEncrypted: string;
+  emailMasked: string;
   passwordHash: string;
   mustChangePassword?: boolean;
   passwordChangedAt?: Date | string | null;
@@ -2870,6 +3160,7 @@ export type UserUncheckedCreateWithoutRefreshTokensInput = {
   sexId?: string | null;
   firstNameId?: string | null;
   surnameId?: string | null;
+  keyVersion?: number;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   createdBy?: string | null;
@@ -2915,8 +3206,12 @@ export type UserUpdateToOneWithWhereWithoutRefreshTokensInput = {
 
 export type UserUpdateWithoutRefreshTokensInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  login?: Prisma.StringFieldUpdateOperationsInput | string;
-  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginMasked?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailMasked?: Prisma.StringFieldUpdateOperationsInput | string;
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -2927,6 +3222,7 @@ export type UserUpdateWithoutRefreshTokensInput = {
   failedLoginAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
   lastFailedLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  keyVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -2948,8 +3244,12 @@ export type UserUpdateWithoutRefreshTokensInput = {
 
 export type UserUncheckedUpdateWithoutRefreshTokensInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  login?: Prisma.StringFieldUpdateOperationsInput | string;
-  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginMasked?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailMasked?: Prisma.StringFieldUpdateOperationsInput | string;
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -2964,6 +3264,7 @@ export type UserUncheckedUpdateWithoutRefreshTokensInput = {
   sexId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   firstNameId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   surnameId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  keyVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -2981,8 +3282,12 @@ export type UserUncheckedUpdateWithoutRefreshTokensInput = {
 
 export type UserCreateWithoutBlacklistedTokensInput = {
   id?: string;
-  login: string;
-  email: string;
+  loginHmac: string;
+  loginEncrypted: string;
+  loginMasked: string;
+  emailHmac: string;
+  emailEncrypted: string;
+  emailMasked: string;
   passwordHash: string;
   mustChangePassword?: boolean;
   passwordChangedAt?: Date | string | null;
@@ -2993,6 +3298,7 @@ export type UserCreateWithoutBlacklistedTokensInput = {
   failedLoginAttempts?: number;
   lastFailedLoginAt?: Date | string | null;
   lastLoginAt?: Date | string | null;
+  keyVersion?: number;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   createdBy?: string | null;
@@ -3014,8 +3320,12 @@ export type UserCreateWithoutBlacklistedTokensInput = {
 
 export type UserUncheckedCreateWithoutBlacklistedTokensInput = {
   id?: string;
-  login: string;
-  email: string;
+  loginHmac: string;
+  loginEncrypted: string;
+  loginMasked: string;
+  emailHmac: string;
+  emailEncrypted: string;
+  emailMasked: string;
   passwordHash: string;
   mustChangePassword?: boolean;
   passwordChangedAt?: Date | string | null;
@@ -3030,6 +3340,7 @@ export type UserUncheckedCreateWithoutBlacklistedTokensInput = {
   sexId?: string | null;
   firstNameId?: string | null;
   surnameId?: string | null;
+  keyVersion?: number;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   createdBy?: string | null;
@@ -3075,8 +3386,12 @@ export type UserUpdateToOneWithWhereWithoutBlacklistedTokensInput = {
 
 export type UserUpdateWithoutBlacklistedTokensInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  login?: Prisma.StringFieldUpdateOperationsInput | string;
-  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginMasked?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailMasked?: Prisma.StringFieldUpdateOperationsInput | string;
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -3087,6 +3402,7 @@ export type UserUpdateWithoutBlacklistedTokensInput = {
   failedLoginAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
   lastFailedLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  keyVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -3108,8 +3424,12 @@ export type UserUpdateWithoutBlacklistedTokensInput = {
 
 export type UserUncheckedUpdateWithoutBlacklistedTokensInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  login?: Prisma.StringFieldUpdateOperationsInput | string;
-  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginMasked?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailMasked?: Prisma.StringFieldUpdateOperationsInput | string;
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -3124,6 +3444,7 @@ export type UserUncheckedUpdateWithoutBlacklistedTokensInput = {
   sexId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   firstNameId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   surnameId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  keyVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -3141,8 +3462,12 @@ export type UserUncheckedUpdateWithoutBlacklistedTokensInput = {
 
 export type UserCreateManyFirstNameInput = {
   id?: string;
-  login: string;
-  email: string;
+  loginHmac: string;
+  loginEncrypted: string;
+  loginMasked: string;
+  emailHmac: string;
+  emailEncrypted: string;
+  emailMasked: string;
   passwordHash: string;
   mustChangePassword?: boolean;
   passwordChangedAt?: Date | string | null;
@@ -3156,6 +3481,7 @@ export type UserCreateManyFirstNameInput = {
   organizationalUnitId?: string | null;
   sexId?: string | null;
   surnameId?: string | null;
+  keyVersion?: number;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   createdBy?: string | null;
@@ -3166,8 +3492,12 @@ export type UserCreateManyFirstNameInput = {
 
 export type UserUpdateWithoutFirstNameInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  login?: Prisma.StringFieldUpdateOperationsInput | string;
-  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginMasked?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailMasked?: Prisma.StringFieldUpdateOperationsInput | string;
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -3178,6 +3508,7 @@ export type UserUpdateWithoutFirstNameInput = {
   failedLoginAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
   lastFailedLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  keyVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -3199,8 +3530,12 @@ export type UserUpdateWithoutFirstNameInput = {
 
 export type UserUncheckedUpdateWithoutFirstNameInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  login?: Prisma.StringFieldUpdateOperationsInput | string;
-  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginMasked?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailMasked?: Prisma.StringFieldUpdateOperationsInput | string;
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -3214,6 +3549,7 @@ export type UserUncheckedUpdateWithoutFirstNameInput = {
   organizationalUnitId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   sexId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   surnameId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  keyVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -3232,8 +3568,12 @@ export type UserUncheckedUpdateWithoutFirstNameInput = {
 
 export type UserUncheckedUpdateManyWithoutFirstNameInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  login?: Prisma.StringFieldUpdateOperationsInput | string;
-  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginMasked?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailMasked?: Prisma.StringFieldUpdateOperationsInput | string;
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -3247,6 +3587,7 @@ export type UserUncheckedUpdateManyWithoutFirstNameInput = {
   organizationalUnitId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   sexId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   surnameId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  keyVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -3257,8 +3598,12 @@ export type UserUncheckedUpdateManyWithoutFirstNameInput = {
 
 export type UserCreateManySurnameInput = {
   id?: string;
-  login: string;
-  email: string;
+  loginHmac: string;
+  loginEncrypted: string;
+  loginMasked: string;
+  emailHmac: string;
+  emailEncrypted: string;
+  emailMasked: string;
   passwordHash: string;
   mustChangePassword?: boolean;
   passwordChangedAt?: Date | string | null;
@@ -3272,6 +3617,7 @@ export type UserCreateManySurnameInput = {
   organizationalUnitId?: string | null;
   sexId?: string | null;
   firstNameId?: string | null;
+  keyVersion?: number;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   createdBy?: string | null;
@@ -3282,8 +3628,12 @@ export type UserCreateManySurnameInput = {
 
 export type UserUpdateWithoutSurnameInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  login?: Prisma.StringFieldUpdateOperationsInput | string;
-  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginMasked?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailMasked?: Prisma.StringFieldUpdateOperationsInput | string;
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -3294,6 +3644,7 @@ export type UserUpdateWithoutSurnameInput = {
   failedLoginAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
   lastFailedLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  keyVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -3315,8 +3666,12 @@ export type UserUpdateWithoutSurnameInput = {
 
 export type UserUncheckedUpdateWithoutSurnameInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  login?: Prisma.StringFieldUpdateOperationsInput | string;
-  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginMasked?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailMasked?: Prisma.StringFieldUpdateOperationsInput | string;
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -3330,6 +3685,7 @@ export type UserUncheckedUpdateWithoutSurnameInput = {
   organizationalUnitId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   sexId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   firstNameId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  keyVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -3348,8 +3704,12 @@ export type UserUncheckedUpdateWithoutSurnameInput = {
 
 export type UserUncheckedUpdateManyWithoutSurnameInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  login?: Prisma.StringFieldUpdateOperationsInput | string;
-  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginMasked?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailMasked?: Prisma.StringFieldUpdateOperationsInput | string;
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -3363,6 +3723,7 @@ export type UserUncheckedUpdateManyWithoutSurnameInput = {
   organizationalUnitId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   sexId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   firstNameId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  keyVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -3373,8 +3734,12 @@ export type UserUncheckedUpdateManyWithoutSurnameInput = {
 
 export type UserCreateManySexInput = {
   id?: string;
-  login: string;
-  email: string;
+  loginHmac: string;
+  loginEncrypted: string;
+  loginMasked: string;
+  emailHmac: string;
+  emailEncrypted: string;
+  emailMasked: string;
   passwordHash: string;
   mustChangePassword?: boolean;
   passwordChangedAt?: Date | string | null;
@@ -3388,6 +3753,7 @@ export type UserCreateManySexInput = {
   organizationalUnitId?: string | null;
   firstNameId?: string | null;
   surnameId?: string | null;
+  keyVersion?: number;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   createdBy?: string | null;
@@ -3398,8 +3764,12 @@ export type UserCreateManySexInput = {
 
 export type UserUpdateWithoutSexInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  login?: Prisma.StringFieldUpdateOperationsInput | string;
-  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginMasked?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailMasked?: Prisma.StringFieldUpdateOperationsInput | string;
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -3410,6 +3780,7 @@ export type UserUpdateWithoutSexInput = {
   failedLoginAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
   lastFailedLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  keyVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -3431,8 +3802,12 @@ export type UserUpdateWithoutSexInput = {
 
 export type UserUncheckedUpdateWithoutSexInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  login?: Prisma.StringFieldUpdateOperationsInput | string;
-  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginMasked?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailMasked?: Prisma.StringFieldUpdateOperationsInput | string;
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -3446,6 +3821,7 @@ export type UserUncheckedUpdateWithoutSexInput = {
   organizationalUnitId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   firstNameId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   surnameId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  keyVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -3464,8 +3840,12 @@ export type UserUncheckedUpdateWithoutSexInput = {
 
 export type UserUncheckedUpdateManyWithoutSexInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  login?: Prisma.StringFieldUpdateOperationsInput | string;
-  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginMasked?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailMasked?: Prisma.StringFieldUpdateOperationsInput | string;
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -3479,6 +3859,7 @@ export type UserUncheckedUpdateManyWithoutSexInput = {
   organizationalUnitId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   firstNameId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   surnameId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  keyVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -3489,8 +3870,12 @@ export type UserUncheckedUpdateManyWithoutSexInput = {
 
 export type UserCreateManyOrganizationalUnitInput = {
   id?: string;
-  login: string;
-  email: string;
+  loginHmac: string;
+  loginEncrypted: string;
+  loginMasked: string;
+  emailHmac: string;
+  emailEncrypted: string;
+  emailMasked: string;
   passwordHash: string;
   mustChangePassword?: boolean;
   passwordChangedAt?: Date | string | null;
@@ -3504,6 +3889,7 @@ export type UserCreateManyOrganizationalUnitInput = {
   sexId?: string | null;
   firstNameId?: string | null;
   surnameId?: string | null;
+  keyVersion?: number;
   createdAt?: Date | string;
   updatedAt?: Date | string;
   createdBy?: string | null;
@@ -3514,8 +3900,12 @@ export type UserCreateManyOrganizationalUnitInput = {
 
 export type UserUpdateWithoutOrganizationalUnitInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  login?: Prisma.StringFieldUpdateOperationsInput | string;
-  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginMasked?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailMasked?: Prisma.StringFieldUpdateOperationsInput | string;
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -3526,6 +3916,7 @@ export type UserUpdateWithoutOrganizationalUnitInput = {
   failedLoginAttempts?: Prisma.IntFieldUpdateOperationsInput | number;
   lastFailedLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   lastLoginAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
+  keyVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -3547,8 +3938,12 @@ export type UserUpdateWithoutOrganizationalUnitInput = {
 
 export type UserUncheckedUpdateWithoutOrganizationalUnitInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  login?: Prisma.StringFieldUpdateOperationsInput | string;
-  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginMasked?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailMasked?: Prisma.StringFieldUpdateOperationsInput | string;
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -3562,6 +3957,7 @@ export type UserUncheckedUpdateWithoutOrganizationalUnitInput = {
   sexId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   firstNameId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   surnameId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  keyVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -3580,8 +3976,12 @@ export type UserUncheckedUpdateWithoutOrganizationalUnitInput = {
 
 export type UserUncheckedUpdateManyWithoutOrganizationalUnitInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string;
-  login?: Prisma.StringFieldUpdateOperationsInput | string;
-  email?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  loginMasked?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailHmac?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailEncrypted?: Prisma.StringFieldUpdateOperationsInput | string;
+  emailMasked?: Prisma.StringFieldUpdateOperationsInput | string;
   passwordHash?: Prisma.StringFieldUpdateOperationsInput | string;
   mustChangePassword?: Prisma.BoolFieldUpdateOperationsInput | boolean;
   passwordChangedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
@@ -3595,6 +3995,7 @@ export type UserUncheckedUpdateManyWithoutOrganizationalUnitInput = {
   sexId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   firstNameId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
   surnameId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+  keyVersion?: Prisma.IntFieldUpdateOperationsInput | number;
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
   createdBy?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
@@ -3720,8 +4121,12 @@ export type UserSelect<
 > = runtime.Types.Extensions.GetSelect<
   {
     id?: boolean;
-    login?: boolean;
-    email?: boolean;
+    loginHmac?: boolean;
+    loginEncrypted?: boolean;
+    loginMasked?: boolean;
+    emailHmac?: boolean;
+    emailEncrypted?: boolean;
+    emailMasked?: boolean;
     passwordHash?: boolean;
     mustChangePassword?: boolean;
     passwordChangedAt?: boolean;
@@ -3736,6 +4141,7 @@ export type UserSelect<
     sexId?: boolean;
     firstNameId?: boolean;
     surnameId?: boolean;
+    keyVersion?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
     createdBy?: boolean;
@@ -3764,8 +4170,12 @@ export type UserSelectCreateManyAndReturn<
 > = runtime.Types.Extensions.GetSelect<
   {
     id?: boolean;
-    login?: boolean;
-    email?: boolean;
+    loginHmac?: boolean;
+    loginEncrypted?: boolean;
+    loginMasked?: boolean;
+    emailHmac?: boolean;
+    emailEncrypted?: boolean;
+    emailMasked?: boolean;
     passwordHash?: boolean;
     mustChangePassword?: boolean;
     passwordChangedAt?: boolean;
@@ -3780,6 +4190,7 @@ export type UserSelectCreateManyAndReturn<
     sexId?: boolean;
     firstNameId?: boolean;
     surnameId?: boolean;
+    keyVersion?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
     createdBy?: boolean;
@@ -3799,8 +4210,12 @@ export type UserSelectUpdateManyAndReturn<
 > = runtime.Types.Extensions.GetSelect<
   {
     id?: boolean;
-    login?: boolean;
-    email?: boolean;
+    loginHmac?: boolean;
+    loginEncrypted?: boolean;
+    loginMasked?: boolean;
+    emailHmac?: boolean;
+    emailEncrypted?: boolean;
+    emailMasked?: boolean;
     passwordHash?: boolean;
     mustChangePassword?: boolean;
     passwordChangedAt?: boolean;
@@ -3815,6 +4230,7 @@ export type UserSelectUpdateManyAndReturn<
     sexId?: boolean;
     firstNameId?: boolean;
     surnameId?: boolean;
+    keyVersion?: boolean;
     createdAt?: boolean;
     updatedAt?: boolean;
     createdBy?: boolean;
@@ -3831,8 +4247,12 @@ export type UserSelectUpdateManyAndReturn<
 
 export type UserSelectScalar = {
   id?: boolean;
-  login?: boolean;
-  email?: boolean;
+  loginHmac?: boolean;
+  loginEncrypted?: boolean;
+  loginMasked?: boolean;
+  emailHmac?: boolean;
+  emailEncrypted?: boolean;
+  emailMasked?: boolean;
   passwordHash?: boolean;
   mustChangePassword?: boolean;
   passwordChangedAt?: boolean;
@@ -3847,6 +4267,7 @@ export type UserSelectScalar = {
   sexId?: boolean;
   firstNameId?: boolean;
   surnameId?: boolean;
+  keyVersion?: boolean;
   createdAt?: boolean;
   updatedAt?: boolean;
   createdBy?: boolean;
@@ -3859,8 +4280,12 @@ export type UserOmit<
   ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs,
 > = runtime.Types.Extensions.GetOmit<
   | 'id'
-  | 'login'
-  | 'email'
+  | 'loginHmac'
+  | 'loginEncrypted'
+  | 'loginMasked'
+  | 'emailHmac'
+  | 'emailEncrypted'
+  | 'emailMasked'
   | 'passwordHash'
   | 'mustChangePassword'
   | 'passwordChangedAt'
@@ -3875,6 +4300,7 @@ export type UserOmit<
   | 'sexId'
   | 'firstNameId'
   | 'surnameId'
+  | 'keyVersion'
   | 'createdAt'
   | 'updatedAt'
   | 'createdBy'
@@ -3938,8 +4364,12 @@ export type $UserPayload<
   scalars: runtime.Types.Extensions.GetPayloadResult<
     {
       id: string;
-      login: string;
-      email: string;
+      loginHmac: string;
+      loginEncrypted: string;
+      loginMasked: string;
+      emailHmac: string;
+      emailEncrypted: string;
+      emailMasked: string;
       passwordHash: string;
       mustChangePassword: boolean;
       passwordChangedAt: Date | null;
@@ -3954,6 +4384,7 @@ export type $UserPayload<
       sexId: string | null;
       firstNameId: string | null;
       surnameId: string | null;
+      keyVersion: number;
       createdAt: Date;
       updatedAt: Date;
       createdBy: string | null;
@@ -4642,8 +5073,12 @@ export interface Prisma__UserClient<
  */
 export interface UserFieldRefs {
   readonly id: Prisma.FieldRef<'User', 'String'>;
-  readonly login: Prisma.FieldRef<'User', 'String'>;
-  readonly email: Prisma.FieldRef<'User', 'String'>;
+  readonly loginHmac: Prisma.FieldRef<'User', 'String'>;
+  readonly loginEncrypted: Prisma.FieldRef<'User', 'String'>;
+  readonly loginMasked: Prisma.FieldRef<'User', 'String'>;
+  readonly emailHmac: Prisma.FieldRef<'User', 'String'>;
+  readonly emailEncrypted: Prisma.FieldRef<'User', 'String'>;
+  readonly emailMasked: Prisma.FieldRef<'User', 'String'>;
   readonly passwordHash: Prisma.FieldRef<'User', 'String'>;
   readonly mustChangePassword: Prisma.FieldRef<'User', 'Boolean'>;
   readonly passwordChangedAt: Prisma.FieldRef<'User', 'DateTime'>;
@@ -4658,6 +5093,7 @@ export interface UserFieldRefs {
   readonly sexId: Prisma.FieldRef<'User', 'String'>;
   readonly firstNameId: Prisma.FieldRef<'User', 'String'>;
   readonly surnameId: Prisma.FieldRef<'User', 'String'>;
+  readonly keyVersion: Prisma.FieldRef<'User', 'Int'>;
   readonly createdAt: Prisma.FieldRef<'User', 'DateTime'>;
   readonly updatedAt: Prisma.FieldRef<'User', 'DateTime'>;
   readonly createdBy: Prisma.FieldRef<'User', 'String'>;
