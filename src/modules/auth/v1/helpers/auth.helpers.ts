@@ -1,10 +1,14 @@
 import { AppError } from '#common/errors/app.error.js';
+import { RequestContextService } from '#context/request-context.service.js';
+import type { UserModel } from '#/generated/prisma/models/User.js';
 import { computeHmac } from '#lib/encryption.util.js';
 import { verifyPassword } from '#lib/password.util.js';
 import { PrismaService } from '#prisma/prisma.service.js';
 import { Injectable } from '@nestjs/common';
-import type { UserModel } from '#/generated/prisma/models/User.js';
 
+/**
+ * Current version of encryption key
+ */
 const CURRENT_KEY_VERSION = 1;
 
 /**
@@ -37,7 +41,10 @@ const LOCK_DURATION_MINUTES = 15;
  */
 @Injectable()
 export class AuthHelpers {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly requestContext: RequestContextService,
+  ) {}
 
   /**
    * Verifies if the provided password matches the stored password hash.
@@ -48,12 +55,21 @@ export class AuthHelpers {
    * @throws {AppError} 'unauthorized' or 'forbidden' if credentials are invalid or locked.
    */
   async verifyLoginCredentials(
-    user: Pick<UserModel, 'id' | 'failedLoginAttempts' | 'passwordHash'>,
+    user: Pick<
+      UserModel,
+      | 'id'
+      | 'failedLoginAttempts'
+      | 'passwordHash'
+      | 'isLocked'
+      | 'lockedUntil'
+      | 'lastFailedLoginAt'
+      | 'loginMasked'
+    >,
     password: string,
   ) {
     const isValid = await verifyPassword(password, user.passwordHash);
     if (!isValid) {
-      const { failedAttempts, lockedUntil } = await this.updateLoginFailure(user.id);
+      const { failedAttempts, lockedUntil } = await this.updateLoginFailure(user);
       if (failedAttempts >= MAX_FAILED_ATTEMPTS) {
         throw new AppError('forbidden', `Account locked until ${lockedUntil?.toISOString()}`);
       }
@@ -94,11 +110,40 @@ export class AuthHelpers {
    *
    * @param id - User ID to update.
    */
-  async updateLoginSuccess(id: UserModel['id']) {
-    await this.prisma.user.update({
-      where: { id },
-      data: { lastLoginAt: new Date(), failedLoginAttempts: 0, isLocked: false, lockedUntil: null },
-    });
+  async updateLoginSuccess(
+    user: Pick<
+      UserModel,
+      'id' | 'loginMasked' | 'lastLoginAt' | 'failedLoginAttempts' | 'isLocked' | 'lockedUntil'
+    >,
+  ) {
+    const actionDetails = `User "${user.loginMasked}" login success updated`;
+
+    const oldValues = {
+      lastLoginAt: user.lastLoginAt,
+      failedLoginAttempts: user.failedLoginAttempts,
+      isLocked: user.isLocked,
+      lockedUntil: user.lockedUntil,
+    };
+
+    const newValues = {
+      lastLoginAt: new Date(),
+      failedLoginAttempts: 0,
+      isLocked: false,
+      lockedUntil: null,
+    };
+
+    return this.requestContext.withAudit(
+      {
+        actionDetails,
+        oldValues,
+        newValues,
+      },
+      () =>
+        this.prisma.user.update({
+          where: { id: user.id },
+          data: newValues,
+        }),
+    );
   }
 
   /**
@@ -107,19 +152,61 @@ export class AuthHelpers {
    * @param id - User ID to update.
    * @returns Object with `failedAttempts` and optional `lockedUntil`.
    */
-  async updateLoginFailure(id: UserModel['id']) {
-    const updated = await this.prisma.user.update({
-      where: { id },
-      data: { failedLoginAttempts: { increment: 1 }, lastFailedLoginAt: new Date() },
-      select: { failedLoginAttempts: true },
-    });
+  async updateLoginFailure(
+    user: Pick<
+      UserModel,
+      | 'id'
+      | 'failedLoginAttempts'
+      | 'isLocked'
+      | 'lockedUntil'
+      | 'lastFailedLoginAt'
+      | 'loginMasked'
+    >,
+  ) {
+    const oldValues = {
+      failedLoginAttempts: user.failedLoginAttempts,
+      isLocked: user.isLocked,
+      lockedUntil: user.lockedUntil,
+      lastFailedLoginAt: user.lastFailedLoginAt,
+    };
 
-    const failedAttempts = updated.failedLoginAttempts ?? 0;
+    const incrementedData = {
+      failedLoginAttempts: { increment: 1 },
+      lastFailedLoginAt: new Date(),
+    };
+
+    const result = await this.requestContext.withAudit(
+      {
+        actionDetails: `Failed login attempt for user "${user.loginMasked}"`,
+        oldValues,
+        newValues: incrementedData,
+      },
+      () =>
+        this.prisma.user.update({
+          where: { id: user.id },
+          data: incrementedData,
+          select: { failedLoginAttempts: true },
+        }),
+    );
+
+    const failedAttempts = result.failedLoginAttempts ?? 0;
     let lockedUntil: Date | undefined;
 
     if (failedAttempts >= MAX_FAILED_ATTEMPTS) {
       lockedUntil = new Date(Date.now() + LOCK_DURATION_MINUTES * 60 * 1000);
-      await this.prisma.user.update({ where: { id }, data: { isLocked: true, lockedUntil } });
+
+      await this.requestContext.withAudit(
+        {
+          actionDetails: `User "${user.loginMasked}" locked due to too many failed login attempts`,
+          oldValues: { isLocked: false, lockedUntil: user.lockedUntil },
+          newValues: { isLocked: true, lockedUntil },
+        },
+        () =>
+          this.prisma.user.update({
+            where: { id: user.id },
+            data: { isLocked: true, lockedUntil: lockedUntil ?? null },
+          }),
+      );
     }
 
     return { failedAttempts, lockedUntil };

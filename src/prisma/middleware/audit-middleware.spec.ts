@@ -28,7 +28,15 @@ describe('AuditMiddleware', () => {
   beforeEach(async () => {
     dbLogger = { logAction: jest.fn() } as any;
     requestContext = {
-      get: jest.fn().mockReturnValue({ userId: 'user-123', ipAddress: '127.0.0.1' }),
+      get: jest.fn().mockReturnValue({
+        userId: 'user-123',
+        ipAddress: '127.0.0.1',
+        auditMeta: {
+          oldValues: null,
+          newValues: null,
+          actionDetails: undefined,
+        },
+      }),
     } as any;
 
     prisma = new PrismaService() as any;
@@ -106,8 +114,15 @@ describe('AuditMiddleware', () => {
   });
 
   it('✅ should include old record for update', async () => {
-    const findUnique = jest.fn().mockResolvedValue({ id: 'u1', name: 'Old' } as never);
-    (prisma as any).user = { findUnique };
+    requestContext.get.mockReturnValue({
+      userId: 'user-123',
+      ipAddress: '127.0.0.1',
+      auditMeta: {
+        oldValues: { id: 'u1', name: 'Old' },
+        newValues: { id: 'u1', name: 'New' },
+        actionDetails: 'User updated',
+      },
+    });
 
     middleware.onModuleInit();
     const prismaMiddleware = (prisma as any).$use.mock.calls[0][0];
@@ -122,11 +137,17 @@ describe('AuditMiddleware', () => {
 
     await prismaMiddleware(params, next);
 
-    expect(findUnique).toHaveBeenCalledWith({ where: { id: 'u1' } });
+    expect(next).toHaveBeenCalledWith(params);
+
     expect(dbLogger.logAction).toHaveBeenCalledWith(
       expect.objectContaining({
         oldValues: { id: 'u1', name: 'Old' },
         newValues: { id: 'u1', name: 'New' },
+        action: 'update',
+        entityType: 'User',
+        entityId: 'u1',
+        userId: 'user-123',
+        ipAddress: '127.0.0.1',
       }),
     );
   });

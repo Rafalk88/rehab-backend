@@ -10,6 +10,7 @@ export interface LogParams {
   entityId: string;
   oldValues: Prisma.InputJsonValue | typeof Prisma.DbNull;
   newValues: Prisma.InputJsonValue | typeof Prisma.DbNull;
+  retentionUntil: Date;
   ipAddress?: string;
 }
 
@@ -38,6 +39,7 @@ export class DbLoggerService {
     entityId,
     oldValues,
     newValues,
+    retentionUntil,
     ipAddress = 'system',
   }: LogParams): Promise<void> {
     try {
@@ -50,6 +52,7 @@ export class DbLoggerService {
           entityId,
           oldValues,
           newValues,
+          retentionUntil,
           ipAddress,
         },
       });

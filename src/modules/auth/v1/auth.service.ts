@@ -99,7 +99,6 @@ export class AuthService {
 
     const passwordHash = await hashPassword(password);
 
-    //! TODO - PASS TO TRIGGER OPERATIONLOG
     const newValues = {
       loginHmac,
       loginEncrypted,
@@ -117,9 +116,16 @@ export class AuthService {
     };
 
     // 3️⃣ Create user in DB
-    const user = await this.prisma.user.create({
-      data: newValues,
-    });
+    const user = await this.requestContext.withAudit(
+      {
+        actionDetails: `User "${loginMasked}" successfully registered`,
+        newValues,
+      },
+      () =>
+        this.prisma.user.create({
+          data: newValues,
+        }),
+    );
 
     // 6️⃣ Return user + tokens
     return {
@@ -254,6 +260,9 @@ export class AuthService {
 
     const loginHmac = computeHmac(login, CURRENT_KEY_VERSION);
 
+    const retentionUntil = new Date();
+    retentionUntil.setFullYear(retentionUntil.getFullYear() + 5);
+
     const user = await this.prisma.user.findUnique({ where: { loginHmac } });
     if (!user) {
       const maskedLogin = maskString(login);
@@ -267,6 +276,7 @@ export class AuthService {
         newValues: { encryptedLogin },
         entityType: 'User',
         entityId: 'unknown',
+        retentionUntil,
         ipAddress,
       });
       throw new AppError('unauthorized', 'Invalid login or password');
@@ -277,6 +287,10 @@ export class AuthService {
         id: user.id,
         failedLoginAttempts: user.failedLoginAttempts,
         passwordHash: user.passwordHash,
+        isLocked: user.isLocked,
+        lockedUntil: user.lockedUntil,
+        lastFailedLoginAt: user.lastFailedLoginAt,
+        loginMasked: user.loginMasked,
       },
       password,
     );
@@ -288,18 +302,7 @@ export class AuthService {
       mustChangePassword: user.mustChangePassword,
     });
 
-    await this.helpers.updateLoginSuccess(user.id);
-
-    await this.dbLogger.logAction({
-      userId: user.id,
-      action: 'login',
-      actionDetails: `User logged in successfully`,
-      oldValues: Prisma.DbNull,
-      newValues: Prisma.DbNull,
-      entityType: 'User',
-      entityId: user.id,
-      ipAddress,
-    });
+    await this.helpers.updateLoginSuccess(user);
 
     const payload = { sub: user.id, email_masked: user.emailMasked };
 
@@ -347,6 +350,9 @@ export class AuthService {
     const userId = context?.userId;
     const ipAddress = context?.ipAddress ?? 'system';
 
+    const retentionUntil = new Date();
+    retentionUntil.setFullYear(retentionUntil.getFullYear() + 5);
+
     if (!userId) {
       throw new AppError('unauthorized', 'User must be logged in to logout');
     }
@@ -380,6 +386,7 @@ export class AuthService {
       newValues: Prisma.DbNull,
       entityType: 'User',
       entityId: userId,
+      retentionUntil,
       ipAddress,
     });
 

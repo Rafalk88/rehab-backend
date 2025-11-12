@@ -22,7 +22,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @UseGuards(JwtAuthGuard, AuthorizationGuard)
-  @Permissions('register_user')
+  @Permissions('register.user')
   @Post('register')
   async register(
     @Body(new ZodValidationPipe(RegisterUserSchema))
@@ -82,7 +82,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard, AuthorizationGuard)
-  @Permissions('reset_password')
+  @Permissions('reset.password')
   @Post('reset-password/:userId')
   async adminResetPassword(@Param('userId') userId: string, @Req() req: JwtRequest) {
     const adminId = req.user?.sub;
@@ -94,7 +94,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard, AuthorizationGuard)
-  @Permissions('lock_user')
+  @Permissions('lock.user')
   @Post('lock-user/:userId')
   async lockUser(
     @Param('userId') userId: string,

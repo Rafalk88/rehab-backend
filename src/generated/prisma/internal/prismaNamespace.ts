@@ -1616,6 +1616,7 @@ export const OperationLogScalarFieldEnum = {
   entityType: 'entityType',
   entityId: 'entityId',
   ipAddress: 'ipAddress',
+  retentionUntil: 'retentionUntil',
 } as const;
 
 export type OperationLogScalarFieldEnum =

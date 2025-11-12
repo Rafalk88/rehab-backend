@@ -1,5 +1,6 @@
 import { jest } from '@jest/globals';
 
+const { RequestContextService } = await import('#context/request-context.service.js');
 const { PrismaService } = await import('#prisma/prisma.service.js');
 
 await jest.unstable_mockModule('#lib/password.util.js', () => ({
@@ -30,8 +31,16 @@ describe('AuthHelpers', () => {
       surname: { findFirst: jest.fn(), create: jest.fn() },
     } as any;
 
+    const requestContextMock = {
+      withAudit: jest.fn().mockImplementation(async (_meta, cb) => (cb as any)()),
+    };
+
     const module = await Test.createTestingModule({
-      providers: [AuthHelpers, { provide: PrismaService, useValue: prismaMock }],
+      providers: [
+        AuthHelpers,
+        { provide: PrismaService, useValue: prismaMock },
+        { provide: RequestContextService, useValue: requestContextMock },
+      ],
     }).compile();
 
     helpers = module.get(AuthHelpers);
@@ -121,7 +130,7 @@ describe('AuthHelpers', () => {
       (prismaMock.user!.update as jest.Mock).mockResolvedValueOnce({
         failedLoginAttempts: 3,
       } as never);
-      const res = await helpers.updateLoginFailure('1');
+      const res = await helpers.updateLoginFailure({ id: '1' } as any);
       expect(res.failedAttempts).toBe(3);
       expect(res.lockedUntil).toBeUndefined();
     });
@@ -130,15 +139,44 @@ describe('AuthHelpers', () => {
       (prismaMock.user!.update as jest.Mock)
         .mockResolvedValueOnce({ failedLoginAttempts: 5 } as never)
         .mockResolvedValueOnce({} as never);
-      const res = await helpers.updateLoginFailure('1');
+      const res = await helpers.updateLoginFailure({
+        id: '1',
+        isLocked: false,
+        lockedUntil: null,
+      } as any);
       expect(res.failedAttempts).toBe(5);
       expect(res.lockedUntil).toBeInstanceOf(Date);
+      expect(helpers['requestContext'].withAudit).toHaveBeenCalledTimes(2);
     });
   });
 
   describe('updateLoginSuccess', () => {
-    it('resets login state', async () => {
-      await helpers.updateLoginSuccess('1');
+    it('resets login state with audit', async () => {
+      const mockUser = {
+        id: '1',
+        loginMasked: 'a****h',
+        lastLoginAt: new Date('2025-01-01'),
+        failedLoginAttempts: 3,
+        isLocked: true,
+        lockedUntil: new Date('2025-01-01'),
+      } as any;
+
+      await helpers.updateLoginSuccess(mockUser);
+
+      expect(helpers['requestContext'].withAudit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          oldValues: expect.objectContaining({
+            failedLoginAttempts: 3,
+            isLocked: true,
+          }),
+          newValues: expect.objectContaining({
+            failedLoginAttempts: 0,
+            isLocked: false,
+          }),
+        }),
+        expect.any(Function),
+      );
+
       expect(prismaMock.user!.update).toHaveBeenCalledWith(
         expect.objectContaining({
           where: { id: '1' },

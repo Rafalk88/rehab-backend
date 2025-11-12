@@ -33,6 +33,7 @@ describe('AuthService', () => {
   let helpers: jest.Mocked<InstanceType<typeof AuthHelpers>>;
   let jwtService: jest.Mocked<InstanceType<typeof JwtService>>;
   let dbLogger: jest.Mocked<InstanceType<typeof DbLoggerService>>;
+  let requestContext: jest.Mocked<InstanceType<typeof RequestContextService>>;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
@@ -80,6 +81,9 @@ describe('AuthService', () => {
               userId: 'user-1',
               ipAddress: '127.0.0.1',
             }),
+            withAudit: jest.fn().mockImplementation(async (_, fn: any) => {
+              return fn();
+            }),
           },
         },
       ],
@@ -90,6 +94,7 @@ describe('AuthService', () => {
     helpers = module.get(AuthHelpers);
     jwtService = module.get(JwtService);
     dbLogger = module.get(DbLoggerService);
+    requestContext = module.get(RequestContextService);
   });
 
   afterEach(() => {
@@ -136,6 +141,33 @@ describe('AuthService', () => {
         user: { id: 'user-1' },
         login: 'jsmith',
       });
+
+      expect(requestContext.withAudit).toHaveBeenCalledTimes(1);
+
+      const auditMetaArg = (requestContext.withAudit as jest.Mock).mock.calls[0]![0];
+
+      expect(auditMetaArg).toEqual(
+        expect.objectContaining({
+          actionDetails: `User "mask-jsmith" successfully registered`,
+          newValues: expect.objectContaining({
+            loginHmac: 'hmac-jsmith',
+            loginEncrypted: 'enc-jsmith',
+            loginMasked: 'mask-jsmith',
+            emailHmac: 'hmac-jsmith@vitala.com',
+            emailEncrypted: 'enc-jsmith@vitala.com',
+            emailMasked: 'mask-jsmith@vitala.com',
+            passwordHash: 'hashed-password',
+            keyVersion: 1,
+            firstNameId: 'fname-1',
+            surnameId: 'sname-1',
+            sexId: null,
+            organizationalUnitId: null,
+            mustChangePassword: true,
+          }),
+        }),
+      );
+
+      expect((auditMetaArg as any).oldValues ?? null).toBeNull();
     });
   });
 
@@ -164,15 +196,6 @@ describe('AuthService', () => {
       (prisma.refreshToken.create as jest.Mock).mockResolvedValue({} as never);
 
       const result = await service.loginUser('jdoe', 'correct-pass');
-
-      expect(dbLogger.logAction).toHaveBeenCalledWith(
-        expect.objectContaining({
-          userId: 'user-1',
-          action: 'login',
-          entityType: 'User',
-          entityId: 'user-1',
-        }),
-      );
 
       expect(result).toEqual({
         access_token: 'mock-access-token',

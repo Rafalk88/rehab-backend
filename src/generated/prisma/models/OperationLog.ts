@@ -31,6 +31,7 @@ export type OperationLogMinAggregateOutputType = {
   entityType: string | null;
   entityId: string | null;
   ipAddress: string | null;
+  retentionUntil: Date | null;
 };
 
 export type OperationLogMaxAggregateOutputType = {
@@ -42,6 +43,7 @@ export type OperationLogMaxAggregateOutputType = {
   entityType: string | null;
   entityId: string | null;
   ipAddress: string | null;
+  retentionUntil: Date | null;
 };
 
 export type OperationLogCountAggregateOutputType = {
@@ -55,6 +57,7 @@ export type OperationLogCountAggregateOutputType = {
   entityType: number;
   entityId: number;
   ipAddress: number;
+  retentionUntil: number;
   _all: number;
 };
 
@@ -67,6 +70,7 @@ export type OperationLogMinAggregateInputType = {
   entityType?: true;
   entityId?: true;
   ipAddress?: true;
+  retentionUntil?: true;
 };
 
 export type OperationLogMaxAggregateInputType = {
@@ -78,6 +82,7 @@ export type OperationLogMaxAggregateInputType = {
   entityType?: true;
   entityId?: true;
   ipAddress?: true;
+  retentionUntil?: true;
 };
 
 export type OperationLogCountAggregateInputType = {
@@ -91,6 +96,7 @@ export type OperationLogCountAggregateInputType = {
   entityType?: true;
   entityId?: true;
   ipAddress?: true;
+  retentionUntil?: true;
   _all?: true;
 };
 
@@ -182,6 +188,7 @@ export type OperationLogGroupByOutputType = {
   entityType: string;
   entityId: string;
   ipAddress: string;
+  retentionUntil: Date | null;
   _count: OperationLogCountAggregateOutputType | null;
   _min: OperationLogMinAggregateOutputType | null;
   _max: OperationLogMaxAggregateOutputType | null;
@@ -213,6 +220,7 @@ export type OperationLogWhereInput = {
   entityType?: Prisma.StringFilter<'OperationLog'> | string;
   entityId?: Prisma.UuidFilter<'OperationLog'> | string;
   ipAddress?: Prisma.StringFilter<'OperationLog'> | string;
+  retentionUntil?: Prisma.DateTimeNullableFilter<'OperationLog'> | Date | string | null;
   user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null;
 };
 
@@ -227,6 +235,7 @@ export type OperationLogOrderByWithRelationInput = {
   entityType?: Prisma.SortOrder;
   entityId?: Prisma.SortOrder;
   ipAddress?: Prisma.SortOrder;
+  retentionUntil?: Prisma.SortOrderInput | Prisma.SortOrder;
   user?: Prisma.UserOrderByWithRelationInput;
 };
 
@@ -245,6 +254,7 @@ export type OperationLogWhereUniqueInput = Prisma.AtLeast<
     entityType?: Prisma.StringFilter<'OperationLog'> | string;
     entityId?: Prisma.UuidFilter<'OperationLog'> | string;
     ipAddress?: Prisma.StringFilter<'OperationLog'> | string;
+    retentionUntil?: Prisma.DateTimeNullableFilter<'OperationLog'> | Date | string | null;
     user?: Prisma.XOR<Prisma.UserNullableScalarRelationFilter, Prisma.UserWhereInput> | null;
   },
   'id'
@@ -261,6 +271,7 @@ export type OperationLogOrderByWithAggregationInput = {
   entityType?: Prisma.SortOrder;
   entityId?: Prisma.SortOrder;
   ipAddress?: Prisma.SortOrder;
+  retentionUntil?: Prisma.SortOrderInput | Prisma.SortOrder;
   _count?: Prisma.OperationLogCountOrderByAggregateInput;
   _max?: Prisma.OperationLogMaxOrderByAggregateInput;
   _min?: Prisma.OperationLogMinOrderByAggregateInput;
@@ -284,6 +295,11 @@ export type OperationLogScalarWhereWithAggregatesInput = {
   entityType?: Prisma.StringWithAggregatesFilter<'OperationLog'> | string;
   entityId?: Prisma.UuidWithAggregatesFilter<'OperationLog'> | string;
   ipAddress?: Prisma.StringWithAggregatesFilter<'OperationLog'> | string;
+  retentionUntil?:
+    | Prisma.DateTimeNullableWithAggregatesFilter<'OperationLog'>
+    | Date
+    | string
+    | null;
 };
 
 export type OperationLogCreateInput = {
@@ -296,6 +312,7 @@ export type OperationLogCreateInput = {
   entityType: string;
   entityId: string;
   ipAddress: string;
+  retentionUntil?: Date | string | null;
   user?: Prisma.UserCreateNestedOneWithoutOperationLogsInput;
 };
 
@@ -310,6 +327,7 @@ export type OperationLogUncheckedCreateInput = {
   entityType: string;
   entityId: string;
   ipAddress: string;
+  retentionUntil?: Date | string | null;
 };
 
 export type OperationLogUpdateInput = {
@@ -322,6 +340,7 @@ export type OperationLogUpdateInput = {
   entityType?: Prisma.StringFieldUpdateOperationsInput | string;
   entityId?: Prisma.StringFieldUpdateOperationsInput | string;
   ipAddress?: Prisma.StringFieldUpdateOperationsInput | string;
+  retentionUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
   user?: Prisma.UserUpdateOneWithoutOperationLogsNestedInput;
 };
 
@@ -336,6 +355,7 @@ export type OperationLogUncheckedUpdateInput = {
   entityType?: Prisma.StringFieldUpdateOperationsInput | string;
   entityId?: Prisma.StringFieldUpdateOperationsInput | string;
   ipAddress?: Prisma.StringFieldUpdateOperationsInput | string;
+  retentionUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
 };
 
 export type OperationLogCreateManyInput = {
@@ -349,6 +369,7 @@ export type OperationLogCreateManyInput = {
   entityType: string;
   entityId: string;
   ipAddress: string;
+  retentionUntil?: Date | string | null;
 };
 
 export type OperationLogUpdateManyMutationInput = {
@@ -361,6 +382,7 @@ export type OperationLogUpdateManyMutationInput = {
   entityType?: Prisma.StringFieldUpdateOperationsInput | string;
   entityId?: Prisma.StringFieldUpdateOperationsInput | string;
   ipAddress?: Prisma.StringFieldUpdateOperationsInput | string;
+  retentionUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
 };
 
 export type OperationLogUncheckedUpdateManyInput = {
@@ -374,6 +396,7 @@ export type OperationLogUncheckedUpdateManyInput = {
   entityType?: Prisma.StringFieldUpdateOperationsInput | string;
   entityId?: Prisma.StringFieldUpdateOperationsInput | string;
   ipAddress?: Prisma.StringFieldUpdateOperationsInput | string;
+  retentionUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
 };
 
 export type OperationLogListRelationFilter = {
@@ -397,6 +420,7 @@ export type OperationLogCountOrderByAggregateInput = {
   entityType?: Prisma.SortOrder;
   entityId?: Prisma.SortOrder;
   ipAddress?: Prisma.SortOrder;
+  retentionUntil?: Prisma.SortOrder;
 };
 
 export type OperationLogMaxOrderByAggregateInput = {
@@ -408,6 +432,7 @@ export type OperationLogMaxOrderByAggregateInput = {
   entityType?: Prisma.SortOrder;
   entityId?: Prisma.SortOrder;
   ipAddress?: Prisma.SortOrder;
+  retentionUntil?: Prisma.SortOrder;
 };
 
 export type OperationLogMinOrderByAggregateInput = {
@@ -419,6 +444,7 @@ export type OperationLogMinOrderByAggregateInput = {
   entityType?: Prisma.SortOrder;
   entityId?: Prisma.SortOrder;
   ipAddress?: Prisma.SortOrder;
+  retentionUntil?: Prisma.SortOrder;
 };
 
 export type OperationLogCreateNestedManyWithoutUserInput = {
@@ -517,6 +543,7 @@ export type OperationLogCreateWithoutUserInput = {
   entityType: string;
   entityId: string;
   ipAddress: string;
+  retentionUntil?: Date | string | null;
 };
 
 export type OperationLogUncheckedCreateWithoutUserInput = {
@@ -529,6 +556,7 @@ export type OperationLogUncheckedCreateWithoutUserInput = {
   entityType: string;
   entityId: string;
   ipAddress: string;
+  retentionUntil?: Date | string | null;
 };
 
 export type OperationLogCreateOrConnectWithoutUserInput = {
@@ -586,6 +614,7 @@ export type OperationLogScalarWhereInput = {
   entityType?: Prisma.StringFilter<'OperationLog'> | string;
   entityId?: Prisma.UuidFilter<'OperationLog'> | string;
   ipAddress?: Prisma.StringFilter<'OperationLog'> | string;
+  retentionUntil?: Prisma.DateTimeNullableFilter<'OperationLog'> | Date | string | null;
 };
 
 export type OperationLogCreateManyUserInput = {
@@ -598,6 +627,7 @@ export type OperationLogCreateManyUserInput = {
   entityType: string;
   entityId: string;
   ipAddress: string;
+  retentionUntil?: Date | string | null;
 };
 
 export type OperationLogUpdateWithoutUserInput = {
@@ -610,6 +640,7 @@ export type OperationLogUpdateWithoutUserInput = {
   entityType?: Prisma.StringFieldUpdateOperationsInput | string;
   entityId?: Prisma.StringFieldUpdateOperationsInput | string;
   ipAddress?: Prisma.StringFieldUpdateOperationsInput | string;
+  retentionUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
 };
 
 export type OperationLogUncheckedUpdateWithoutUserInput = {
@@ -622,6 +653,7 @@ export type OperationLogUncheckedUpdateWithoutUserInput = {
   entityType?: Prisma.StringFieldUpdateOperationsInput | string;
   entityId?: Prisma.StringFieldUpdateOperationsInput | string;
   ipAddress?: Prisma.StringFieldUpdateOperationsInput | string;
+  retentionUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
 };
 
 export type OperationLogUncheckedUpdateManyWithoutUserInput = {
@@ -634,6 +666,7 @@ export type OperationLogUncheckedUpdateManyWithoutUserInput = {
   entityType?: Prisma.StringFieldUpdateOperationsInput | string;
   entityId?: Prisma.StringFieldUpdateOperationsInput | string;
   ipAddress?: Prisma.StringFieldUpdateOperationsInput | string;
+  retentionUntil?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null;
 };
 
 export type OperationLogSelect<
@@ -650,6 +683,7 @@ export type OperationLogSelect<
     entityType?: boolean;
     entityId?: boolean;
     ipAddress?: boolean;
+    retentionUntil?: boolean;
     user?: boolean | Prisma.OperationLog$userArgs<ExtArgs>;
   },
   ExtArgs['result']['operationLog']
@@ -669,6 +703,7 @@ export type OperationLogSelectCreateManyAndReturn<
     entityType?: boolean;
     entityId?: boolean;
     ipAddress?: boolean;
+    retentionUntil?: boolean;
     user?: boolean | Prisma.OperationLog$userArgs<ExtArgs>;
   },
   ExtArgs['result']['operationLog']
@@ -688,6 +723,7 @@ export type OperationLogSelectUpdateManyAndReturn<
     entityType?: boolean;
     entityId?: boolean;
     ipAddress?: boolean;
+    retentionUntil?: boolean;
     user?: boolean | Prisma.OperationLog$userArgs<ExtArgs>;
   },
   ExtArgs['result']['operationLog']
@@ -704,6 +740,7 @@ export type OperationLogSelectScalar = {
   entityType?: boolean;
   entityId?: boolean;
   ipAddress?: boolean;
+  retentionUntil?: boolean;
 };
 
 export type OperationLogOmit<
@@ -718,7 +755,8 @@ export type OperationLogOmit<
   | 'timestamp'
   | 'entityType'
   | 'entityId'
-  | 'ipAddress',
+  | 'ipAddress'
+  | 'retentionUntil',
   ExtArgs['result']['operationLog']
 >;
 export type OperationLogInclude<
@@ -756,6 +794,7 @@ export type $OperationLogPayload<
       entityType: string;
       entityId: string;
       ipAddress: string;
+      retentionUntil: Date | null;
     },
     ExtArgs['result']['operationLog']
   >;
@@ -1348,6 +1387,7 @@ export interface OperationLogFieldRefs {
   readonly entityType: Prisma.FieldRef<'OperationLog', 'String'>;
   readonly entityId: Prisma.FieldRef<'OperationLog', 'String'>;
   readonly ipAddress: Prisma.FieldRef<'OperationLog', 'String'>;
+  readonly retentionUntil: Prisma.FieldRef<'OperationLog', 'DateTime'>;
 }
 
 // Custom InputTypes

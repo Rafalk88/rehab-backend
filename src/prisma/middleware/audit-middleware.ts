@@ -38,17 +38,11 @@ export class AuditMiddleware implements OnModuleInit {
 
       const context = this.requestContext.get();
       const userId = context?.userId ?? null;
+      const actionDetails =
+        context?.auditMeta?.actionDetails ?? `Automatic audit for ${params.model}.${params.action}`;
       const ipAddress = context?.ipAddress ?? 'system';
 
-      let oldRecord: any = null;
-
-      if (['update', 'delete'].includes(params.action)) {
-        try {
-          oldRecord = await (this.prisma as any)[params.model.toLowerCase()].findUnique({
-            where: (params.args as any).where,
-          });
-        } catch (err) {}
-      }
+      const oldRecord = context?.auditMeta?.oldValues;
 
       const result = await next(params);
 
@@ -60,7 +54,7 @@ export class AuditMiddleware implements OnModuleInit {
         params.action === 'delete'
           ? null
           : ['create', 'update', 'upsert'].includes(params.action)
-            ? result
+            ? (context?.auditMeta?.newValues ?? result)
             : null;
 
       const retentionUntil = new Date();
@@ -70,11 +64,12 @@ export class AuditMiddleware implements OnModuleInit {
         await this.dbLogger.logAction({
           userId,
           action: params.action,
-          actionDetails: `Automatic audit for ${params.model}.${params.action}`,
+          actionDetails: actionDetails,
           entityType: params.model!,
           entityId,
-          oldValues: oldRecord ?? Prisma.JsonNull,
-          newValues: newRecord ?? Prisma.JsonNull,
+          oldValues: oldRecord ?? Prisma.DbNull,
+          newValues: newRecord ?? Prisma.DbNull,
+          retentionUntil,
           ipAddress,
         });
       } catch (err) {}
