@@ -461,10 +461,18 @@ export class AuthService {
 
     // 5️⃣ Hash new password and update user
     const newPasswordHash = await hashPassword(newPassword);
-    await this.prisma.user.update({
-      where: { id: userId },
-      data: { passwordHash: newPasswordHash, mustChangePassword: false },
-    });
+    await this.requestContext.withAudit(
+      {
+        actionDetails: `User ${user.loginMasked} changed password`,
+        oldValues: { mustChangePassword: true },
+        newValues: { mustChangePassword: false },
+      },
+      () =>
+        this.prisma.user.update({
+          where: { id: userId },
+          data: { passwordHash: newPasswordHash, mustChangePassword: false },
+        }),
+    );
 
     // 6️⃣ Save new password to history
     await this.prisma.passwordHistory.create({
@@ -518,13 +526,21 @@ export class AuthService {
     const passwordHash = await hashPassword(tempPassword);
 
     // Update user with new password and require change on next login
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: {
-        passwordHash,
-        mustChangePassword: true,
+    await this.requestContext.withAudit(
+      {
+        actionDetails: `Password changed for user ${user.loginMasked}`,
+        oldValues: { mustChangePassword: true },
+        newValues: { mustChangePassword: false },
       },
-    });
+      () =>
+        this.prisma.user.update({
+          where: { id: user.id },
+          data: {
+            passwordHash,
+            mustChangePassword: true,
+          },
+        }),
+    );
 
     return tempPassword;
   }
@@ -604,15 +620,20 @@ export class AuthService {
       ? new Date(Date.now() + durationInMinutes * 60 * 1000)
       : new Date('9999-12-31T23:59:59Z'); // permanent block
 
-    const updatedUser = await this.prisma.user.update({
-      where: { id: userId },
-      data: {
-        isLocked: true,
-        lockedUntil,
-      },
-    });
+    const newValues = { isLocked: true, lockedUntil };
 
-    const newValues = { isLocked: updatedUser.isLocked, lockedUntilUntil: updatedUser.lockedUntil };
+    const updatedUser = await this.requestContext.withAudit(
+      {
+        actionDetails: `User ${user.loginMasked} blocked successfully`,
+        oldValues: oldValues,
+        newValues: newValues,
+      },
+      () =>
+        this.prisma.user.update({
+          where: { id: userId },
+          data: newValues,
+        }),
+    );
 
     return {
       message: 'User blocked successfully',
