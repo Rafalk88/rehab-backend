@@ -3,6 +3,8 @@ import { JwtStrategy } from '../strategies/jwt.strategy.js';
 import { ExecutionContext } from '@nestjs/common';
 import { jest } from '@jest/globals';
 
+import 'dotenv/config';
+
 describe('JwtStrategy', () => {
   let strategy: JwtStrategy;
 
@@ -11,9 +13,13 @@ describe('JwtStrategy', () => {
   });
 
   it('should validate and return payload', async () => {
-    const payload = { sub: 'user-123', email: 'test@example.com' };
+    const payload = { sub: 'user-123', emailHmac: 'abc123hmac', emailMasked: 'a****3' };
     const result = await strategy.validate(payload);
-    expect(result).toEqual({ userId: 'user-123', email: 'test@example.com' });
+    expect(result).toEqual({
+      userId: 'user-123',
+      email_hmac: 'abc123hmac',
+      email_masked: 'a****3',
+    });
   });
 });
 

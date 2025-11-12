@@ -304,7 +304,7 @@ export class AuthService {
 
     await this.helpers.updateLoginSuccess(user);
 
-    const payload = { sub: user.id, email_masked: user.emailMasked };
+    const payload = { sub: user.id, email_hmac: user.emailHmac, email_masked: user.emailMasked };
 
     const accessToken = this.jwtService.sign(payload, { expiresIn: '15m' });
 

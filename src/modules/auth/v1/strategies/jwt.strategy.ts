@@ -1,6 +1,13 @@
+import { AppError } from '#common/errors/app.error.js';
 import { Injectable } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+
+type Payload = {
+  sub: string;
+  emailHmac: string;
+  emailMasked: string;
+};
 
 /**
  * JwtStrategy
@@ -29,10 +36,19 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor() {
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      throw new AppError(
+        'server',
+        'Missing required environment variable: JWT_SECRET. ' +
+          'Application startup aborted for security reasons.',
+      );
+    }
+
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_SECRET || 'secretForJWT',
+      secretOrKey: secret,
     });
   }
 
@@ -51,7 +67,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
    * { userId: 'user-123', email: 'john@example.com' }
    * ```
    */
-  async validate(payload: any) {
-    return { userId: payload.sub, email: payload.email };
+  async validate(payload: Payload) {
+    return {
+      userId: payload.sub,
+      email_hmac: payload.emailHmac,
+      email_masked: payload.emailMasked,
+    };
   }
 }
