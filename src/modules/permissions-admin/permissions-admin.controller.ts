@@ -33,9 +33,8 @@ export class PermissionsAdminController {
     @Req() req: JwtRequest,
   ) {
     const adminId = req.user?.sub ?? 'system';
-    const ipAddress = req.ip || (req.headers['x-forwarded-for'] as string) || 'unknown';
 
-    return this.service.assignRoleToUser(userId, roleId, adminId, ipAddress);
+    return this.service.assignRoleToUser(userId, roleId, adminId);
   }
 
   /**
@@ -47,12 +46,8 @@ export class PermissionsAdminController {
     @Param('roleId') roleId: string,
     @Body(new ZodValidationPipe(AssignPermissionSchema))
     body: AssignPermissionSchema,
-    @Req() req: JwtRequest,
   ) {
-    const adminId = req.user?.sub ?? 'system';
-    const ipAddress = req.ip || (req.headers['x-forwarded-for'] as string) || 'unknown';
-
-    return this.service.assignPermissionToRole(roleId, body, adminId, ipAddress);
+    return this.service.assignPermissionToRole(roleId, body);
   }
 
   /**
@@ -64,11 +59,7 @@ export class PermissionsAdminController {
     @Param('userId') userId: string,
     @Body(new ZodValidationPipe(OverridePermissionSchema))
     body: OverridePermissionSchema,
-    @Req() req: JwtRequest,
   ) {
-    const adminId = req.user?.sub ?? 'system';
-    const ipAddress = req.ip || (req.headers['x-forwarded-for'] as string) || 'unknown';
-
-    return this.service.overridePermissionForUser(userId, body, adminId, ipAddress);
+    return this.service.overridePermissionForUser(userId, body);
   }
 }

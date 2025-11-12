@@ -9,7 +9,7 @@ import { Module } from '@nestjs/common';
 @Module({
   imports: [PermissionsModule],
   controllers: [PermissionsAdminController],
-  providers: [PermissionsAdminService, PrismaService, DbLoggerService, AuthorizationGuard],
+  providers: [PermissionsAdminService, PrismaService, AuthorizationGuard],
   exports: [PermissionsAdminService],
 })
 export class PermissionsAdminModule {}
