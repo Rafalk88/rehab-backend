@@ -16,6 +16,8 @@
  */
 class AppError extends Error {
   statusCode = 400;
+  details?: unknown;
+
   static typeToCode = {
     validation: 400,
     unauthorized: 401,
@@ -23,11 +25,13 @@ class AppError extends Error {
     not_found: 404,
     server: 500,
   };
-  constructor(type: keyof typeof AppError.typeToCode, message: string) {
+
+  constructor(type: keyof typeof AppError.typeToCode, message: string, details?: unknown) {
     super(message);
     Object.setPrototypeOf(this, new.target.prototype);
     this.name = this.constructor.name;
     this.statusCode = AppError.typeToCode[type];
+    this.details = details;
     Error.captureStackTrace(this);
   }
 }

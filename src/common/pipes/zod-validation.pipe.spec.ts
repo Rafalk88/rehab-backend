@@ -1,5 +1,5 @@
 import { ZodValidationPipe } from './zod-validation.pipe.js';
-import { BadRequestException } from '@nestjs/common';
+import { AppError } from '../errors/app.error.js';
 import { z } from 'zod';
 
 describe('ZodValidationPipe', () => {
@@ -8,7 +8,7 @@ describe('ZodValidationPipe', () => {
     age: z.number().min(0),
   });
 
-  let pipe: ZodValidationPipe;
+  let pipe: ZodValidationPipe<z.infer<typeof schema>>;
 
   beforeEach(() => {
     pipe = new ZodValidationPipe(schema);
@@ -20,19 +20,20 @@ describe('ZodValidationPipe', () => {
     expect(result).toEqual(input);
   });
 
-  it('should throw BadRequestException for invalid input', () => {
+  it('should throw AppError for invalid input', () => {
     const input = { name: '', age: -1 };
-    expect(() => pipe.transform(input)).toThrow(BadRequestException);
+    expect(() => pipe.transform(input)).toThrow(AppError);
   });
 
-  it('should return error details in BadRequestException', () => {
+  it('should return error details in AppError', () => {
     const input = { name: '', age: -1 };
+
     try {
       pipe.transform(input);
     } catch (err: any) {
-      expect(err.response.errors).toHaveLength(2);
-      expect(err.response.errors[0]).toHaveProperty('field');
-      expect(err.response.errors[0]).toHaveProperty('message');
+      expect(err.details).toHaveLength(2);
+      expect(err.details[0]).toHaveProperty('field');
+      expect(err.details[0]).toHaveProperty('message');
     }
   });
 });
