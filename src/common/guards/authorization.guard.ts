@@ -1,6 +1,7 @@
 import { AppError } from '#common/errors/app.error.js';
 import { PermissionsService } from '#modules/permissions/permissions.service.js';
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import type { Request } from 'express';
 
 /**
  * AuthorizationGuard
@@ -17,7 +18,7 @@ export class AuthorizationGuard implements CanActivate {
    * @throws {AppError} If unauthorized or forbidden.
    */
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const req = context.switchToHttp().getRequest();
+    const req = context.switchToHttp().getRequest<Request>();
     const userId = req.session?.userId;
     if (!userId) throw new AppError('unauthorized', 'Not authenticated');
 
