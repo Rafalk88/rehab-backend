@@ -32,8 +32,9 @@ describe('DbLoggerService', () => {
     entityType: 'User',
     entityId: 'user-123',
     ipAddress: '127.0.0.1',
-    oldValues: null,
-    newValues: null,
+    retentionUntil: new Date(),
+    oldValues: {},
+    newValues: {},
   };
 
   it('✅ should call prisma.operationLog.create with correct params', async () => {
@@ -58,8 +59,9 @@ describe('DbLoggerService', () => {
       actionDetails: 'Changed password',
       entityType: 'User',
       entityId: 'user-1',
-      oldValues: null,
-      newValues: null,
+      retentionUntil: new Date(),
+      oldValues: {},
+      newValues: {},
     });
 
     expect(prisma.operationLog.create).toHaveBeenCalledWith({

@@ -7,5 +7,6 @@
     "declarationMap": false,
     "sourceMap": true
   },
+  "include": ["src", "src/generated/prisma/**/*"],
   "exclude": ["node_modules", "test", "dist", "**/*.spec.ts"]
 }

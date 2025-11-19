@@ -1,6 +1,6 @@
 import { AppError } from '#common/errors/app.error.js';
 import { RequestContextService } from '#context/request-context.service.js';
-import type { UserModel } from '#/generated/prisma/models/User.js';
+import type { User } from '#/generated/prisma/client.js';
 import { computeHmac } from '#lib/encryption.util.js';
 import { verifyPassword } from '#lib/password.util.js';
 import { PrismaService } from '#prisma/prisma.service.js';
@@ -56,7 +56,7 @@ export class AuthHelpers {
    */
   async verifyLoginCredentials(
     user: Pick<
-      UserModel,
+      User,
       | 'id'
       | 'failedLoginAttempts'
       | 'passwordHash'
@@ -85,7 +85,7 @@ export class AuthHelpers {
    * @throws {AppError} 'forbidden' if user is inactive, locked, or must change password.
    */
   checkLoginRestrictions(
-    user: Pick<UserModel, 'isActive' | 'isLocked' | 'lockedUntil' | 'mustChangePassword'>,
+    user: Pick<User, 'isActive' | 'isLocked' | 'lockedUntil' | 'mustChangePassword'>,
   ) {
     if (!user.isActive) throw new AppError('forbidden', 'Account is inactive');
 
@@ -112,7 +112,7 @@ export class AuthHelpers {
    */
   async updateLoginSuccess(
     user: Pick<
-      UserModel,
+      User,
       'id' | 'loginMasked' | 'lastLoginAt' | 'failedLoginAttempts' | 'isLocked' | 'lockedUntil'
     >,
   ) {
@@ -154,7 +154,7 @@ export class AuthHelpers {
    */
   async updateLoginFailure(
     user: Pick<
-      UserModel,
+      User,
       | 'id'
       | 'failedLoginAttempts'
       | 'isLocked'
