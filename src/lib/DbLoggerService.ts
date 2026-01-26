@@ -1,4 +1,4 @@
-import { PrismaService } from '#prisma/prisma.service.js';
+import type { PrismaClient } from '@prisma/client';
 import { Injectable, Logger } from '@nestjs/common';
 import type { Prisma } from '#/generated/prisma/client.js';
 
@@ -7,7 +7,7 @@ export interface LogParams {
   action: string;
   actionDetails: string;
   entityType: string;
-  entityId: string;
+  entityId: Prisma.InputJsonValue | typeof Prisma.DbNull;
   oldValues: Prisma.InputJsonValue | typeof Prisma.DbNull;
   newValues: Prisma.InputJsonValue | typeof Prisma.DbNull;
   retentionUntil: Date;
@@ -24,7 +24,7 @@ export interface LogParams {
 export class DbLoggerService {
   private readonly logger = new Logger(DbLoggerService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaClient) {}
 
   /**
    * Persists a new audit log entry in the database.

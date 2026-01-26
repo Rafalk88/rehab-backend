@@ -171,7 +171,7 @@ model OperationLog {
   newValues     Json?    @map("new_values")
   timestamp     DateTime @default(now())
   entityType    String   @map("entity_type")
-  entityId      String   @db.Uuid @map("entity_id")
+  entityId      Json?   @map("entity_id")
   ipAddress     String   @map("ip_address")
   retentionUntil DateTime? @map("retention_until")
 

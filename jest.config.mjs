@@ -32,5 +32,11 @@ export default {
   },
 
   moduleFileExtensions: ['ts', 'js', 'json'],
+  setupFilesAfterEnv: [
+    '<rootDir>/src/tests/setup/jest-env.ts',
+    '<rootDir>/src/tests/setup/jest-extensions.ts',
+  ],
   clearMocks: true,
+  resetMocks: true,
+  restoreMocks: true,
 };

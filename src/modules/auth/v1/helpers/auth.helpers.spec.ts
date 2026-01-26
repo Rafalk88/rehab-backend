@@ -1,12 +1,32 @@
 import { jest } from '@jest/globals';
 
-const { RequestContextService } = await import('#context/request-context.service.js');
-const { PrismaService } = await import('#prisma/prisma.service.js');
+jest.unstable_mockModule('#prisma/prisma.service.js', () => {
+  return {
+    PrismaService: jest.fn().mockImplementation(() => ({
+      user: { findUnique: jest.fn() },
+      role: { findUnique: jest.fn() },
+      userRole: { create: jest.fn() },
+      rolePermission: { create: jest.fn() },
+      userPermission: { upsert: jest.fn(), findUnique: jest.fn() },
+      $extends: jest.fn().mockReturnThis(),
+    })),
+  };
+});
+
+jest.unstable_mockModule('#context/request-context.service.js', () => {
+  return {
+    RequestContextService: jest.fn().mockImplementation(() => ({
+      withAudit: jest.fn().mockImplementation((_meta, cb) => cb()),
+    })),
+  };
+});
 
 await jest.unstable_mockModule('#lib/password.util.js', () => ({
   verifyPassword: jest.fn(),
 }));
 
+const { RequestContextService } = await import('#context/request-context.service.js');
+const { PrismaService } = await import('#prisma/prisma.service.js');
 const passwordUtil = await import('#lib/password.util.js');
 const { AuthHelpers } = await import('./auth.helpers.js');
 const { Test } = await import('@nestjs/testing');
@@ -18,8 +38,8 @@ const verifyPasswordMock = passwordUtil.verifyPassword as jest.MockedFunction<
 import 'dotenv/config';
 
 describe('AuthHelpers', () => {
-  let helpers: InstanceType<typeof AuthHelpers>;
-  let prismaMock: jest.Mocked<Partial<InstanceType<typeof PrismaService>>>;
+  let helpers;
+  let prismaMock;
 
   beforeEach(async () => {
     prismaMock = {

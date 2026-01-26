@@ -1,8 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { PrismaSessionMiddleware } from './prisma-session.js';
-import {
-  RequestContextService,
-  RequestContextData,
-} from '../../context/request-context.service.js';
+import { RequestContextService } from '../../context/request-context.service.js';
 import { Request, Response } from 'express';
 import { jest } from '@jest/globals';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -19,9 +17,7 @@ describe('PrismaSessionMiddleware', () => {
         PrismaSessionMiddleware,
         {
           provide: RequestContextService,
-          useValue: {
-            run: jest.fn(),
-          },
+          useValue: { run: jest.fn() },
         },
       ],
     }).compile();
@@ -31,9 +27,7 @@ describe('PrismaSessionMiddleware', () => {
     next = jest.fn();
   });
 
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
+  afterEach(() => jest.clearAllMocks());
 
   const mockReq = (overrides: Partial<Request> = {}): Partial<Request> => {
     const socketMock: Partial<Socket> = {
@@ -48,19 +42,22 @@ describe('PrismaSessionMiddleware', () => {
     } as Partial<Request>;
   };
 
-  it('✅ should call RequestContextService.run with userId and ipAddress', () => {
+  // --------------------------------------------------------
+  it('✅ should call run() with correct userId and ipAddress', () => {
     const req = mockReq();
     middleware.use(req as Request, {} as Response, next);
 
     expect(requestContext.run).toHaveBeenCalledTimes(1);
 
-    const call = requestContext.run.mock.calls[0];
-    expect(call).toBeDefined();
+    const [data] = requestContext.run.mock.calls[0]!;
 
-    const [data] = call as [RequestContextData, () => void];
-    expect(data).toEqual({ userId: 'user-123', ipAddress: '10.0.0.1' });
+    expect(data).toMatchObject({
+      userId: 'user-123',
+      ipAddress: '10.0.0.1',
+    });
   });
 
+  // --------------------------------------------------------
   it('✅ should extract IP from x-forwarded-for header', () => {
     const req = mockReq({
       headers: { 'x-forwarded-for': '192.168.1.100, 10.0.0.1' } as any,
@@ -68,46 +65,46 @@ describe('PrismaSessionMiddleware', () => {
 
     middleware.use(req as Request, {} as Response, next);
 
-    const call = requestContext.run.mock.calls[0];
-    const [data] = call as [RequestContextData, () => void];
-
+    const [data] = requestContext.run.mock.calls[0]!;
     expect(data.ipAddress).toBe('192.168.1.100');
   });
 
+  // --------------------------------------------------------
   it('✅ should handle missing user gracefully', () => {
     const req = mockReq({ user: undefined });
+
     middleware.use(req as Request, {} as Response, next);
 
-    const call = requestContext.run.mock.calls[0];
-    const [data] = call as [RequestContextData, () => void];
+    const [data] = requestContext.run.mock.calls[0]!;
 
-    expect(data).toEqual({ userId: null, ipAddress: '10.0.0.1' });
+    expect(data).toMatchObject({
+      userId: null,
+      ipAddress: '10.0.0.1',
+    });
   });
 
+  // --------------------------------------------------------
   it('✅ should call next() inside run() callback', () => {
     const req = mockReq();
     middleware.use(req as Request, {} as Response, next);
 
-    expect(requestContext.run).toHaveBeenCalledTimes(1);
-    const call = requestContext.run.mock.calls[0];
-    expect(call).toBeDefined();
+    const [, callback] = requestContext.run.mock.calls[0]!;
 
-    const callback = (call as any)[1] as () => void;
     expect(typeof callback).toBe('function');
 
     callback();
     expect(next).toHaveBeenCalledTimes(1);
   });
 
-  it('✅ should default ipAddress to "unknown" if not available', () => {
+  // --------------------------------------------------------
+  it('✅ should default ipAddress to "unknown" if missing', () => {
     const req = mockReq({
       socket: { remoteAddress: undefined } as unknown as Socket,
     });
 
     middleware.use(req as Request, {} as Response, next);
 
-    const call = requestContext.run.mock.calls[0];
-    const [data] = call as [RequestContextData, () => void];
+    const [data] = requestContext.run.mock.calls[0]!;
 
     expect(data.ipAddress).toBe('unknown');
   });

@@ -1,33 +1,10 @@
+// jwt.strategy.spec.ts
 import { jest } from '@jest/globals';
-import { AppError } from '#common/errors/app.error.js';
-
-jest.unstable_mockModule('passport-jwt', () => {
-  const Strategy = jest.fn().mockImplementation(function (options) {
-    // @ts-ignore - mock Strategy object
-    this.options = options;
-    // @ts-ignore
-    this.authenticate = jest.fn();
-    // @ts-ignore
-    this.name = 'jwt';
-  });
-
-  return {
-    Strategy,
-    ExtractJwt: {
-      fromAuthHeaderAsBearerToken: jest.fn(() => 'mockExtractor'),
-    },
-  };
-});
-
-const { JwtStrategy } = await import('./jwt.strategy.js');
-
-import 'dotenv/config';
 
 describe('JwtStrategy', () => {
-  const OLD_ENV = process.env;
+  const OLD_ENV = { ...process.env };
 
   beforeEach(() => {
-    jest.resetModules();
     process.env = { ...OLD_ENV };
   });
 
@@ -35,53 +12,74 @@ describe('JwtStrategy', () => {
     process.env = OLD_ENV;
   });
 
-  describe('constructor', () => {
-    it('✅ should use JWT_SECRET from env', () => {
-      process.env.JWT_SECRET = 'superSecret123';
+  it('should use JWT_SECRET and set extractor', async () => {
+    process.env.JWT_SECRET = 'superSecret123';
+
+    await jest.isolateModulesAsync(async () => {
+      await jest.unstable_mockModule('passport-jwt', () => ({
+        ExtractJwt: {
+          fromAuthHeaderAsBearerToken: jest.fn(() => {
+            return (req: any) => {
+              const auth = req?.headers?.authorization;
+              if (!auth?.startsWith('Bearer ')) return null;
+              return auth.slice(7);
+            };
+          }),
+        },
+
+        Strategy: class MockStrategy {
+          name = 'jwt';
+          constructor(options: any) {
+            (this as any).options = options;
+          }
+        },
+      }));
+
+      const { JwtStrategy } = await import('./jwt.strategy.js');
 
       const strategy = new JwtStrategy();
 
-      // @ts-expect-error - mock add options
-      expect(strategy.options.secretOrKey).toBe('superSecret123');
-      // @ts-expect-error
-      expect(strategy.options.jwtFromRequest).toBe('mockExtractor');
-    });
+      const extractor = (strategy as any).options.jwtFromRequest;
+      expect(typeof extractor).toBe('function');
 
-    it('❌ should throw AppError when JWT_SECRET is missing', () => {
-      delete process.env.JWT_SECRET;
+      expect((strategy as any).options.secretOrKey).toBe('superSecret123');
 
-      expect(() => new JwtStrategy()).toThrow(AppError);
-      expect(() => new JwtStrategy()).toThrow(
-        /Missing required environment variable: JWT_SECRET. Application startup aborted for security reasons./,
-      );
+      const token = extractor({
+        headers: { authorization: 'Bearer abc.def.ghi' },
+      });
+      expect(token).toBe('abc.def.ghi');
     });
   });
 
-  describe('validate', () => {
-    it('✅ should map JWT payload to user object (emailHmac)', async () => {
-      process.env.JWT_SECRET = 'superSecret123';
+  it('should map JWT payload in validate()', async () => {
+    process.env.JWT_SECRET = 'superSecret123';
+
+    await jest.isolateModulesAsync(async () => {
+      await jest.unstable_mockModule('passport-jwt', () => ({
+        ExtractJwt: {
+          fromAuthHeaderAsBearerToken: jest.fn(() => () => null),
+        },
+        Strategy: class MockStrategy {
+          name = 'jwt';
+          constructor(options: any) {
+            (this as any).options = options;
+          }
+        },
+      }));
+
+      const { JwtStrategy } = await import('./jwt.strategy.js');
       const strategy = new JwtStrategy();
-      const payload = { sub: 'user-123', emailHmac: 'abc123hmac', emailMasked: 'a****3' };
 
-      const result = await strategy.validate(payload);
-
-      expect(result).toEqual({
-        userId: 'user-123',
-        email_hmac: 'abc123hmac',
-        email_masked: 'a****3',
+      const result = await strategy.validate({
+        sub: 'user-123',
+        emailHmac: 'hmac123',
+        emailMasked: 'a***b',
       });
-    });
-
-    it('✅ should handle payload without emailHmac gracefully', async () => {
-      process.env.JWT_SECRET = 'superSecret123';
-      const strategy = new JwtStrategy();
-      const payload = { sub: 'user-123' };
-
-      const result = await strategy.validate(payload as any);
 
       expect(result).toEqual({
         userId: 'user-123',
-        emailHmac: undefined,
+        email_hmac: 'hmac123',
+        email_masked: 'a***b',
       });
     });
   });

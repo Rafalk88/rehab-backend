@@ -5,24 +5,30 @@ import { Injectable, NestMiddleware } from '@nestjs/common';
 /**
  * PrismaSessionMiddleware
  *
- * Captures per-request user and IP information and stores it
- * in AsyncLocalStorage for use inside Prisma middleware and
- * other services.
+ * Ensure request context store is created for every request and contains
+ * userId, ipAddress and an initial auditMeta object.
  */
 @Injectable()
 export class PrismaSessionMiddleware implements NestMiddleware {
   constructor(private readonly requestContext: RequestContextService) {}
 
   use(req: Request, _: Response, next: NextFunction) {
-    const userId = (req as any).user?.id ?? null;
+    const userId = (req as any).user?.id ?? (req as any).session?.userId ?? null;
 
     const ipAddress =
       req.headers['x-forwarded-for']?.toString().split(',')[0]?.trim() ??
       req.socket.remoteAddress ??
       'unknown';
 
-    this.requestContext.run({ userId, ipAddress }, () => {
-      next();
-    });
+    this.requestContext.run(
+      {
+        userId,
+        ipAddress,
+        auditMeta: {},
+      },
+      () => {
+        next();
+      },
+    );
   }
 }

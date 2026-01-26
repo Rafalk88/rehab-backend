@@ -1,36 +1,35 @@
-import eslintPluginTs from '@typescript-eslint/eslint-plugin';
-import eslintParserTs from '@typescript-eslint/parser';
+import eslint from '@eslint/js';
+import tseslint from 'typescript-eslint';
+import prettier from 'eslint-config-prettier';
 import prettierPlugin from 'eslint-plugin-prettier';
 
 export default [
   {
-    files: ['*.ts', '*.js'],
+    ignores: ['dist/**', 'node_modules/**'],
+  },
+  eslint.configs.recommended,
+  ...tseslint.configs.recommended,
+
+  {
     languageOptions: {
-      parser: eslintParserTs,
-      parserOptions: {
-        ecmaVersion: 2024,
-        sourceType: 'module',
-        project: './tsconfig.json',
-      },
-      env: {
-        node: true,
-        es2024: true,
+      parser: tseslint.parser,
+      ecmaVersion: 'latest',
+      sourceType: 'module',
+      globals: {
+        console: 'readonly',
+        process: 'readonly',
       },
     },
     plugins: {
-      '@typescript-eslint': eslintPluginTs,
       prettier: prettierPlugin,
     },
     rules: {
       'prettier/prettier': 'error',
       '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       '@typescript-eslint/explicit-function-return-type': 'off',
-      'max-lines': ['warn', { max: 120 }],
-    },
-    settings: {
-      jsdoc: {
-        mode: 'typescript',
-      },
+      'max-len': ['error', { code: 120 }],
+      '@typescript-eslint/no-explicit-any': 'warn',
     },
   },
+  prettier,
 ];

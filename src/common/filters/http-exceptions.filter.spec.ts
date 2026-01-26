@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { jest } from '@jest/globals';
 import { ArgumentsHost, HttpException } from '@nestjs/common';
 import { AppError } from '#common/errors/app.error.js';

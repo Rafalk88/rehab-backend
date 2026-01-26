@@ -1,14 +1,37 @@
 import { jest } from '@jest/globals';
-import { PrismaService } from '#prisma/prisma.service.js';
-import { PermissionsAdminService } from './permissions-admin.service.js';
+
+jest.unstable_mockModule('#prisma/prisma.service.js', () => {
+  return {
+    PrismaService: jest.fn().mockImplementation(() => ({
+      user: { findUnique: jest.fn() },
+      role: { findUnique: jest.fn() },
+      userRole: { create: jest.fn() },
+      rolePermission: { create: jest.fn() },
+      userPermission: { upsert: jest.fn(), findUnique: jest.fn() },
+      $extends: jest.fn().mockReturnThis(),
+    })),
+  };
+});
+
+jest.unstable_mockModule('#context/request-context.service.js', () => {
+  return {
+    RequestContextService: jest.fn().mockImplementation(() => ({
+      withAudit: jest.fn().mockImplementation((_meta, cb) => cb()),
+    })),
+  };
+});
+
+const { PrismaService } = await import('#prisma/prisma.service.js');
+const { PermissionsAdminService } = await import('./permissions-admin.service.js');
+const { RequestContextService } = await import('#context/request-context.service.js');
+
 import { AppError } from '#common/errors/app.error.js';
-import { RequestContextService } from '#context/request-context.service.js';
 import { Test, TestingModule } from '@nestjs/testing';
 
 describe('PermissionsAdminService', () => {
-  let service: PermissionsAdminService;
-  let prisma: jest.Mocked<PrismaService>;
-  let requestContext: jest.Mocked<RequestContextService>;
+  let service;
+  let prisma;
+  let requestContext;
 
   const adminId = 'admin-1';
 

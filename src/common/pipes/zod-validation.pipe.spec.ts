@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { ZodValidationPipe } from './zod-validation.pipe.js';
 import { AppError } from '../errors/app.error.js';
 import { z } from 'zod';
