@@ -1,4 +1,4 @@
-import { Prisma } from '#/generated/prisma/client.js';
+import { Prisma } from '#generated/prisma/client.js';
 
 type JsonVal = Prisma.InputJsonValue;
 type JsonObj = { [key: string]: JsonVal } | null;

@@ -3,10 +3,10 @@ import type {
   OverridePermissionSchema,
 } from './permissions-admin.schemas.js';
 import { AppError } from '#common/errors/app.error.js';
-import { RequestContextService } from '#/context/request-context.service.js';
+import { RequestContextService } from '#context/request-context.service.js';
 import { PrismaService } from '#prisma/prisma.service.js';
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '#/generated/prisma/client.js';
+import { Prisma } from '#generated/prisma/client.js';
 
 @Injectable()
 export class PermissionsAdminService {

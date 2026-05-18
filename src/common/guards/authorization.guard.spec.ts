@@ -1,5 +1,5 @@
 import { AuthorizationGuard } from './authorization.guard.js';
-import { createMockExecutionContext } from '#/tests/helpers/execution-context.helper.js';
+import { createMockExecutionContext } from '#tests/helpers/execution-context.helper.js';
 import { PermissionsService } from '#modules/permissions/permissions.service.js';
 import { ExecutionContext } from '@nestjs/common';
 import { jest } from '@jest/globals';

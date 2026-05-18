@@ -1,6 +1,6 @@
 import { createAuditExtension } from './extensions/audit.extension.js';
 import { RequestContextService } from '#context/request-context.service.js';
-import { Prisma, PrismaClient } from '#/generated/prisma/client.js';
+import { Prisma, PrismaClient } from '#generated/prisma/client.js';
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 
 export type AuditHandler = (params: {

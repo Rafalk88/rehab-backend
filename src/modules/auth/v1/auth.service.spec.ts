@@ -1,7 +1,7 @@
 import { jest } from '@jest/globals';
 import { Test } from '@nestjs/testing';
 import { AppError } from '#common/errors/app.error.js';
-import { createPrismaMock, type MockPrisma } from '#/tests/helpers/prisma-mock.js';
+import { createPrismaMock, type MockPrisma } from '#tests/helpers/prisma-mock.js';
 
 await jest.unstable_mockModule('@nestjs/jwt', () => ({
   JwtService: class {

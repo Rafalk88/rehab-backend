@@ -32,6 +32,16 @@
     "url": "https://github.com/Rafalk88/rehab-backend"
   },
   "type": "module",
+  "imports": {
+    "#lib/*.js": "./dist/lib/*.js",
+    "#common/*.js": "./dist/common/*.js",
+    "#context/*.js": "./dist/context/*.js",
+    "#prisma/*.js": "./dist/prisma/*.js",
+    "#modules/*.js": "./dist/modules/*.js",
+    "#generated/*.js": "./dist/generated/*.js",
+    "#tests/*.js": "./dist/tests/*.js",
+    "#/*.js": "./dist/*.js"
+  },
   "license": "MIT",
   "dependencies": {
     "@nestjs/cache-manager": "3.0.1",

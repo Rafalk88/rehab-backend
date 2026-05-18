@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { AsyncLocalStorage } from 'async_hooks';
-import { Prisma } from '#/generated/prisma/client.js';
+import { Prisma } from '#generated/prisma/client.js';
 
 export interface AuditMeta {
   actionDetails?: string;

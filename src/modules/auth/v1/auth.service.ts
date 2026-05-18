@@ -1,9 +1,9 @@
 import { AuthHelpers } from './helpers/auth.helpers.js';
 import { RequestContextService } from '#context/request-context.service.js';
 import { AppError } from '#common/errors/app.error.js';
-import { Prisma } from '#/generated/prisma/client.js';
+import { Prisma } from '#generated/prisma/client.js';
 import { DbLoggerService } from '#lib/DbLoggerService.js';
-import { computeHmac, aesGcmEncrypt, maskString } from '#/lib/encryption.util.js';
+import { computeHmac, aesGcmEncrypt, maskString } from '#lib/encryption.util.js';
 import { hashPassword, verifyPassword } from '#lib/password.util.js';
 import { PrismaService } from '#prisma/prisma.service.js';
 import { Injectable } from '@nestjs/common';
@@ -303,6 +303,11 @@ export class AuthService {
     });
 
     await this.helpers.updateLoginSuccess(user);
+
+    const store = this.requestContext.get();
+    if (store) {
+      store.userId = user.id;
+    }
 
     const payload = { sub: user.id, email_hmac: user.emailHmac, email_masked: user.emailMasked };
 

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { handleAuditOperation, computeDiff } from './audit.extension.js';
-import { Prisma } from '#/generated/prisma/client.js';
+import { Prisma } from '#generated/prisma/client.js';
 import { jest } from '@jest/globals';
 
 type JsonVal = Prisma.InputJsonValue;

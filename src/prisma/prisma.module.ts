@@ -1,8 +1,10 @@
-import { PrismaSessionMiddleware } from './middleware/prisma-session.js';
+import { Global, Module } from '@nestjs/common';
+import { PrismaClient } from '#generated/prisma/client.js';
+import { RequestContextService } from '#context/request-context.service.js';
 import { PrismaService } from './prisma.service.js';
+import { PrismaSessionMiddleware } from './middleware/prisma-session.js';
 import { RequestContextModule } from '../context/request-context.module.js';
 import { DbLoggerService } from '#lib/DbLoggerService.js';
-import { Global, Module } from '@nestjs/common';
 
 export type AuditHandler = (params: {
   model: string;
@@ -13,19 +15,19 @@ export type AuditHandler = (params: {
   ctx: { userId: string | null; ipAddress: string };
 }) => Promise<void>;
 
-/**
- * PrismaModule
- *
- * A global module that provides database access and auditing functionality.
- * - Exposes a single PrismaService instance (singleton).
- * - Integrates the DbLoggerService used for audit logging.
- * - Can be injected anywhere in the app without re-importing (due to @Global()).
- */
 @Global()
 @Module({
   imports: [RequestContextModule],
   providers: [
-    DbLoggerService,
+    {
+      provide: PrismaClient,
+      useFactory: () => new PrismaClient(),
+    },
+    {
+      provide: DbLoggerService,
+      useFactory: (prisma: PrismaClient) => new DbLoggerService(prisma),
+      inject: [PrismaClient],
+    },
     {
       provide: 'AUDIT_HANDLER',
       useFactory: (dbLogger: DbLoggerService) => {
@@ -50,7 +52,7 @@ export type AuditHandler = (params: {
       useFactory: (requestContext, auditHandler: AuditHandler) => {
         return new PrismaService(requestContext, auditHandler);
       },
-      inject: ['RequestContextService', 'AUDIT_HANDLER'],
+      inject: [RequestContextService, 'AUDIT_HANDLER'],
     },
     PrismaSessionMiddleware,
   ],

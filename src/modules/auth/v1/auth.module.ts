@@ -3,9 +3,7 @@ import { AuthService } from './auth.service.js';
 import { AuthHelpers } from './helpers/auth.helpers.js';
 import { JwtStrategy } from './strategies/jwt.strategy.js';
 import { RequestContextModule } from '#context/request-context.module.js';
-import { DbLoggerModule } from '#lib/DbLoggerService.module.js';
 import { PermissionsModule } from '#modules/permissions/permissions.module.js';
-import { PrismaService } from '#prisma/prisma.service.js';
 import { Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
@@ -17,11 +15,10 @@ import { PassportModule } from '@nestjs/passport';
       secret: process.env.JWT_SECRET || 'secretForJWT',
       signOptions: { expiresIn: '15m' },
     }),
-    DbLoggerModule,
     PermissionsModule,
     RequestContextModule,
   ],
-  providers: [AuthService, JwtStrategy, PrismaService, AuthHelpers],
+  providers: [AuthService, JwtStrategy, AuthHelpers],
   controllers: [AuthController],
   exports: [AuthService],
 })

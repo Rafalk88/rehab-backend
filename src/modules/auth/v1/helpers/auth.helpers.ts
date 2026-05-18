@@ -1,6 +1,6 @@
 import { AppError } from '#common/errors/app.error.js';
 import { RequestContextService } from '#context/request-context.service.js';
-import type { User } from '#/generated/prisma/client.js';
+import type { User } from '#generated/prisma/client.js';
 import { computeHmac } from '#lib/encryption.util.js';
 import { verifyPassword } from '#lib/password.util.js';
 import { PrismaService } from '#prisma/prisma.service.js';
