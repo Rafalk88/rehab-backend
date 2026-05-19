@@ -8,7 +8,11 @@ import { Controller, Post, Body, Param, UseGuards, Req } from '@nestjs/common';
 import type { Request } from 'express';
 
 interface JwtRequest extends Request {
-  user?: { sub: string };
+  user?: {
+    userId?: string;
+    email_hmac?: string;
+    email_masked?: string;
+  };
 }
 
 /**
@@ -32,7 +36,7 @@ export class PermissionsAdminController {
     @Param('roleId') roleId: string,
     @Req() req: JwtRequest,
   ) {
-    const adminId = req.user?.sub ?? 'system';
+    const adminId = req.user?.userId ?? 'system';
 
     return this.service.assignRoleToUser(userId, roleId, adminId);
   }

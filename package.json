@@ -14,12 +14,13 @@
     "test:int": "echo \"Testy są jeszcze wyłączone\"",
     "test:watch": "echo \"Testy są jeszcze wyłączone\"",
     "test:cov": "echo \"Testy są jeszcze wyłączone\"",
-    "seed": "node -r dotenv/config --loader ts-node/esm -r tsconfig-paths/register src/seed/main.ts",
+    "seed": "tsx -r dotenv/config src/seed/main.ts",
     "lint": "eslint 'src/**/*.ts' --fix",
     "format": "prettier --write 'src/**/*.ts'",
     "prisma:generate": "prisma generate --schema=src/prisma/schema.prisma",
     "prisma:migrate": "prisma migrate dev --schema=src/prisma/schema.prisma",
-    "prisma:studio": "prisma studio --schema=src/prisma/schema.prisma"
+    "prisma:studio": "prisma studio --schema=src/prisma/schema.prisma",
+    "setup:local": "node scripts/setup-local.mjs"
   },
   "keywords": [],
   "author": {
@@ -106,6 +107,7 @@
     "ts-node-dev": "2.0.0",
     "tsc-alias": "1.8.16",
     "tsconfig-paths": "4.2.0",
+    "tsx": "^4.22.3",
     "typescript": "5.9.2",
     "typescript-eslint": "8.47.0",
     "uuid": "13.0.0"

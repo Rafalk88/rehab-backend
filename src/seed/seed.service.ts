@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from '../prisma/prisma.service.js';
+import { Inject, Injectable } from '@nestjs/common';
+import { PrismaClient } from '#generated/prisma/client.js';
+import { SEED_PRISMA } from './seed.tokens.js';
 import { computeHmac, aesGcmEncrypt, maskString } from '../lib/encryption.util.js';
 import { hashPassword } from '../lib/password.util.js';
 
@@ -8,7 +9,7 @@ const SYSTEM_USER_ID = '00000000-0000-0000-0000-000000000001';
 
 @Injectable()
 export class SeedService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(@Inject(SEED_PRISMA) private readonly prisma: PrismaClient) {}
 
   async seedSystemUser() {
     await this.prisma.user.upsert({

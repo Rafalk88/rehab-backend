@@ -14,7 +14,12 @@ import { Controller, Post, Body, Req, UseGuards, Param } from '@nestjs/common';
 import type { Request } from 'express';
 
 interface JwtRequest extends Request {
-  user?: { sub: string };
+  user?: {
+    userId: string;
+    sub?: string;
+    email_hmac?: string;
+    email_masked?: string;
+  };
 }
 
 @Controller('auth')
@@ -29,7 +34,7 @@ export class AuthController {
     body: RegisterUserSchema,
     @Req() req: JwtRequest,
   ) {
-    const adminId = req.user?.sub;
+    const adminId = req.user?.userId;
     if (!adminId) return { message: 'No admin logged in' };
 
     return this.authService.registerUser(body);
@@ -47,11 +52,11 @@ export class AuthController {
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   async logout(@Req() req: JwtRequest) {
-    const userId = req.user?.sub;
+    const userId = req.user?.userId;
 
     if (!userId) return { message: 'No user logged in' };
 
-    await this.authService.logoutUser();
+    await this.authService.logoutUser(userId);
     return { message: 'Logged out successfully' };
   }
 
@@ -70,7 +75,7 @@ export class AuthController {
     body: ChangePasswordSchema,
     @Req() req: JwtRequest,
   ) {
-    const userId = req.user?.sub;
+    const userId = req.user?.userId;
     if (!userId) return { message: 'No user logged in' };
 
     return this.authService.changePassword(
@@ -85,7 +90,7 @@ export class AuthController {
   @Permissions('reset.password')
   @Post('reset-password/:userId')
   async adminResetPassword(@Param('userId') userId: string, @Req() req: JwtRequest) {
-    const adminId = req.user?.sub;
+    const adminId = req.user?.userId;
     if (!adminId) return { message: 'No admin logged in' };
 
     const tempPassword = await this.authService.resetPassword(userId);
@@ -102,7 +107,7 @@ export class AuthController {
     body: { durationInMinutes?: number; reason?: string },
     @Req() req: JwtRequest,
   ) {
-    const adminId = req.user?.sub;
+    const adminId = req.user?.userId;
     if (!adminId) return { message: 'No admin logged in' };
 
     return this.authService.lockUser(userId, body.durationInMinutes, body.reason);

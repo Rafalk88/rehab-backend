@@ -302,12 +302,12 @@ export class AuthService {
       mustChangePassword: user.mustChangePassword,
     });
 
-    await this.helpers.updateLoginSuccess(user);
-
     const store = this.requestContext.get();
     if (store) {
       store.userId = user.id;
     }
+
+    await this.helpers.updateLoginSuccess(user);
 
     const payload = { sub: user.id, email_hmac: user.emailHmac, email_masked: user.emailMasked };
 
@@ -316,13 +316,26 @@ export class AuthService {
     const refreshToken = this.jwtService.sign(payload, { expiresIn: '7d' });
     const hashedRefreshToken = await hashPassword(refreshToken);
 
-    await this.prisma.refreshToken.create({
-      data: {
-        userId: user.id,
-        tokenHash: hashedRefreshToken,
-        expiresAt: new Date(Date.now() + SEVEN_DAYS_IN_MS),
+    const refreshTokenExpiresAt = new Date(Date.now() + SEVEN_DAYS_IN_MS);
+
+    await this.requestContext.withAudit(
+      {
+        actionDetails: 'Refresh token created during login',
+        oldValues: Prisma.DbNull,
+        newValues: {
+          userId: user.id,
+          expiresAt: refreshTokenExpiresAt,
+        },
       },
-    });
+      () =>
+        this.prisma.refreshToken.create({
+          data: {
+            userId: user.id,
+            tokenHash: hashedRefreshToken,
+            expiresAt: refreshTokenExpiresAt,
+          },
+        }),
+    );
 
     return {
       access_token: accessToken,
@@ -350,9 +363,8 @@ export class AuthService {
    *
    * @throws UnauthorizedException if the token is already invalid or expired.
    */
-  async logoutUser() {
+  async logoutUser(userId: string) {
     const context = this.requestContext.get();
-    const userId = context?.userId;
     const ipAddress = context?.ipAddress ?? 'system';
 
     const retentionUntil = new Date();
