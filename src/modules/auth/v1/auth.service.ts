@@ -295,12 +295,28 @@ export class AuthService {
       password,
     );
 
-    this.helpers.checkLoginRestrictions({
-      isActive: user.isActive,
-      isLocked: user.isLocked,
-      lockedUntil: user.lockedUntil,
-      mustChangePassword: user.mustChangePassword,
-    });
+    try {
+      this.helpers.checkLoginRestrictions({
+        isActive: user.isActive,
+        isLocked: user.isLocked,
+        lockedUntil: user.lockedUntil,
+        mustChangePassword: user.mustChangePassword,
+      });
+    } catch (error) {
+      await this.dbLogger.logAction({
+        userId: user.id,
+        action: 'login_blocked',
+        actionDetails: `Login attempt on blocked account ${user.loginMasked}`,
+        oldValues: Prisma.DbNull,
+        newValues: Prisma.DbNull,
+        entityType: 'User',
+        entityId: user.id,
+        retentionUntil,
+        ipAddress,
+      });
+      
+      throw error;
+    }
 
     const store = this.requestContext.get();
     if (store) {
