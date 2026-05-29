@@ -10,6 +10,7 @@
  * - `validation` → 400 (Input validation error)
  * - `unauthorized` → 401 (Authentication required)
  * - `forbidden` → 403 (Insufficient permissions)
+ * - `conflict` → 409 (Resource already exists)
  * - `server` → 500 (Server error)
  *
  * @extends Error
@@ -23,6 +24,7 @@ class AppError extends Error {
     unauthorized: 401,
     forbidden: 403,
     not_found: 404,
+    conflict: 409,
     server: 500,
   };
 
