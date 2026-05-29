@@ -63,7 +63,9 @@ model GivenName {
   deletedAt      DateTime? @map("deleted_at")
   retentionUntil DateTime? @map("retention_until")
 
-  users          User[]
+  users              User[]
+  patientFirstNames  Patient[] @relation("PatientFirstName")
+  patientSecondNames Patient[] @relation("PatientSecondName")
 }
 
 model Surname {
@@ -77,6 +79,7 @@ model Surname {
   retentionUntil DateTime? @map("retention_until")
 
   users          User[]
+  patients       Patient[]
 }
 
 model Sex {
@@ -90,6 +93,7 @@ model Sex {
   retentionUntil DateTime? @map("retention_until")
 
   users          User[]
+  patients       Patient[]
 }
 
 model OrganizationalUnit {
@@ -197,4 +201,46 @@ model BlacklistedToken {
   createdAt  DateTime @default(now()) @map("created_at")
 
   user       User     @relation(fields: [userId], references: [id])
+}
+
+enum PeselStatus {
+  ASSIGNED        // nadany
+  UNASSIGNED      // nienadany
+  UNKNOWN         // nieznany
+  NEWBORN         // noworodek
+  FOREIGNER_EU    // cudzoziemiec UE/EFTA
+  FOREIGNER_NON_EU // cudzoziemiec spoza UE/EFTA
+}
+
+model Patient {
+  id              String      @id @default(uuid()) @db.Uuid
+  
+  // Identyfikacja - dane wrażliwe
+  peselHmac       String      @unique @map("pesel_hmac")
+  peselEncrypted  String      @map("pesel_encrypted")
+  keyVersion      Int         @default(1) @map("key_version")
+  
+  // Dane osobowe
+  firstNameId     String?     @db.Uuid @map("first_name_id")
+  secondNameId    String?     @db.Uuid @map("second_name_id")
+  surnameId       String?     @db.Uuid @map("surname_id")
+  dateOfBirth     DateTime    @map("date_of_birth")
+  sexId           String?     @db.Uuid @map("sex_id")
+  peselStatus     PeselStatus @default(ASSIGNED) @map("pesel_status")
+  
+  // Audit
+  createdAt       DateTime    @default(now()) @map("created_at")
+  updatedAt       DateTime    @default(now()) @updatedAt @map("updated_at")
+  createdBy       String?     @db.Uuid @map("created_by")
+  updatedBy       String?     @db.Uuid @map("updated_by")
+  deletedAt       DateTime?   @map("deleted_at")
+  
+  // Relacje
+  firstName       GivenName?  @relation("PatientFirstName", fields: [firstNameId], references: [id])
+  secondName      GivenName?  @relation("PatientSecondName", fields: [secondNameId], references: [id])
+  surname         Surname?    @relation(fields: [surnameId], references: [id])
+  sex             Sex?        @relation(fields: [sexId], references: [id])
+
+  // TODO: Phase 2 - insurance, documents, address, contacts
+  // TODO: Phase 3 - medical data, guardians, authorizations
 }

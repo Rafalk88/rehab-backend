@@ -10,10 +10,10 @@
     "start:prod": "node --loader tsconfig-paths/esm dist/main.js",
     "build": "nest build && tsc-alias",
     "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --config ./jest.config.mjs",
-    "test:unit": "echo \"Testy są jeszcze wyłączone\"",
-    "test:int": "echo \"Testy są jeszcze wyłączone\"",
-    "test:watch": "echo \"Testy są jeszcze wyłączone\"",
-    "test:cov": "echo \"Testy są jeszcze wyłączone\"",
+    "test:unit": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --config ./jest.config.mjs --testPathPattern=spec",
+    "test:int": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --config ./jest.config.mjs --testPathPattern=int-spec",
+    "test:watch": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --config ./jest.config.mjs --watch",
+    "test:cov": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --config ./jest.config.mjs --coverage",
     "seed": "tsx -r dotenv/config src/seed/main.ts",
     "lint": "eslint 'src/**/*.ts' --fix",
     "format": "prettier --write 'src/**/*.ts'",
@@ -114,7 +114,7 @@
   },
   "husky": {
     "hooks": {
-      "pre-commit": "lint-staged && npm run test:unit"
+      "pre-commit": "lint-staged && pnpm run test:unit"
     }
   },
   "lint-staged": {
