@@ -5,6 +5,7 @@ import { PrismaSessionMiddleware } from '#prisma/middleware/prisma-session.js';
 import { PrismaModule } from '#prisma/prisma.module.js';
 import { LoggerModule } from '#lib/logger/logger.module.js';
 import { AuthModule } from '#modules/auth/v1/auth.module.js';
+import { PatientsModule } from '#modules/patients/patients.module.js';
 import { PermissionsModule } from '#modules/permissions/permissions.module.js';
 import { PermissionsAdminModule } from '#modules/permissions-admin/permissions-admin.module.js';
 import { CacheModule } from '@nestjs/cache-manager';
@@ -40,6 +41,9 @@ import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
 
     // Middleware
     RequestContextModule,
+
+    // Patients
+    PatientsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

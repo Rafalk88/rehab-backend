@@ -19,7 +19,7 @@ export class AuthorizationGuard implements CanActivate {
    */
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest<Request>();
-    const userId = req.session?.userId;
+    const userId = (req as any).user?.userId;
     if (!userId) throw new AppError('unauthorized', 'Not authenticated');
 
     const requiredPermission = this.reflectPermission(context);

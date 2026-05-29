@@ -28,7 +28,7 @@ describe('AuthorizationGuard', () => {
 
   it('❌ should throw unauthorized error if no userId in session', async () => {
     const ctx = createMockExecutionContext({
-      session: {},
+      user: {},
     });
 
     await expect(guard.canActivate(ctx as ExecutionContext)).rejects.toMatchObject({
@@ -40,7 +40,7 @@ describe('AuthorizationGuard', () => {
 
   it('✅ should allow access if no permission metadata is set', async () => {
     const ctx = createMockExecutionContext({
-      session: { userId: 'user-1' },
+      user: { userId: 'user-1' },
     });
 
     jest.spyOn(Reflect, 'getMetadata').mockReturnValue(undefined);
@@ -50,7 +50,7 @@ describe('AuthorizationGuard', () => {
 
   it('🚫 should deny access if PermissionsService returns false', async () => {
     const ctx = createMockExecutionContext({
-      session: { userId: 'user-1' },
+      user: { userId: 'user-1' },
       params: {},
       body: {},
     });
@@ -67,7 +67,7 @@ describe('AuthorizationGuard', () => {
 
   it('🏢 should pass targetOrgId from params to canAccess', async () => {
     const ctx = createMockExecutionContext({
-      session: { userId: 'user-1' },
+      user: { userId: 'user-1' },
       params: { orgId: 'org-123' },
       body: {},
     });
