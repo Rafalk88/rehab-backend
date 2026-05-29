@@ -9,7 +9,7 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node --loader tsconfig-paths/esm dist/main.js",
     "build": "nest build && tsc-alias",
-    "test": "NODE_OPTIONS=--experimental-vm-modules jest --config ./jest.config.mjs",
+    "test": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --config ./jest.config.mjs",
     "test:unit": "echo \"Testy są jeszcze wyłączone\"",
     "test:int": "echo \"Testy są jeszcze wyłączone\"",
     "test:watch": "echo \"Testy są jeszcze wyłączone\"",

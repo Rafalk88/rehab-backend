@@ -379,8 +379,9 @@ export class AuthService {
    *
    * @throws UnauthorizedException if the token is already invalid or expired.
    */
-  async logoutUser(userId: string) {
+  async logoutUser() {
     const context = this.requestContext.get();
+    const userId = context?.userId;
     const ipAddress = context?.ipAddress ?? 'system';
 
     const retentionUntil = new Date();

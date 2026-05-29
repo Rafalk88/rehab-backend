@@ -56,7 +56,7 @@ export class AuthController {
 
     if (!userId) return { message: 'No user logged in' };
 
-    await this.authService.logoutUser(userId);
+    await this.authService.logoutUser();
     return { message: 'Logged out successfully' };
   }
 
