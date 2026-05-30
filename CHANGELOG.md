@@ -6,6 +6,45 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ---
 
+## [0.7.0] - 2026-05-30
+
+### Added
+
+- **Patient module**
+  - `Patient` model with encrypted PESEL (`peselHmac`, `peselEncrypted`, `keyVersion`)
+  - `PeselStatus` enum with 6 statuses covering Polish and foreign patients
+  - `GET /api/v1/patients` — paginated list with decrypted PESEL
+  - `GET /api/v1/patients/:id` — single patient with full personal data
+  - `POST /api/v1/patients` — create patient with duplicate PESEL detection (409 Conflict)
+  - Audit logging for all patient operations via Prisma extension
+  - Reuses existing `GivenName`, `Surname`, `Sex` normalized tables
+
+- **Auth improvements**
+  - Fixed `logoutUser` to read `userId` from `RequestContextService` instead of parameter
+  - Fixed `AuthorizationGuard` to read `userId` from `req.user.userId` (JWT payload)
+  - Added `conflict` → 409 type to `AppError`
+
+- **Developer experience**
+  - Fixed `NODE_OPTIONS` for Windows using `cross-env`
+  - Fixed Husky pre-commit hooks on Windows (`npm` → `pnpm`)
+  - Enabled all test scripts (`test:unit`, `test:int`, `test:watch`, `test:cov`)
+  - Added test coverage reporting
+
+- **Frontend**
+  - Added axios response interceptor for automatic JWT refresh on 401
+  - Token refresh uses `refresh_token` cookie transparently
+
+### Changed
+
+- `PatientsModule` uses global `PrismaModule` and `PermissionsModule`
+- `AuthorizationGuard` reads user identity from JWT payload instead of session
+
+### Fixed
+
+- Husky pre-commit hook not running on Windows
+- `logoutUser` throwing 401 due to missing `userId` parameter
+- `AuthorizationGuard` returning 401 due to wrong property name on `req.user`
+
 ## [0.6.0] - 2025-11-10
 
 ### Added

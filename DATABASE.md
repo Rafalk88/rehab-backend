@@ -187,3 +187,48 @@ Stores invalidated access tokens for early rejection before expiry.
 - `ip_address`: string (source IP)
 
 ---
+
+## 🏥 Patient
+
+Stores patient personal data with encrypted sensitive fields.
+
+### Fields
+
+- `id`: UUID, primary key
+- `pesel_hmac`: HMAC-SHA256 of PESEL — unique index for fast lookup
+- `pesel_encrypted`: AES-256-GCM encrypted PESEL — decrypted only on authorized read
+- `key_version`: integer — supports key rotation
+- `first_name_id`, `second_name_id`, `surname_id`: foreign keys to GivenName and Surname
+- `date_of_birth`: DateTime
+- `sex_id`: foreign key to Sex
+- `pesel_status`: enum PeselStatus
+- Audit fields: `created_at`, `updated_at`, `created_by`, `updated_by`, `deleted_at`
+
+### Relations
+
+- `firstName`: GivenName
+- `secondName`: GivenName (optional)
+- `surname`: Surname
+- `sex`: Sex
+
+### Notes
+
+- PESEL is never stored in plaintext — see Decision 015
+- `pesel_hmac` enables O(1) duplicate detection and search
+- Phase 2: insurance, documents, address, contacts
+- Phase 3: medical data, guardians, authorizations
+
+---
+
+## 📋 PeselStatus (enum)
+
+Defines the status of a patient's PESEL number.
+
+| Value              | Description                    |
+| ------------------ | ------------------------------ |
+| `ASSIGNED`         | Standard Polish PESEL assigned |
+| `UNASSIGNED`       | PESEL not yet assigned         |
+| `UNKNOWN`          | PESEL unknown                  |
+| `NEWBORN`          | Newborn without PESEL          |
+| `FOREIGNER_EU`     | EU/EFTA citizen                |
+| `FOREIGNER_NON_EU` | Non-EU/EFTA foreigner          |

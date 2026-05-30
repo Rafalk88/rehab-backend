@@ -14,79 +14,107 @@ The codebase represents the current, stable architecture for the Rehabilitation 
 - Zod for input validation
 - Husky (pre-commit hooks)
 - Winston (structured logging)
+- cross-env (cross-platform environment variables)
 - REST API
 
 ## 📂 Project Structure
 
 ```bash
 src/
-├── common/ # Shared utilities, decorators, filters, guards, pipes, and interfaces used across modules
-├── lib/ # Reusable libraries or helpers (e.g., logger, JWT utils, password hashing)
-├── modules/ # Feature-specific modules (e.g., auth, users, roles)
-├── prisma/ # Prisma schema, migrations, and generated client
-├── app.controller.ts # Root application controller (optional, can handle basic health checks or default routes)
-├── app.module.ts # Root application module, imports feature modules and configures providers
-├── app.service.ts # Root application service, typically contains shared logic for the app
-├── main.ts # Application entry point, bootstrap NestJS server
-env # Environment variable configuration file
+├── common/       # Shared utilities, filters, guards, pipes, errors
+├── context/      # RequestContextService — AsyncLocalStorage per request
+├── lib/          # Reusable helpers (encryption, password, logger, DbLoggerService)
+├── modules/      # Feature modules (auth, patients, permissions, permissions-admin)
+├── prisma/       # Prisma schema, migrations, extensions, middleware
+├── seed/         # Database seed scripts
+├── tests/        # Shared test helpers and mocks
+├── types/        # Shared TypeScript types
+├── app.module.ts
+├── app.controller.ts
+└── main.ts
 ```
 
 ## 🛠️ Setup
 
-1. **Install dependencies**
+1. **Set up .env**
 
 ```bash
-pnpm install
+cp .env.example .env
 ```
 
-2. **Set up .env**
-
-Create a .env file in the root directory and configure your environment variables:
+Then fill in your values:
 
 ```bash
 NODE_ENV="development" | "production"
-FRONTEND_URL=your_frontend_connection_string
-DATABASE_URL=your_database_connection_string
-JWT_SECRET=your_jwt_secret_key
-PORT=your_desired_port_number
+FRONTEND_URL=your_frontend_url
+DATABASE_URL=your_postgresql_connection_string
+JWT_SECRET=your_jwt_secret
+PORT=3001
+DB_HMAC_KEY_V1=your_hmac_key_hex
+DB_ENCRYPTION_KEY_V1=your_encryption_key_hex
 ```
 
-3. **Run migrations**
+2. **Run full local setup**
 
 ```bash
-pnpm prisma:generate
-pnpm prisma:migrate
-pnpm prisma:studio
+pnpm setup:local
 ```
 
-4. **Start the server**
+This will automatically:
+
+- Start Docker (PostgreSQL)
+- Install dependencies
+- Generate Prisma client
+- Run migrations
+- Build the project
+- Seed the database
+
+3. **Start the server**
 
 ```bash
-pnpm run dev
+pnpm start:dev  # watch mode
+pnpm start      # production mode
 ```
 
 ## 📖 Features
 
 - Modular NestJS architecture (controllers, modules, services, guards)
 - JWT authentication with access + refresh tokens and DB persistence
-- Secure logout with refresh token invalidation / blacklist
-- Role-based access control with permission overrides and organizational unit checks
-- User registration with GivenName and Surname normalization
-- Admin-managed password reset and must-change-password enforcement
-- Audit logging for all critical operations
-- Input validation using Zod
-- Permission caching for performance
+- Secure logout with refresh token blacklist
+- Role-based access control (RBAC) with per-user permission overrides
+- Organizational unit context for fine-grained access control
+- Patient module with encrypted PESEL and PeselStatus enum
+- AES-256-GCM encryption for sensitive fields with key versioning
+- HMAC-based search index for encrypted fields
+- Automatic audit logging via Prisma extension for all CRUD operations
+- Sensitive field redaction in audit logs (`[REDACTED]`)
+- Manual audit triggers for edge cases outside Prisma
+- Input validation using Zod schemas
+- Permission caching with in-memory store
 - Centralized error handling via NestJS exception filters
-- Historical password storage (PasswordHistory)
-- Operation logs for compliance and traceability
+- GivenName and Surname normalization and deduplication
+- Password history tracking (last 5 passwords)
+- Admin-managed password reset with mustChangePassword enforcement
+- Request context propagation via AsyncLocalStorage
+- Structured logging with Winston
 
 ## 🧪 Tests
 
-1. **Run tests**
-
 ```bash
-pnpm test
+pnpm test          # run all tests
+pnpm test:unit     # unit tests only
+pnpm test:int      # integration tests only
+pnpm test:watch    # watch mode
+pnpm test:cov      # with coverage report
 ```
+
+Current coverage: ~71% overall
+
+## 📘 Documentation
+
+- [DECISIONS.md](./DECISIONS.md) — Architecture and technical decisions
+- [DATABASE.md](./DATABASE.md) — Database model overview
+- [CHANGELOG.md](./CHANGELOG.md) — Version history
 
 ## 📘 License
 

@@ -8,7 +8,8 @@ This document outlines key design and architecture decisions for the rehab-backe
 
 ## Table of Contents
 
-- [Decision 014 - Encryption of sensitive data](#decision-013---encryption-of-sensitive-data)
+- [Decision 015 - Patient data encryption and PESEL handling](#decision15---patient-data-encryption-and-pesel-handling)
+- [Decision 014 - Encryption of sensitive data](#decision-014---encryption-of-sensitive-data)
 - [Decision 013 - Automated Audit Logging via Prisma Middleware](#decision-013---automated-audit-logging-via-prisma-middleware)
 - [Decision 012 - JWT Access & Refresh Tokens with Database Persistence](#decision-012---jwt-access--refresh-tokens-with-database-persistence)
 - [Decision 011 - NestJS as Backend Framework](#decision-011---nestjs-as-backend-framework)
@@ -206,3 +207,22 @@ This document outlines key design and architecture decisions for the rehab-backe
   - Protects user privacy and sensitive medical or personal information.
   - Aligns with best practices, HIPAA/GDPR compliance, and audit requirements.
   - Centralized encryption approach ensures consistency and reduces risk of accidental leaks.
+
+## Decision 015 - Patient data encryption and PESEL handling
+
+- **Date**: 2026-05-30
+- **Status**: Accepted
+- **Context**: The system handles patient data including PESEL — a unique national identifier in Poland. PESEL is considered sensitive personal data under GDPR and Polish medical data regulations. Storing it in plaintext would violate compliance requirements and expose patients to identity theft in case of a data breach.
+- **Decision**:
+  - PESEL is never stored in plaintext in the database.
+  - `peselHmac` — HMAC-SHA256 hash used as a unique index for fast lookup without exposing the value.
+  - `peselEncrypted` — AES-256-GCM encrypted value for storage, decrypted only on authorized read.
+  - Key versioning (`keyVersion`) allows future key rotation without data loss.
+  - Decryption happens only in the service layer, never in the database or controller.
+  - Access to decrypted PESEL is protected by `JwtAuthGuard` and `AuthorizationGuard`.
+- **Rationale**:
+  - Same encryption pattern as login/email in `User` model — consistent approach across all sensitive data.
+  - HMAC allows searching by PESEL without decrypting — O(1) lookup with unique index.
+  - AES-256-GCM provides authenticated encryption — detects tampering.
+  - Key rotation support future-proofs the system against key compromise.
+  - Follows the principle of least privilege — only authorized users with valid JWT can access decrypted PESEL.
