@@ -5,13 +5,14 @@ import { PrismaSessionMiddleware } from '#prisma/middleware/prisma-session.js';
 import { PrismaModule } from '#prisma/prisma.module.js';
 import { LoggerModule } from '#lib/logger/logger.module.js';
 import { AuthModule } from '#modules/auth/v1/auth.module.js';
+import { HealthModule } from './health/health.module.js';
 import { PatientsModule } from '#modules/patients/patients.module.js';
 import { PermissionsModule } from '#modules/permissions/permissions.module.js';
 import { PermissionsAdminModule } from '#modules/permissions-admin/permissions-admin.module.js';
+import { VisitsModule } from '#modules/visits/visits.module.js';
 import { CacheModule } from '@nestjs/cache-manager';
-import { ConfigModule } from '@nestjs/config';
 import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
-import { VisitsModule } from './modules/visits/visits.module.js';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -35,6 +36,9 @@ import { VisitsModule } from './modules/visits/visits.module.js';
 
     // Auth
     AuthModule,
+
+    //health checks
+    HealthModule,
 
     // Permissions
     PermissionsModule,
