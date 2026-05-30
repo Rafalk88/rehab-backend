@@ -51,6 +51,8 @@ model User {
   operationLogs         OperationLog[]
   refreshTokens         RefreshToken[]
   blacklistedTokens     BlacklistedToken[]
+  assignedVisits Visit[] @relation("AssignedVisits")
+  createdVisits  Visit[] @relation("CreatedVisits")
 }
 
 model GivenName {
@@ -108,6 +110,7 @@ model OrganizationalUnit {
   retentionUntil DateTime? @map("retention_until")
 
   users          User[]
+  visits         Visit[]
 }
 
 model Role {
@@ -240,7 +243,41 @@ model Patient {
   secondName      GivenName?  @relation("PatientSecondName", fields: [secondNameId], references: [id])
   surname         Surname?    @relation(fields: [surnameId], references: [id])
   sex             Sex?        @relation(fields: [sexId], references: [id])
+  visits          Visit[]
+}
 
-  // TODO: Phase 2 - insurance, documents, address, contacts
-  // TODO: Phase 3 - medical data, guardians, authorizations
+  enum VisitStatus {
+  PLANNED      // zaplanowana
+  IN_PROGRESS  // realizowana
+  COMPLETED    // zrealizowana
+  CANCELLED    // anulowana
+}
+
+model Visit {
+  id                   String      @id @default(uuid()) @db.Uuid
+
+  // Relacje główne
+  patientId            String      @db.Uuid @map("patient_id")
+  organizationalUnitId String      @db.Uuid @map("organizational_unit_id")
+  assignedToId         String?     @db.Uuid @map("assigned_to_id") // lekarz/fizjo
+
+  // Dane wizyty
+  date                 DateTime    @map("date")
+  status               VisitStatus @default(PLANNED) @map("status")
+  notes                String?     @map("notes")
+
+  // Audit
+  createdAt            DateTime    @default(now()) @map("created_at")
+  updatedAt            DateTime    @default(now()) @updatedAt @map("updated_at")
+  createdBy            String?     @db.Uuid @map("created_by")
+  updatedBy            String?     @db.Uuid @map("updated_by")
+  deletedAt            DateTime?   @map("deleted_at")
+
+  // Relacje
+  patient              Patient     @relation(fields: [patientId], references: [id])
+  organizationalUnit   OrganizationalUnit @relation(fields: [organizationalUnitId], references: [id])
+  assignedTo           User?       @relation("AssignedVisits", fields: [assignedToId], references: [id])
+  createdByUser        User?       @relation("CreatedVisits", fields: [createdBy], references: [id])
+
+  // TODO: Phase 2 - procedures per visit
 }

@@ -11,6 +11,7 @@ import { PermissionsAdminModule } from '#modules/permissions-admin/permissions-a
 import { CacheModule } from '@nestjs/cache-manager';
 import { ConfigModule } from '@nestjs/config';
 import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
+import { VisitsModule } from './modules/visits/visits.module.js';
 
 @Module({
   imports: [
@@ -44,6 +45,9 @@ import { Module, MiddlewareConsumer, NestModule } from '@nestjs/common';
 
     // Patients
     PatientsModule,
+
+    // Visits
+    VisitsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
