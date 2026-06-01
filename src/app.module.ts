@@ -6,6 +6,7 @@ import { PrismaModule } from '#prisma/prisma.module.js';
 import { LoggerModule } from '#lib/logger/logger.module.js';
 import { AuthModule } from '#modules/auth/v1/auth.module.js';
 import { HealthModule } from './health/health.module.js';
+import { OrganizationalUnitsModule } from '#modules/organizational-units/organizational-units.module.js';
 import { PatientsModule } from '#modules/patients/patients.module.js';
 import { PermissionsModule } from '#modules/permissions/permissions.module.js';
 import { PermissionsAdminModule } from '#modules/permissions-admin/permissions-admin.module.js';
@@ -52,6 +53,9 @@ import { ConfigModule } from '@nestjs/config';
 
     // Visits
     VisitsModule,
+
+    // Organizational Units
+    OrganizationalUnitsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
