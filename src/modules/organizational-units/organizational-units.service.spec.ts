@@ -1,5 +1,6 @@
 import { OrganizationalUnitsService } from './organizational-units.service.js';
 import type { OrganizationalUnit } from '#generated/prisma/index.js';
+import { PrismaService } from '#prisma/prisma.service.js';
 import { createPrismaMock, type MockPrisma } from '#tests/helpers/prisma-mock.js';
 import { Test, TestingModule } from '@nestjs/testing';
 
@@ -17,8 +18,6 @@ describe('OrganizationalUnitsService', () => {
   beforeEach(async () => {
     prisma = createPrismaMock();
 
-    const { PrismaService } = await import('#prisma/prisma.service.js');
-
     const module: TestingModule = await Test.createTestingModule({
       providers: [OrganizationalUnitsService, { provide: PrismaService, useValue: prisma }],
     }).compile();
@@ -27,7 +26,7 @@ describe('OrganizationalUnitsService', () => {
   });
 
   describe('findAll', () => {
-    xit('get the data from the database', async () => {
+    it('get the data from the database', async () => {
       prisma.organizationalUnit.findMany.mockResolvedValueOnce(OU_DATA);
 
       const result = await service.getOrganizationalUnits();
@@ -35,7 +34,7 @@ describe('OrganizationalUnitsService', () => {
       expect(result).toEqual(OU_DATA);
     });
 
-    xit('get empty table from the database', async () => {
+    it('get empty table from the database', async () => {
       prisma.organizationalUnit.findMany.mockResolvedValueOnce(EMPTY_DATA);
 
       const result = await service.getOrganizationalUnits();
