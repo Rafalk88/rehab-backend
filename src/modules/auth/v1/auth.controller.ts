@@ -8,9 +8,10 @@ import {
 } from './auth.schemas.js';
 import { JwtAuthGuard } from './guards/jwt-auth.guard.js';
 import { AuthorizationGuard } from '#common/guards/authorization.guard.js';
+import { UserIdInterceptor } from '#common/interceptors/UserId.interceptor.js';
 import { ZodValidationPipe } from '#common/pipes/zod-validation.pipe.js';
 import { Permissions } from '#modules/permissions/decorators/permission.decorator.js';
-import { Controller, Post, Body, Req, UseGuards, Param } from '@nestjs/common';
+import { Controller, Post, Body, Req, UseGuards, Param, UseInterceptors } from '@nestjs/common';
 import type { Request } from 'express';
 
 interface JwtRequest extends Request {
@@ -22,6 +23,7 @@ interface JwtRequest extends Request {
   };
 }
 
+@UseInterceptors(UserIdInterceptor)
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}

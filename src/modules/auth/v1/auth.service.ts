@@ -314,7 +314,7 @@ export class AuthService {
         retentionUntil,
         ipAddress,
       });
-      
+
       throw error;
     }
 

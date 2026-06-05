@@ -26,6 +26,13 @@ export class RequestContextService {
     return this.storage.getStore();
   }
 
+  setUserId(userId: string) {
+    const store = this.storage.getStore();
+    if (store) {
+      store.userId = userId;
+    }
+  }
+
   setAuditMeta(meta: AuditMeta) {
     const store = this.storage.getStore();
     if (store) {
