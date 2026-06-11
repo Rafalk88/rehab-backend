@@ -204,4 +204,19 @@ export class SeedService {
       });
     }
   }
+
+  async seedOrganizationalUnits() {
+    const organizationalUnits = [
+      { name: 'POR11', description: 'Poradnia rehabilitacyjna', createdBy: SYSTEM_USER_ID },
+      { name: 'POR19', description: 'Zakład rehabilitacji leczniczej', createdBy: SYSTEM_USER_ID },
+    ];
+
+    for (const { name, description } of organizationalUnits) {
+      await this.prisma.organizationalUnit.upsert({
+        where: { name },
+        update: {},
+        create: { name, description, createdBy: SYSTEM_USER_ID, updatedBy: SYSTEM_USER_ID },
+      });
+    }
+  }
 }

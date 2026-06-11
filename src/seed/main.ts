@@ -22,6 +22,8 @@ async function bootstrap() {
   logger.log('✅ Blocked user added');
   await seedService.seedUserRoles();
   logger.log('✅ Add roles to users');
+  await seedService.seedOrganizationalUnits();
+  logger.log('✅ Add organizational units');
   await appContext.close();
 }
 
