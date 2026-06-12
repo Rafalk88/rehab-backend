@@ -219,4 +219,108 @@ export class SeedService {
       });
     }
   }
+
+  async seedPatients() {
+    const pesel1 = '90010112345';
+    const pesel2 = '85030267890';
+
+    const firstName1 = await this.prisma.givenName.upsert({
+      where: { firstName: 'Jan' },
+      update: {},
+      create: { firstName: 'Jan', createdBy: SYSTEM_USER_ID, updatedBy: SYSTEM_USER_ID },
+    });
+
+    const surname1 = await this.prisma.surname.upsert({
+      where: { surname: 'Kowalski' },
+      update: {},
+      create: { surname: 'Kowalski', createdBy: SYSTEM_USER_ID, updatedBy: SYSTEM_USER_ID },
+    });
+
+    const firstName2 = await this.prisma.givenName.upsert({
+      where: { firstName: 'Anna' },
+      update: {},
+      create: { firstName: 'Anna', createdBy: SYSTEM_USER_ID, updatedBy: SYSTEM_USER_ID },
+    });
+
+    const surname2 = await this.prisma.surname.upsert({
+      where: { surname: 'Nowak' },
+      update: {},
+      create: { surname: 'Nowak', createdBy: SYSTEM_USER_ID, updatedBy: SYSTEM_USER_ID },
+    });
+
+    const male = await this.prisma.sex.findUnique({ where: { sex: 'mężczyzna' } });
+    const female = await this.prisma.sex.findUnique({ where: { sex: 'kobieta' } });
+
+    if (!male || !female) throw new Error('Sex not found');
+
+    const patient1 = await this.prisma.patient.upsert({
+      where: { peselHmac: computeHmac(pesel1, CURRENT_KEY_VERSION) },
+      update: {},
+      create: {
+        peselHmac: computeHmac(pesel1, CURRENT_KEY_VERSION),
+        peselEncrypted: aesGcmEncrypt(pesel1, CURRENT_KEY_VERSION),
+        keyVersion: CURRENT_KEY_VERSION,
+        firstNameId: firstName1.id,
+        surnameId: surname1.id,
+        dateOfBirth: new Date('1990-01-01'),
+        sexId: male.id,
+        peselStatus: 'ASSIGNED',
+        createdBy: SYSTEM_USER_ID,
+        updatedBy: SYSTEM_USER_ID,
+      },
+    });
+
+    const patient2 = await this.prisma.patient.upsert({
+      where: { peselHmac: computeHmac(pesel2, CURRENT_KEY_VERSION) },
+      update: {},
+      create: {
+        peselHmac: computeHmac(pesel2, CURRENT_KEY_VERSION),
+        peselEncrypted: aesGcmEncrypt(pesel2, CURRENT_KEY_VERSION),
+        keyVersion: CURRENT_KEY_VERSION,
+        firstNameId: firstName2.id,
+        surnameId: surname2.id,
+        dateOfBirth: new Date('1985-03-02'),
+        sexId: female.id,
+        peselStatus: 'ASSIGNED',
+        createdBy: SYSTEM_USER_ID,
+        updatedBy: SYSTEM_USER_ID,
+      },
+    });
+
+    return { patient1, patient2 };
+  }
+
+  async seedVisits() {
+    const unit = await this.prisma.organizationalUnit.findUnique({
+      where: { name: 'POR19' },
+    });
+
+    if (!unit) throw new Error('OrganizationalUnit not found');
+
+    const { patient1, patient2 } = await this.seedPatients();
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const visits = [
+      { patientId: patient1.id, date: today, status: 'PLANNED' },
+      { patientId: patient1.id, date: today, status: 'IN_PROGRESS' },
+      { patientId: patient2.id, date: today, status: 'PLANNED' },
+      { patientId: patient2.id, date: new Date(today.getTime() + 86400000), status: 'PLANNED' },
+      { patientId: patient1.id, date: new Date(today.getTime() - 86400000), status: 'COMPLETED' },
+    ];
+
+    for (const visit of visits) {
+      await this.prisma.visit.create({
+        data: {
+          patientId: visit.patientId,
+          organizationalUnitId: unit.id,
+          date: visit.date,
+          status: visit.status as any,
+          createdBy: SYSTEM_USER_ID,
+          updatedBy: SYSTEM_USER_ID,
+        },
+      });
+    }
+  }
 }

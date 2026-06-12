@@ -24,6 +24,10 @@ async function bootstrap() {
   logger.log('✅ Add roles to users');
   await seedService.seedOrganizationalUnits();
   logger.log('✅ Add organizational units');
+  await seedService.seedPatients();
+  logger.log('✅ Add patients');
+  await seedService.seedVisits();
+  logger.log('✅ Add visits');
   await appContext.close();
 }
 
