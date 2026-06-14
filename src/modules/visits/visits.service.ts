@@ -6,6 +6,7 @@ import type {
 } from './visits.schema.js';
 import { AppError } from '#common/errors/app.error.js';
 import { RequestContextService } from '#context/request-context.service.js';
+import { aesGcmDecrypt } from '#lib/encryption.util.js';
 import { PrismaService } from '#prisma/prisma.service.js';
 import { Injectable } from '@nestjs/common';
 
@@ -74,7 +75,13 @@ export class VisitsService {
     ]);
 
     return {
-      data: visits,
+      data: visits.map((v) => ({
+        ...v,
+        patient: {
+          ...v.patient,
+          pesel: aesGcmDecrypt(v.patient.peselEncrypted),
+        },
+      })),
       meta: {
         total,
         page,
