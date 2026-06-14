@@ -35,17 +35,17 @@ export class VisitsService {
    * Returns paginated list of visits filtered by orgId and optionally date and status.
    */
   async findAll(query: FindAllVisitsDto) {
-    const { orgId, date, status, page, limit } = query;
+    const { orgId, dateFrom, dateTo, status, page, limit } = query;
     const skip = (page - 1) * limit;
 
     const where = {
       organizationalUnitId: orgId,
       deletedAt: null,
       ...(status && { status }),
-      ...(date && {
+      ...((dateFrom || dateTo) && {
         date: {
-          gte: new Date(new Date(date).setHours(0, 0, 0, 0)),
-          lte: new Date(new Date(date).setHours(23, 59, 59, 999)),
+          ...(dateFrom && { gte: new Date(new Date(dateFrom).setHours(0, 0, 0, 0)) }),
+          ...(dateTo && { lte: new Date(new Date(dateTo).setHours(23, 59, 59, 999)) }),
         },
       }),
     };

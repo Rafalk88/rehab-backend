@@ -5,7 +5,8 @@ import { z } from 'zod';
  */
 export const findAllVisitsSchema = z.object({
   orgId: z.string().uuid(),
-  date: z.string().datetime().optional(),
+  dateFrom: z.iso.date().optional(),
+  dateTo: z.iso.date().optional(),
   status: z.enum(['PLANNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).optional(),
   page: z
     .string()
