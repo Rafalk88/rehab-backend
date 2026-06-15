@@ -263,6 +263,7 @@ model Visit {
 
   // Dane wizyty
   date                 DateTime    @map("date")
+  completionDate       DateTime?   @map("completion_date")
   status               VisitStatus @default(PLANNED) @map("status")
   notes                String?     @map("notes")
 
