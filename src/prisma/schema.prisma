@@ -255,6 +255,8 @@ model Patient {
 
 model Visit {
   id                   String      @id @default(uuid()) @db.Uuid
+  ewusVerifiedAt       DateTime?   @map("ewus_verified_at")
+  billed               Boolean     @default(false) @map("billed")
 
   // Relacje główne
   patientId            String      @db.Uuid @map("patient_id")
@@ -262,7 +264,8 @@ model Visit {
   assignedToId         String?     @db.Uuid @map("assigned_to_id") // lekarz/fizjo
 
   // Dane wizyty
-  date                 DateTime    @map("date")
+  plannedDate          DateTime?   @map("planned_date")
+  registerDate         DateTime?   @map("register_date")
   completionDate       DateTime?   @map("completion_date")
   status               VisitStatus @default(PLANNED) @map("status")
   notes                String?     @map("notes")

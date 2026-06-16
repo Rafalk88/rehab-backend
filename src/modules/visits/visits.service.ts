@@ -43,7 +43,7 @@ export class VisitsService {
       deletedAt: null,
       ...(status && { status }),
       ...((dateFrom || dateTo) && {
-        date: {
+        plannedDate: {
           ...(dateFrom && { gte: new Date(new Date(dateFrom).setHours(0, 0, 0, 0)) }),
           ...(dateTo && { lte: new Date(new Date(dateTo).setHours(23, 59, 59, 999)) }),
         },
@@ -69,7 +69,7 @@ export class VisitsService {
             },
           },
         },
-        orderBy: { date: 'asc' },
+        orderBy: { plannedDate: 'asc' },
       }),
       this.prisma.visit.count({ where }),
     ]);
@@ -119,7 +119,10 @@ export class VisitsService {
             patientId: data.patientId,
             organizationalUnitId: data.organizationalUnitId,
             assignedToId: data.assignedToId ?? null,
-            date: new Date(data.date),
+            plannedDate: data.plannedDate,
+            registerDate: data.registerDate,
+            completionDate: data.completionDate,
+            status: data.status,
             notes: data.notes ?? null,
             createdBy,
             updatedBy: createdBy,
@@ -158,7 +161,7 @@ export class VisitsService {
   }
 
   /**
-   * Updates visit data (notes, assignedTo, date).
+   * Updates visit data (notes, assignedTo, dates).
    */
   async update(id: string, data: UpdateVisitDto) {
     const visit = await this.prisma.visit.findUnique({ where: { id } });
@@ -172,7 +175,9 @@ export class VisitsService {
         actionDetails: `Visit ${id} updated`,
         oldValues: {
           assignedToId: visit.assignedToId,
-          date: visit.date,
+          plannedDate: visit.plannedDate,
+          registerDate: visit.registerDate,
+          completionDate: visit.completionDate,
           notes: visit.notes,
         },
         newValues: { ...data },
@@ -182,7 +187,9 @@ export class VisitsService {
           where: { id },
           data: {
             ...(data.assignedToId && { assignedToId: data.assignedToId }),
-            ...(data.date && { date: new Date(data.date) }),
+            ...(data.plannedDate && { plannedDate: new Date(data.plannedDate) }),
+            ...(data.registerDate && { registerDate: new Date(data.registerDate) }),
+            ...(data.completionDate && { completionDate: new Date(data.completionDate) }),
             ...(data.notes !== undefined && { notes: data.notes }),
             updatedBy,
           },

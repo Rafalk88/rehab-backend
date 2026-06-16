@@ -29,8 +29,11 @@ export const createVisitSchema = z.object({
   patientId: z.string().uuid(),
   organizationalUnitId: z.string().uuid(),
   assignedToId: z.string().uuid().optional(),
-  date: z.string().datetime(),
+  plannedDate: z.iso.date().optional(),
+  registerDate: z.iso.date().optional(),
+  completionDate: z.iso.date().optional(),
   notes: z.string().max(1000).optional(),
+  status: z.enum(['PLANNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).optional(),
 });
 
 export type CreateVisitDto = z.infer<typeof createVisitSchema>;
@@ -49,7 +52,9 @@ export type UpdateVisitStatusDto = z.infer<typeof updateVisitStatusSchema>;
  */
 export const updateVisitSchema = z.object({
   assignedToId: z.string().uuid().optional(),
-  date: z.string().datetime().optional(),
+  plannedDate: z.iso.date().optional(),
+  registerDate: z.iso.date().optional(),
+  completionDate: z.iso.date().optional(),
   notes: z.string().max(1000).optional(),
 });
 

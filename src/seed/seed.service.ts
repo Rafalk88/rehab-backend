@@ -301,13 +301,33 @@ export class SeedService {
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
+    const ONE_DAY_IN_MS = 86400000;
 
     const visits = [
-      { patientId: patient1.id, date: today, status: 'PLANNED' },
-      { patientId: patient1.id, date: today, status: 'IN_PROGRESS' },
-      { patientId: patient2.id, date: today, status: 'PLANNED' },
-      { patientId: patient2.id, date: new Date(today.getTime() + 86400000), status: 'PLANNED' },
-      { patientId: patient1.id, date: new Date(today.getTime() - 86400000), status: 'COMPLETED' },
+      {
+        patientId: patient1.id,
+        plannedDate: new Date(today.getTime() + 8 * ONE_DAY_IN_MS),
+        status: 'PLANNED',
+      },
+      {
+        patientId: patient1.id,
+        plannedDate: new Date(today.getTime() - 4 * ONE_DAY_IN_MS),
+        registerDate: today,
+        status: 'IN_PROGRESS',
+      },
+      { patientId: patient2.id, plannedDate: today, status: 'PLANNED' },
+      {
+        patientId: patient2.id,
+        plannedDate: new Date(today.getTime() + 3 * ONE_DAY_IN_MS),
+        status: 'PLANNED',
+      },
+      {
+        patientId: patient1.id,
+        plannedDate: new Date(today.getTime() - 10 * ONE_DAY_IN_MS),
+        registerDate: new Date(today.getTime() - ONE_DAY_IN_MS),
+        completionDate: new Date(today.getTime() - ONE_DAY_IN_MS),
+        status: 'COMPLETED',
+      },
     ];
 
     for (const visit of visits) {
@@ -315,7 +335,9 @@ export class SeedService {
         data: {
           patientId: visit.patientId,
           organizationalUnitId: unit.id,
-          date: visit.date,
+          plannedDate: visit.plannedDate,
+          registerDate: visit.registerDate,
+          completionDate: visit.completionDate,
           status: visit.status as any,
           createdBy: SYSTEM_USER_ID,
           updatedBy: SYSTEM_USER_ID,
