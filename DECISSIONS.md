@@ -8,6 +8,8 @@ This document outlines key design and architecture decisions for the rehab-backe
 
 ## Table of Contents
 
+- [Decision 017 - Visit filtering strategy](#decision17---visit-filtering-strategy)
+- [Decision 016 - Visit module data model](#decision16---visit-module-data-model)
 - [Decision 015 - Patient data encryption and PESEL handling](#decision15---patient-data-encryption-and-pesel-handling)
 - [Decision 014 - Encryption of sensitive data](#decision-014---encryption-of-sensitive-data)
 - [Decision 013 - Automated Audit Logging via Prisma Middleware](#decision-013---automated-audit-logging-via-prisma-middleware)
@@ -226,3 +228,35 @@ This document outlines key design and architecture decisions for the rehab-backe
   - AES-256-GCM provides authenticated encryption — detects tampering.
   - Key rotation support future-proofs the system against key compromise.
   - Follows the principle of least privilege — only authorized users with valid JWT can access decrypted PESEL.
+
+## Decision 016 - Visit module data model
+
+- **Date**: 2026-06-18
+- **Status**: Accepted
+- **Context**: The rehabilitation system requires tracking patient visits with multiple lifecycle dates, insurance verification, and billing status. A single `date` field was insufficient to represent the full visit workflow.
+- **Decision**:
+  - Three separate date fields: `plannedDate`, `registerDate`, `completionDate` — each optional, representing different stages of the visit lifecycle.
+  - `ewusVerifiedAt` as `DateTime?` instead of `Boolean` — stores the verification timestamp, enabling daily expiration checks without additional fields.
+  - `billed` as `Boolean` — UI helper flag indicating if any billing entry exists, not a replacement for a full billing module.
+  - `VisitStatus` enum with 4 states: `PLANNED`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`.
+- **Rationale**:
+  - Separating dates reflects real workflow: scheduling → registration → completion.
+  - `ewusVerifiedAt` enables "is verified today?" logic without storing a separate date.
+  - `billed` flag improves UI visibility without requiring full billing module in MVP.
+  - Status enum enforces valid state transitions.
+
+---
+
+## Decision 017 - Visit filtering strategy
+
+- **Date**: 2026-06-18
+- **Status**: Accepted
+- **Context**: Visits need to be filtered differently depending on status. `IN_PROGRESS` visits should always be visible regardless of date range, while other statuses should respect the selected date range.
+- **Decision**:
+  - Filter by `plannedDate` range (`dateFrom`, `dateTo`) for all statuses.
+  - Frontend applies `dateFrom = 2000-01-01` when status is `IN_PROGRESS` to effectively show all active visits regardless of date.
+  - Backend remains agnostic — it filters by whatever `dateFrom`/`dateTo` is provided.
+- **Rationale**:
+  - Keeps backend logic simple and reusable.
+  - Frontend owns the business rule "show all active visits" — single responsibility.
+  - `2000-01-01` is a safe lower bound — system did not exist before that date.

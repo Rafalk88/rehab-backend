@@ -24,7 +24,7 @@ src/
 ├── common/       # Shared utilities, filters, guards, pipes, errors
 ├── context/      # RequestContextService — AsyncLocalStorage per request
 ├── lib/          # Reusable helpers (encryption, password, logger, DbLoggerService)
-├── modules/      # Feature modules (auth, patients, permissions, permissions-admin)
+├── modules/      # Feature modules (auth, patients, visits, permissions, permissions-admin)
 ├── prisma/       # Prisma schema, migrations, extensions, middleware
 ├── seed/         # Database seed scripts
 ├── tests/        # Shared test helpers and mocks
@@ -97,6 +97,8 @@ pnpm start      # production mode
 - Admin-managed password reset with mustChangePassword enforcement
 - Request context propagation via AsyncLocalStorage
 - Structured logging with Winston
+- Visit module with status management, date tracking (planned/register/completion), EWUŚ verification flag and billing flag
+- PESEL decryption included in visit responses
 
 ## 🧪 Tests
 

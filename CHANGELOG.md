@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/)
 
 ---
 
+## [0.8.0] - 2026-06-18
+
+### Added
+
+- **Visit module**
+  - `Visit` model with `plannedDate`, `registerDate`, `completionDate`, `ewusVerifiedAt`, `billed`, `status`
+  - `VisitStatus` enum: `PLANNED`, `IN_PROGRESS`, `COMPLETED`, `CANCELLED`
+  - `GET /api/v1/visits` — paginated list filtered by `orgId`, `dateFrom`, `dateTo`, `status`
+  - `POST /api/v1/visits` — create visit with audit logging
+  - `PATCH /api/v1/visits/:id/status` — update visit status only
+  - `PATCH /api/v1/visits/:id` — update visit data (dates, notes, assignedTo)
+  - PESEL decryption included in visit response (no N+1 queries)
+  - Seed data: 2 patients, 5 visits across different statuses and dates
+
+### Changed
+
+- `findAllVisitsSchema` — replaced single `date` with `dateFrom` and `dateTo` range
+- `VisitsService.findAll` — filters by `plannedDate` range, sorts by `plannedDate asc`
+- `DATABASE.md` — added Visit and VisitStatus documentation
+
 ## [0.7.0] - 2026-05-30
 
 ### Added

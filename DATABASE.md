@@ -232,3 +232,50 @@ Defines the status of a patient's PESEL number.
 | `NEWBORN`          | Newborn without PESEL          |
 | `FOREIGNER_EU`     | EU/EFTA citizen                |
 | `FOREIGNER_NON_EU` | Non-EU/EFTA foreigner          |
+
+## 📋 VisitStatus (enum)
+
+Defines the status of a visit.
+
+| Value         | Description             |
+| ------------- | ----------------------- |
+| `PLANNED`     | Visit planned/scheduled |
+| `IN_PROGRESS` | Visit currently ongoing |
+| `COMPLETED`   | Visit completed         |
+| `CANCELLED`   | Visit cancelled         |
+
+---
+
+## 🏥 Visit
+
+Stores visit data for patients within organizational units.
+
+### Fields
+
+- `id`: UUID, primary key
+- `ewus_verified_at`: DateTime? — timestamp of EWUŚ insurance verification (null = not verified today)
+- `billed`: Boolean — flag indicating if billing entry has been created (default: false)
+- `patient_id`: FK to Patient
+- `organizational_unit_id`: FK to OrganizationalUnit
+- `assigned_to_id`: FK to User (doctor/physiotherapist), optional
+- `planned_date`: DateTime? — when the visit was scheduled
+- `register_date`: DateTime? — when the patient was registered/accepted
+- `completion_date`: DateTime? — when the visit was closed
+- `status`: VisitStatus enum (default: PLANNED)
+- `notes`: String? — optional notes visible from the list view
+- Audit fields: `created_at`, `updated_at`, `created_by`, `updated_by`, `deleted_at`
+
+### Relations
+
+- `patient`: Patient
+- `organizationalUnit`: OrganizationalUnit
+- `assignedTo`: User (optional)
+- `createdByUser`: User (optional)
+
+### Notes
+
+- `ewus_verified_at` instead of boolean — enables checking if verification is current (today)
+- `planned_date` is the primary sort and filter field
+- `billed` is a UI helper flag — does not replace full billing module
+- Phase 2: procedures per visit (many-to-many)
+- Phase 2: pessimistic locking for concurrent edit protection
