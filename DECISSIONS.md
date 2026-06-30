@@ -8,6 +8,7 @@ This document outlines key design and architecture decisions for the rehab-backe
 
 ## Table of Contents
 
+- [Decision 018 - Principle of Least Astonishment in commits & pull requests](#decision-018---principle-of-least-astonishment-in-commits--pull-requests)
 - [Decision 017 - Visit filtering strategy](#decision17---visit-filtering-strategy)
 - [Decision 016 - Visit module data model](#decision16---visit-module-data-model)
 - [Decision 015 - Patient data encryption and PESEL handling](#decision15---patient-data-encryption-and-pesel-handling)
@@ -260,3 +261,16 @@ This document outlines key design and architecture decisions for the rehab-backe
   - Keeps backend logic simple and reusable.
   - Frontend owns the business rule "show all active visits" — single responsibility.
   - `2000-01-01` is a safe lower bound — system did not exist before that date.
+
+## Decision 018 - Principle of Least Astonishment in commits & pull requests
+
+- **Date**: 2026-06-30
+- **Status**: Accepted
+- **Context**: While working on `feature/visits-create-backend-tests`, the question arose whether to continue adding tests for `findAll`, `updateStatus`, and `update` methods within the same branch, or keep it strictly scoped to `create` as the branch name suggests.
+- **Decision**:
+  - Finish the current branch strictly according to its name/scope, even if a broader approach seems more efficient in the moment.
+  - For future feature branches, group tests by module (e.g. all `VisitsService` methods together) rather than splitting per single method, to reduce branch fragmentation.
+- **Rationale**:
+  - A branch/PR name is a contract — readers (including future self) should be able to predict its contents without surprises.
+  - Mixing process changes (how tests are organized) with in-progress work makes it harder to track what actually changed and why.
+  - Grouping tests by module reduces overhead from creating many small, single-purpose branches for closely related work.
