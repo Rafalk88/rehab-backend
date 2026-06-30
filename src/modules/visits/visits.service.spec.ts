@@ -91,5 +91,43 @@ describe('VisitsService', () => {
         }),
       );
     });
+
+    it('should throw error if patient not found', async () => {
+      prisma.patient.findUnique.mockResolvedValueOnce(null);
+
+      await expect(
+        service.create({
+          patientId: 'patient-1',
+          organizationalUnitId: 'orgUnit-1',
+          plannedDate: '2026-06-26',
+          status: 'PLANNED',
+        }),
+      ).rejects.toMatchObject({
+        name: 'AppError',
+        message: 'Patient not found',
+      });
+    });
+
+    it('should throw error if organizational unit not found', async () => {
+      prisma.patient.findUnique.mockResolvedValueOnce({
+        id: 'patient-1',
+        firstName: { firstName: 'Jan' },
+        surname: { surname: 'Kowalski ' },
+      } as PatientType);
+
+      prisma.organizationalUnit.findUnique.mockResolvedValueOnce(null);
+
+      await expect(
+        service.create({
+          patientId: 'patient-1',
+          organizationalUnitId: 'orgUnit-1',
+          plannedDate: '2026-06-26',
+          status: 'PLANNED',
+        }),
+      ).rejects.toMatchObject({
+        name: 'AppError',
+        message: 'Organizational unit not found',
+      });
+    });
   });
 });
