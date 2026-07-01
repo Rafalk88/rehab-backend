@@ -17,19 +17,6 @@ type VisitWithPatient = Prisma.VisitGetPayload<{
   include: { patient: { include: { firstName: true; surname: true } } };
 }>;
 
-const PATIENT_OBJECT = {
-  id: 'patient-1',
-  firstName: { firstName: 'Jan' },
-  surname: { surname: 'Kowalski' },
-};
-
-const SERVICE_DATA: CreateVisitDto = {
-  patientId: 'patient-1',
-  organizationalUnitId: 'orgUnit-1',
-  plannedDate: '2026-06-26',
-  status: 'PLANNED',
-};
-
 describe('VisitsService', () => {
   let service: VisitsService;
   let prisma: MockPrisma;
@@ -60,6 +47,19 @@ describe('VisitsService', () => {
   });
 
   describe('create', () => {
+    const PATIENT_OBJECT = {
+      id: 'patient-1',
+      firstName: { firstName: 'Jan' },
+      surname: { surname: 'Kowalski' },
+    };
+
+    const SERVICE_DATA: CreateVisitDto = {
+      patientId: 'patient-1',
+      organizationalUnitId: 'orgUnit-1',
+      plannedDate: '2026-06-26',
+      status: 'PLANNED',
+    };
+
     it('should create a visit successfully', async () => {
       prisma.patient.findUnique.mockResolvedValueOnce(PATIENT_OBJECT as PatientType);
 
@@ -110,6 +110,45 @@ describe('VisitsService', () => {
       await expect(service.create(SERVICE_DATA)).rejects.toMatchObject({
         name: 'AppError',
         message: 'Organizational unit not found',
+      });
+    });
+  });
+
+  describe('updateStatus', () => {
+    const SERVICE_DATA = { id: 'visit-1', status: 'PLANNED' } as Prisma.VisitGetPayload<{}>;
+
+    it('should update visit status successfully', async () => {
+      prisma.visit.findUnique.mockResolvedValueOnce(SERVICE_DATA);
+
+      prisma.visit.update.mockResolvedValueOnce({
+        ...SERVICE_DATA,
+        status: 'IN_PROGRESS',
+      });
+
+      const result = await service.updateStatus(SERVICE_DATA.id, { status: 'IN_PROGRESS' });
+
+      expect(requestContext.withAudit).toHaveBeenCalledTimes(1);
+      expect(requestContext.withAudit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          actionDetails: expect.stringContaining(
+            'Visit visit-1 status changed from PLANNED to IN_PROGRESS',
+          ),
+          oldValues: { status: SERVICE_DATA.status },
+          newValues: { status: 'IN_PROGRESS' },
+        }),
+        expect.any(Function),
+      );
+      expect(result).toMatchObject(expect.objectContaining({ status: 'IN_PROGRESS' }));
+    });
+
+    it('should throw error if visit not found', async () => {
+      prisma.visit.findUnique.mockResolvedValueOnce(null);
+
+      await expect(
+        service.updateStatus('visit-1', { status: 'IN_PROGRESS' }),
+      ).rejects.toMatchObject({
+        name: 'AppError',
+        message: 'Visit not found',
       });
     });
   });
