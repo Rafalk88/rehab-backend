@@ -19,7 +19,7 @@ import { Injectable } from '@nestjs/common';
  * - Retrieving paginated list of visits filtered by org unit and date,
  * - Creating new visits,
  * - Updating visit status (checkbox on list),
- * - Updating visit data (notes, assignedTo).
+ * - Updating visit data.
  *
  * Security note:
  * - Access should be protected by AuthorizationGuard.
@@ -161,7 +161,7 @@ export class VisitsService {
   }
 
   /**
-   * Updates visit data (notes, assignedTo, dates).
+   * Updates visit data (notes, assignedTo, dates, status, ewusVerifiedAt, billed).
    */
   async update(id: string, data: UpdateVisitDto) {
     const visit = await this.prisma.visit.findUnique({ where: { id } });
@@ -178,6 +178,9 @@ export class VisitsService {
           plannedDate: visit.plannedDate,
           registerDate: visit.registerDate,
           completionDate: visit.completionDate,
+          status: visit.status,
+          ewusVerifiedAt: visit.ewusVerifiedAt,
+          billed: visit.billed,
           notes: visit.notes,
         },
         newValues: { ...data },
@@ -190,6 +193,9 @@ export class VisitsService {
             ...(data.plannedDate && { plannedDate: new Date(data.plannedDate) }),
             ...(data.registerDate && { registerDate: new Date(data.registerDate) }),
             ...(data.completionDate && { completionDate: new Date(data.completionDate) }),
+            ...(data.status && { status: data.status }),
+            ...(data.ewusVerifiedAt && { ewusVerifiedAt: new Date(data.ewusVerifiedAt) }),
+            ...(data.billed !== undefined && { billed: data.billed }),
             ...(data.notes !== undefined && { notes: data.notes }),
             updatedBy,
           },

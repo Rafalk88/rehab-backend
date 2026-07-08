@@ -152,4 +152,75 @@ describe('VisitsService', () => {
       });
     });
   });
+
+  describe('update', () => {
+    it('should update visit successfully', async () => {
+      prisma.visit.findUnique.mockResolvedValueOnce({
+        id: 'visit-1',
+        plannedDate: new Date('2026-07-01'),
+        registerDate: null,
+        ewusVerifiedAt: null,
+        status: 'PLANNED',
+      } as Prisma.VisitGetPayload<{}>);
+
+      requestContext.get.mockReturnValueOnce({ userId: 'user-1', ipAddress: '127.0.0.1' });
+
+      await service.update('visit-1', {
+        registerDate: '2026-07-01',
+        ewusVerifiedAt: '2026-07-01',
+        status: 'IN_PROGRESS',
+      });
+
+      expect(requestContext.withAudit).toHaveBeenCalledTimes(1);
+      expect(requestContext.withAudit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          actionDetails: expect.stringContaining('Visit visit-1 updated'),
+          oldValues: expect.objectContaining({
+            plannedDate: new Date('2026-07-01'),
+            registerDate: null,
+            status: 'PLANNED',
+            ewusVerifiedAt: null,
+          }),
+          newValues: {
+            ewusVerifiedAt: '2026-07-01',
+            registerDate: '2026-07-01',
+            status: 'IN_PROGRESS',
+          },
+        }),
+        expect.any(Function),
+      );
+    });
+
+    it('should update visit successfully with userId in context', async () => {
+      prisma.visit.findUnique.mockResolvedValueOnce({
+        id: 'visit-1',
+        billed: false,
+      } as Prisma.VisitGetPayload<{}>);
+
+      requestContext.get.mockReturnValueOnce({
+        userId: 'user-2',
+        ipAddress: '127.0.0.1',
+      });
+
+      await service.update('visit-1', {
+        billed: true,
+      });
+
+      expect(prisma.visit.update).toHaveBeenCalledWith({
+        where: { id: 'visit-1' },
+        data: { billed: true, updatedBy: 'user-2' },
+      });
+    });
+
+    it('should throw error if visit not found', async () => {
+      prisma.visit.findUnique.mockResolvedValueOnce(null);
+
+      await expect(service.update('visit-1', { registerDate: '2026-07-01' })).rejects.toMatchObject(
+        {
+          name: 'AppError',
+          message: 'Visit not found',
+        },
+      );
+    });
+  });
 });

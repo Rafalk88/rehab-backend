@@ -274,3 +274,16 @@ This document outlines key design and architecture decisions for the rehab-backe
   - A branch/PR name is a contract — readers (including future self) should be able to predict its contents without surprises.
   - Mixing process changes (how tests are organized) with in-progress work makes it harder to track what actually changed and why.
   - Grouping tests by module reduces overhead from creating many small, single-purpose branches for closely related work.
+
+## Decision 019 - Visit module method principles
+
+- **Date**: 2026-07-08
+- **Status**: Accepted
+- **Context**: While working with module method tests for `update` I noticed that the method was outdated compared to the new feature. The concept had change but the method stayed the same. New fields hadn't been added to schema: `status`, `ewusVerifiedAt` and `billed` to be updatable. While trying to figure this out the next clue question was: "If we add all fields then if it necessary to still have `updateStatus` as separate method or merge it with `update` method?".
+- **Decision**:
+  - Leave separate methods as audit readability is more important than 1 more request per separate status change if necessary.
+  - Use `.refine()` as guard for developers to use proper method in the code isn't a solution. It is runtime verification non TS like safety.
+  - The mentioned fields will be added to the update, whereas updateStatus will exist independently.
+- **Rationale**:
+  - The separate methods provide different audit messages. `updateStatus` has a specific message regarding the status change itself, while `update` provides a general change message.
+  - Separating the methods ensures the error cannot occur at all, since a method that doesn't accept status makes it impossible to trigger this specific mistake. `.refine()` on the other hand, only detects the error after the fact — and only if a test actually exercises that exact case.

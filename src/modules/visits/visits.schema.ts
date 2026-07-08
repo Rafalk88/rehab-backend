@@ -1,3 +1,4 @@
+import { VisitStatus } from '#generated/prisma/index.js';
 import { z } from 'zod';
 
 /**
@@ -7,7 +8,7 @@ export const findAllVisitsSchema = z.object({
   orgId: z.string().uuid(),
   dateFrom: z.iso.date().optional(),
   dateTo: z.iso.date().optional(),
-  status: z.enum(['PLANNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).optional(),
+  status: z.enum(VisitStatus).optional(),
   page: z
     .string()
     .optional()
@@ -33,7 +34,7 @@ export const createVisitSchema = z.object({
   registerDate: z.iso.date().optional(),
   completionDate: z.iso.date().optional(),
   notes: z.string().max(1000).optional(),
-  status: z.enum(['PLANNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).optional(),
+  status: z.enum(VisitStatus).optional(),
 });
 
 export type CreateVisitDto = z.infer<typeof createVisitSchema>;
@@ -42,7 +43,7 @@ export type CreateVisitDto = z.infer<typeof createVisitSchema>;
  * Schema for PATCH /visits/:id/status body.
  */
 export const updateVisitStatusSchema = z.object({
-  status: z.enum(['PLANNED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']),
+  status: z.enum(VisitStatus),
 });
 
 export type UpdateVisitStatusDto = z.infer<typeof updateVisitStatusSchema>;
@@ -55,6 +56,9 @@ export const updateVisitSchema = z.object({
   plannedDate: z.iso.date().optional(),
   registerDate: z.iso.date().optional(),
   completionDate: z.iso.date().optional(),
+  status: z.enum(VisitStatus).optional(),
+  ewusVerifiedAt: z.iso.datetime().optional(),
+  billed: z.boolean().optional(),
   notes: z.string().max(1000).optional(),
 });
 
