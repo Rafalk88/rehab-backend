@@ -6,7 +6,7 @@
 ## Teraz (najbliższa sesja)
 
 **Zadanie:** RBAC deny by default, część 2: uprawnienia dla tras
-**Gałąź:** `fix/rbac-deny-by-default`
+**Gałąź:** `fix/rbac-patients-visits`
 **Zrobione, gdy:** wszystkie trasy za `AuthorizationGuard` mają `@Permissions`, a `pnpm test:unit` jest zielony.
 
 - [ ] Dodać `@Permissions` do tras z listy poniżej
@@ -18,16 +18,16 @@
 
 Trasy za `AuthorizationGuard` bez `@Permissions` (stan z 28.10). Po zmianie guarda zwracają 403 dla wszystkich.
 
-| Trasa | Metoda w kontrolerze | Proponowane uprawnienie |
-|---|---|---|
-| `GET /patients` | `PatientsController.findAll` | `patients.read` |
-| `GET /patients/:id` | `PatientsController.findOne` | `patients.read` |
-| `POST /patients` | `PatientsController.create` | `patients.create` |
-| `GET /visits` | `VisitsController` (GET) | `visits.read` |
-| `POST /visits` | `VisitsController` (POST) | `visits.create` |
-| `PATCH /visits/:id/status` | `VisitsController` (PATCH status) | `visits.update_status` |
-| `PATCH /visits/:id` | `VisitsController` (PATCH) | `visits.update` |
-| `GET /organizational-units` | `OrganizationalUnitsController` (GET) | `org_units.read` |
+| Trasa                       | Metoda w kontrolerze                  | Proponowane uprawnienie |
+| --------------------------- | ------------------------------------- | ----------------------- |
+| `GET /patients`             | `PatientsController.findAll`          | `patients.read`         |
+| `GET /patients/:id`         | `PatientsController.findOne`          | `patients.read`         |
+| `POST /patients`            | `PatientsController.create`           | `patients.create`       |
+| `GET /visits`               | `VisitsController` (GET)              | `visits.read`           |
+| `POST /visits`              | `VisitsController` (POST)             | `visits.create`         |
+| `PATCH /visits/:id/status`  | `VisitsController` (PATCH status)     | `visits.update_status`  |
+| `PATCH /visits/:id`         | `VisitsController` (PATCH)            | `visits.update`         |
+| `GET /organizational-units` | `OrganizationalUnitsController` (GET) | `org_units.read`        |
 
 Bez zmian: `logout` i `change-password` mają tylko `JwtAuthGuard`, a `login`, `refresh-token` i `health` nie mają guarda. `@AuthenticatedOnly()` jest potrzebny dopiero wtedy, gdy pojawi się trasa za `AuthorizationGuard` dostępna dla każdego zalogowanego.
 
@@ -37,7 +37,7 @@ Uwaga: w kodzie są dwie konwencje nazw (`register.user` z kropką i `roles_assi
 
 _(uzupełnić po `pnpm test:unit`)_
 
-- 
+-
 
 ## Kolejka (po kolei, nie skacz)
 
@@ -50,11 +50,11 @@ _(uzupełnić po `pnpm test:unit`)_
 
 ## Pomysły na później (nie ruszać przed demo)
 
-- 
+-
 
 ## Zrobione
 
-| Data | Co |
-|---|---|
-| 2026-10-28 | Guard: brak `@Permissions` = 403 (deny by default) |
-| przed 26.10 | DECISIONS.md, linki, tabelka wersji dokumentacji |
+| Data        | Co                                                 |
+| ----------- | -------------------------------------------------- |
+| 2026-10-28  | Guard: brak `@Permissions` = 403 (deny by default) |
+| przed 26.10 | DECISIONS.md, linki, tabelka wersji dokumentacji   |
