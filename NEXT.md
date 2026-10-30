@@ -9,7 +9,7 @@
 **Gałąź:** `refactor/permissions-constants` (od świeżego `main`)
 **Zrobione, gdy:** żaden string uprawnienia nie jest wpisany ręcznie w kontrolerach ani w seedzie, literówka w nazwie się nie kompiluje, a `pnpm test:unit` i seed przechodzą.
 
-- [x] (0–5 min) Jeśli PR `fix/rbac-patients-visits` nie jest jeszcze zmergowany: merge, `git checkout main && git pull`, nowa gałąź
+- [ ] (0–5 min) Jeśli PR `fix/rbac-patients-visits` nie jest jeszcze zmergowany: merge, `git checkout main && git pull`, nowa gałąź
 - [ ] (5–25 min) `src/modules/permissions/permissions.constants.ts`: obiekt `PERMISSIONS` z `as const` i typ `Permission`, wszystkie nazwy z kontrolerów i seeda
 - [ ] (25–35 min) Dekorator `@Permissions` przyjmuje `Permission` zamiast `string`
 - [ ] (35–60 min) Kontrolery: zamiana stringów na `PERMISSIONS.X`. Kompilator pokaże każde miejsce, które zostało
@@ -25,11 +25,6 @@
 5. [ ] Deploy demo: konto dla każdej roli, fikcyjne dane, reset bazy
 6. [ ] CRUD gabinetu (minimalny, tylko tyle, ile potrzebuje obieg dokumentów)
 7. [ ] MVP obiegu dokumentów w dziale rehabilitacji, termin: 15.02.2027
-   - Jeden typ dokumentu, który znam z pracy, maks. 3–4 statusy (np. złożony → zaakceptowany → zrealizowany / odrzucony)
-   - Zmiana statusu chroniona przez `@Permissions`, każda zmiana w audycie (kto, kiedy, z jakiego na jaki)
-   - Wdrożony na demo, z kontem dla każdej roli. Tylko fikcyjne dane (RODO)
-   - Bez załączników, powiadomień i drugiego typu dokumentu w MVP
-   - Przed startem: 1 strona notatek, jak ten dokument dziś przechodzi
 
 ### Pułapki w projekcie (pamiętać)
 
