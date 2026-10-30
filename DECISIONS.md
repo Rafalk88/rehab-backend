@@ -8,6 +8,8 @@ This document outlines key design and architecture decisions for the rehab-backe
 
 ## Table of Contents
 
+- [Decision 020 - Deny by default in AuthorizationGuard](#decision-020---deny-by-default-in-authorizationguard)
+- [Decision 019 - Visit module method principles](#decision-019---visit-module-method-principles)
 - [Decision 018 - Principle of Least Astonishment in commits & pull requests](#decision-018---principle-of-least-astonishment-in-commits--pull-requests)
 - [Decision 017 - Visit filtering strategy](#decision17---visit-filtering-strategy)
 - [Decision 016 - Visit module data model](#decision16---visit-module-data-model)
@@ -287,3 +289,21 @@ This document outlines key design and architecture decisions for the rehab-backe
 - **Rationale**:
   - The separate methods provide different audit messages. `updateStatus` has a specific message regarding the status change itself, while `update` provides a general change message.
   - Separating the methods ensures the error cannot occur at all, since a method that doesn't accept status makes it impossible to trigger this specific mistake. `.refine()` on the other hand, only detects the error after the fact — and only if a test actually exercises that exact case.
+
+## Decision 020 - Deny by default in AuthorizationGuard
+
+- **Date**: 2026-10-30
+- **Status**: Accepted
+- **Context**: During a code review (assisted by an AI tool) I found that `AuthorizationGuard` returned `true` for any route without `@Permissions`. Patients, visits and organizational units had no decorator, so every logged-in user could read all patients, including PESEL. The fallback was meant for public routes like login or health-check, but those never reach this guard: they have no `AuthorizationGuard`, and unauthenticated requests are rejected earlier.
+- **Decision**:
+  - The guard denies access (403) when a route has no `@Permissions` metadata.
+  - All guarded routes declare their permission explicitly.
+  - Role permissions are seeded, with `@@unique([roleId, permission])` to keep the seed idempotent.
+  - Permission names use dot notation (`patients.read`).
+  - If a route for every logged-in user is needed, it gets an explicit decorator, never a silent fallback in the guard.
+- **Rationale**:
+  - A forgotten decorator now blocks a route instead of leaking sensitive data.
+  - Access rules are visible on the route itself, not hidden in the guard.
+- **Consequences**:
+  - Every new guarded route needs a permission and a seed entry, otherwise it returns 403.
+  - After schema changes, run `build` before `seed` (runtime imports resolve to `dist`).
