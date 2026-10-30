@@ -38,14 +38,18 @@ describe('AuthorizationGuard', () => {
     });
   });
 
-  it('✅ should allow access if no permission metadata is set', async () => {
+  it('❌ should throw forbidden error if no permission metadata is set', async () => {
     const ctx = createMockExecutionContext({
       user: { userId: 'user-1' },
     });
 
     jest.spyOn(Reflect, 'getMetadata').mockReturnValue(undefined);
 
-    await expect(guard.canActivate(ctx as ExecutionContext)).resolves.toBe(true);
+    await expect(guard.canActivate(ctx as ExecutionContext)).rejects.toMatchObject({
+      name: 'AppError',
+      message: 'Insufficient permissions',
+      statusCode: 403,
+    });
   });
 
   it('🚫 should deny access if PermissionsService returns false', async () => {

@@ -69,6 +69,59 @@ export class SeedService {
     }
   }
 
+  async seedRolePermissions() {
+    const map: Record<string, string[]> = {
+      'system.admin': [
+        'patient.read',
+        'patient.create',
+        'visits.read',
+        'visits.create',
+        'visits.update',
+        'visits.update_status',
+        'org_units.read',
+        'org_units.create',
+        'org_units.update',
+        'org_units.delete',
+        'user.read',
+        'user.create',
+        'user.update',
+        'user.delete',
+      ],
+      'system.auditor': ['patient.read', 'visits.read', 'org_units.read', 'user.read'],
+      'org.admin': [
+        'patient.read',
+        'patient.create',
+        'visits.read',
+        'visits.create',
+        'visits.update',
+        'visits.update_status',
+        'org_units.read',
+        'org_units.create',
+        'org_units.update',
+        'org_units.delete',
+        'user.read',
+        'user.create',
+        'user.update',
+      ],
+      'org.doctor': ['patient.read', 'visits.read', 'visits.update_status'],
+      'org.nurse': ['patient.read', 'visits.read', 'visits.update_status'],
+      'org.receptionist': ['patient.read', 'patient.create', 'visits.read', 'visits.create'],
+      'user.blocked': [],
+    };
+
+    for (const [roleName, perms] of Object.entries(map)) {
+      const role = await this.prisma.role.findUniqueOrThrow({ where: { name: roleName } });
+
+      for (const permission of perms) {
+        await this.prisma.rolePermission.upsert({
+          where: { roleId_permission: { roleId: role.id, permission } },
+          update: {},
+          create: { roleId: role.id, permission },
+        });
+      }
+    }
+  }
+
   async seedTestUser() {
     const firstName = await this.prisma.givenName.upsert({
       where: { firstName: 'test' },
@@ -96,6 +149,58 @@ export class SeedService {
     const passwordHash = await hashPassword('Test2025!!!!');
 
     const male = await this.prisma.sex.findUnique({ where: { sex: 'mężczyzna' } });
+    if (!male) throw new Error('Sex not found');
+
+    await this.prisma.user.upsert({
+      where: { loginHmac },
+      update: {},
+      create: {
+        loginHmac,
+        loginEncrypted,
+        loginMasked,
+        emailHmac,
+        emailEncrypted,
+        emailMasked,
+        passwordHash,
+        keyVersion: CURRENT_KEY_VERSION,
+        mustChangePassword: false,
+        isActive: true,
+        firstNameId: firstName.id,
+        surnameId: surname.id,
+        sexId: male.id,
+        createdBy: SYSTEM_USER_ID,
+        updatedBy: SYSTEM_USER_ID,
+      },
+    });
+  }
+
+  async seedNurseUser() {
+    const firstName = await this.prisma.givenName.upsert({
+      where: { firstName: 'Anna' },
+      update: {},
+      create: { firstName: 'Anna', createdBy: SYSTEM_USER_ID, updatedBy: SYSTEM_USER_ID },
+    });
+
+    const surname = await this.prisma.surname.upsert({
+      where: { surname: 'Nowak' },
+      update: {},
+      create: { surname: 'Nowak', createdBy: SYSTEM_USER_ID, updatedBy: SYSTEM_USER_ID },
+    });
+
+    const login = 'anowak';
+    const email = `${login}@vitala.com`;
+
+    const loginHmac = computeHmac(login, CURRENT_KEY_VERSION);
+    const loginEncrypted = aesGcmEncrypt(login, CURRENT_KEY_VERSION);
+    const loginMasked = maskString(login);
+
+    const emailHmac = computeHmac(email, CURRENT_KEY_VERSION);
+    const emailEncrypted = aesGcmEncrypt(email, CURRENT_KEY_VERSION);
+    const emailMasked = `${loginMasked}@vitala.com`;
+
+    const passwordHash = await hashPassword('Nurse2025!!!!');
+
+    const male = await this.prisma.sex.findUnique({ where: { sex: 'kobieta' } });
     if (!male) throw new Error('Sex not found');
 
     await this.prisma.user.upsert({
@@ -178,6 +283,7 @@ export class SeedService {
     const users = [
       { login: 't***r', role: 'system.admin' },
       { login: 'b***r', role: 'user.blocked' },
+      { login: 'a****k', role: 'org.nurse' },
     ];
 
     for (const { login, role } of users) {

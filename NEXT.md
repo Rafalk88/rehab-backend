@@ -25,11 +25,6 @@
 5. [ ] Deploy demo: konto dla każdej roli, fikcyjne dane, reset bazy
 6. [ ] CRUD gabinetu (minimalny, tylko tyle, ile potrzebuje obieg dokumentów)
 7. [ ] MVP obiegu dokumentów w dziale rehabilitacji, termin: 15.02.2027
-    - Jeden typ dokumentu, który znam z pracy, maks. 3–4 statusy (np. złożony → zaakceptowany → zrealizowany / odrzucony)
-    - Zmiana statusu chroniona przez `@Permissions`, każda zmiana w audycie (kto, kiedy, z jakiego na jaki)
-    - Wdrożony na demo, z kontem dla każdej roli. Tylko fikcyjne dane (RODO)
-    - Bez załączników, powiadomień i drugiego typu dokumentu w MVP
-    - Przed startem: 1 strona notatek, jak ten dokument dziś przechodzi
 
 ### Pułapki w projekcie (pamiętać)
 
@@ -45,7 +40,11 @@
 
 ## Zrobione
 
-| Data | Co |
-|---|---|
-| 2026-10-30 | RBAC deny by default: guard zwraca 403 bez `@Permissions`, uprawnienia na trasach pacjentów, wizyt i jednostek, konwencja nazw z kropką, seed uprawnień ról z `@@unique`, użytkownik `tnurse`, test ręczny 200/403, ADR 020, PR do `main` |
-| przed 26.10 | DECISIONS.md, linki, tabelka wersji dokumentacji |
+| Data        | Co                                                |
+| ----------- | ------------------------------------------------- |
+| 2026-10-30  | RBAC deny by default: guard zwraca 403 bez        |
+|             | `@Permissions`, uprawnienia na trasach pacjentów, |
+|             | wizyt i jednostek, konwencja nazw z kropką, seed  |
+|             | uprawnień ról z `@@unique`, użytkownik `tnurse`,  |
+|             | test ręczny 200/403, ADR 020, PR do `main`        |
+| przed 26.10 | DECISIONS.md, linki, tabelka wersji dokumentacji  |

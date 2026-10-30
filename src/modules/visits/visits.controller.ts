@@ -12,6 +12,7 @@ import {
 import { AuthorizationGuard } from '#common/guards/authorization.guard.js';
 import { ZodValidationPipe } from '#common/pipes/zod-validation.pipe.js';
 import { JwtAuthGuard } from '#modules/auth/v1/guards/jwt-auth.guard.js';
+import { Permissions } from '#modules/permissions/decorators/permission.decorator.js';
 import {
   Controller,
   Get,
@@ -46,6 +47,7 @@ export class VisitsController {
    * Returns paginated list of visits filtered by org unit and date.
    * GET /api/v1/visits?orgId=uuid&date=2026-05-29T00:00:00.000Z
    */
+  @Permissions('visits.read')
   @Get()
   @UsePipes(new ZodValidationPipe(findAllVisitsSchema))
   findAll(@Query() query: FindAllVisitsDto) {
@@ -56,6 +58,7 @@ export class VisitsController {
    * Creates a new visit.
    * POST /api/v1/visits
    */
+  @Permissions('visits.create')
   @Post()
   @UsePipes(new ZodValidationPipe(createVisitSchema))
   create(@Body() body: CreateVisitDto) {
@@ -66,6 +69,7 @@ export class VisitsController {
    * Updates visit status only — used for checkbox on list.
    * PATCH /api/v1/visits/:id/status
    */
+  @Permissions('visits.update_status')
   @Patch(':id/status')
   updateStatus(
     @Param('id') id: string,
@@ -78,6 +82,7 @@ export class VisitsController {
    * Updates visit data (notes, assignedTo, date).
    * PATCH /api/v1/visits/:id
    */
+  @Permissions('visits.update')
   @Patch(':id')
   update(
     @Param('id') id: string,

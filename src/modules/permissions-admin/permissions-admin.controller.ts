@@ -30,7 +30,7 @@ export class PermissionsAdminController {
    * Assign a role to a user.
    */
   @Post('users/:userId/roles/:roleId')
-  @Permissions('roles_assign')
+  @Permissions('roles.assign')
   async assignRoleToUser(
     @Param('userId') userId: string,
     @Param('roleId') roleId: string,
@@ -45,7 +45,7 @@ export class PermissionsAdminController {
    * Assign a permission to a role.
    */
   @Post('roles/:roleId/permissions')
-  @Permissions('permissions_assign')
+  @Permissions('permissions.assign')
   async assignPermissionToRole(
     @Param('roleId') roleId: string,
     @Body(new ZodValidationPipe(AssignPermissionSchema))
@@ -58,7 +58,7 @@ export class PermissionsAdminController {
    * Override a permission for a user.
    */
   @Post('users/:userId/overrides')
-  @Permissions('permissions_override')
+  @Permissions('permissions.override')
   async overridePermissionForUser(
     @Param('userId') userId: string,
     @Body(new ZodValidationPipe(OverridePermissionSchema))

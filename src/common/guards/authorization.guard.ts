@@ -23,7 +23,7 @@ export class AuthorizationGuard implements CanActivate {
     if (!userId) throw new AppError('unauthorized', 'Not authenticated');
 
     const requiredPermission = this.reflectPermission(context);
-    if (!requiredPermission) return true; // route without permissions (e.g. login, health-check)
+    if (!requiredPermission) throw new AppError('forbidden', 'Insufficient permissions');
 
     const targetOrgId = req.params.orgId ?? req.body?.orgId;
 
