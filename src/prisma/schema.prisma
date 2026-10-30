@@ -133,6 +133,8 @@ model RolePermission {
   roleId     String @db.Uuid @map("role_id")
   permission String
   role       Role   @relation(fields: [roleId], references: [id])
+
+  @@unique([roleId, permission])
 }
 
 model UserRole {

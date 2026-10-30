@@ -16,8 +16,12 @@ async function bootstrap() {
   logger.log('✅ Ses Model filed');
   await seedService.seedRoles();
   logger.log('✅ Add some basic roles');
+  await seedService.seedRolePermissions();
+  logger.log('✅ Add permissions to roles');
   await seedService.seedTestUser();
   logger.log('✅ Test user added');
+  await seedService.seedNurseUser();
+  logger.log('✅ Nurse user added');
   await seedService.seedBlockedUser();
   logger.log('✅ Blocked user added');
   await seedService.seedUserRoles();
