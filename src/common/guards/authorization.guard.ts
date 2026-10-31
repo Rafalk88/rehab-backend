@@ -1,6 +1,9 @@
 import { AppError } from '#common/errors/app.error.js';
+import { PERMISSIONS_KEY } from '#modules/permissions/decorators/permission.decorator.js';
+import { type Permission } from '#modules/permissions/permissions.constants.js';
 import { PermissionsService } from '#modules/permissions/permissions.service.js';
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
 import type { Request } from 'express';
 
 /**
@@ -11,7 +14,10 @@ import type { Request } from 'express';
  */
 @Injectable()
 export class AuthorizationGuard implements CanActivate {
-  constructor(private readonly permissionsService: PermissionsService) {}
+  constructor(
+    private readonly permissionsService: PermissionsService,
+    private readonly reflector: Reflector,
+  ) {}
 
   /**
    * Validates whether the current user can access the route.
@@ -22,28 +28,19 @@ export class AuthorizationGuard implements CanActivate {
     const userId = (req as any).user?.userId;
     if (!userId) throw new AppError('unauthorized', 'Not authenticated');
 
-    const requiredPermission = this.reflectPermission(context);
-    if (!requiredPermission) throw new AppError('forbidden', 'Insufficient permissions');
+    const required = this.reflector.getAllAndOverride<Permission[]>(PERMISSIONS_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+    if (!required?.length) throw new AppError('forbidden', 'Insufficient permissions');
 
     const targetOrgId = req.params.orgId ?? req.body?.orgId;
 
-    const hasAccess = await this.permissionsService.canAccess(
-      userId,
-      requiredPermission,
-      targetOrgId,
-    );
-
-    if (!hasAccess) throw new AppError('forbidden', 'Insufficient permissions');
+    for (const permission of required) {
+      const ok = await this.permissionsService.canAccess(userId, permission, targetOrgId);
+      if (!ok) throw new AppError('forbidden', 'Insufficient permissions');
+    }
 
     return true;
-  }
-
-  /**
-   * Reads required permission metadata from the route handler.
-   * In real app → use @SetMetadata('permission', 'value')
-   */
-  private reflectPermission(context: ExecutionContext): string | undefined {
-    const handler = context.getHandler();
-    return Reflect.getMetadata('permission', handler);
   }
 }

@@ -9,11 +9,11 @@
 **Gałąź:** `refactor/permissions-constants` (od świeżego `main`)
 **Zrobione, gdy:** żaden string uprawnienia nie jest wpisany ręcznie w kontrolerach ani w seedzie, literówka w nazwie się nie kompiluje, a `pnpm test:unit` i seed przechodzą.
 
-- [ ] (0–5 min) Jeśli PR `fix/rbac-patients-visits` nie jest jeszcze zmergowany: merge, `git checkout main && git pull`, nowa gałąź
-- [ ] (5–25 min) `src/modules/permissions/permissions.constants.ts`: obiekt `PERMISSIONS` z `as const` i typ `Permission`, wszystkie nazwy z kontrolerów i seeda
-- [ ] (25–35 min) Dekorator `@Permissions` przyjmuje `Permission` zamiast `string`
-- [ ] (35–60 min) Kontrolery: zamiana stringów na `PERMISSIONS.X`. Kompilator pokaże każde miejsce, które zostało
-- [ ] (60–75 min) Seed: mapa ról używa `PERMISSIONS.X`, `system.admin` dostaje `Object.values(PERMISSIONS)`
+- [x] (0–5 min) Jeśli PR `fix/rbac-patients-visits` nie jest jeszcze zmergowany: merge, `git checkout main && git pull`, nowa gałąź
+- [x] (5–25 min) `src/modules/permissions/permissions.constants.ts`: obiekt `PERMISSIONS` z `as const` i typ `Permission`, wszystkie nazwy z kontrolerów i seeda
+- [x] (25–35 min) Dekorator `@Permissions` przyjmuje `Permission` zamiast `string`
+- [x] (35–60 min) Kontrolery: zamiana stringów na `PERMISSIONS.X`. Kompilator pokaże każde miejsce, które zostało
+- [x] (60–75 min) Seed: mapa ról używa `PERMISSIONS.X`, `system.admin` dostaje `Object.values(PERMISSIONS)`
 - [ ] (75–90 min) `pnpm build`, `pnpm seed` (liczba uprawnień bez zmian), `pnpm test:unit`, commit `refactor(permissions): single source of truth for permission names`
 
 ## Kolejka (po kolei, nie skacz)

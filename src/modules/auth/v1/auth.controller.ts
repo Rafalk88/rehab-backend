@@ -11,6 +11,7 @@ import { AuthorizationGuard } from '#common/guards/authorization.guard.js';
 import { UserIdInterceptor } from '#common/interceptors/UserId.interceptor.js';
 import { ZodValidationPipe } from '#common/pipes/zod-validation.pipe.js';
 import { Permissions } from '#modules/permissions/decorators/permission.decorator.js';
+import { PERMISSIONS } from '#modules/permissions/permissions.constants.js';
 import { Controller, Post, Body, Req, UseGuards, Param, UseInterceptors } from '@nestjs/common';
 import type { Request } from 'express';
 
@@ -29,7 +30,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @UseGuards(JwtAuthGuard, AuthorizationGuard)
-  @Permissions('register.user')
+  @Permissions(PERMISSIONS.USERS.REGISTER)
   @Post('register')
   async register(
     @Body(new ZodValidationPipe(RegisterUserSchema))
@@ -89,7 +90,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard, AuthorizationGuard)
-  @Permissions('reset.password')
+  @Permissions(PERMISSIONS.USERS.RESET_PASSWORD)
   @Post('reset-password/:userId')
   async adminResetPassword(@Param('userId') userId: string, @Req() req: JwtRequest) {
     const adminId = req.user?.userId;
@@ -101,7 +102,7 @@ export class AuthController {
   }
 
   @UseGuards(JwtAuthGuard, AuthorizationGuard)
-  @Permissions('lock.user')
+  @Permissions(PERMISSIONS.USERS.LOCK)
   @Post('lock-user/:userId')
   async lockUser(
     @Param('userId') userId: string,

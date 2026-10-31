@@ -9,6 +9,7 @@ import { AuthorizationGuard } from '#common/guards/authorization.guard.js';
 import { ZodValidationPipe } from '#common/pipes/zod-validation.pipe.js';
 import { JwtAuthGuard } from '#modules/auth/v1/guards/jwt-auth.guard.js';
 import { Permissions } from '#modules/permissions/decorators/permission.decorator.js';
+import { PERMISSIONS } from '#modules/permissions/permissions.constants.js';
 import { Controller, Get, Post, Param, Query, Body, UseGuards, UsePipes } from '@nestjs/common';
 
 /**
@@ -33,7 +34,7 @@ export class PatientsController {
    * Returns paginated list of patients.
    * GET /api/v1/patients?page=1&limit=20
    */
-  @Permissions('patients.read')
+  @Permissions(PERMISSIONS.PATIENTS.READ)
   @Get()
   @UsePipes(new ZodValidationPipe(findAllPatientsSchema))
   findAll(@Query() query: FindAllPatientsDto) {
@@ -44,7 +45,7 @@ export class PatientsController {
    * Returns single patient by ID.
    * GET /api/v1/patients/:id
    */
-  @Permissions('patients.read')
+  @Permissions(PERMISSIONS.PATIENTS.READ)
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.patientsService.findOne(id);
@@ -54,7 +55,7 @@ export class PatientsController {
    * Creates a new patient.
    * POST /api/v1/patients
    */
-  @Permissions('patients.create')
+  @Permissions(PERMISSIONS.PATIENTS.CREATE)
   @Post()
   @UsePipes(new ZodValidationPipe(createPatientSchema))
   create(@Body() body: CreatePatientDto) {
