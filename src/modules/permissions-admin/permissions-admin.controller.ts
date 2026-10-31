@@ -4,6 +4,7 @@ import { AuthorizationGuard } from '#common/guards/authorization.guard.js';
 import { ZodValidationPipe } from '#common/pipes/zod-validation.pipe.js';
 import { JwtAuthGuard } from '#modules/auth/v1/guards/jwt-auth.guard.js';
 import { Permissions } from '#modules/permissions/decorators/permission.decorator.js';
+import { PERMISSIONS } from '#modules/permissions/permissions.constants.js';
 import { Controller, Post, Body, Param, UseGuards, Req } from '@nestjs/common';
 import type { Request } from 'express';
 
@@ -30,7 +31,7 @@ export class PermissionsAdminController {
    * Assign a role to a user.
    */
   @Post('users/:userId/roles/:roleId')
-  @Permissions('roles.assign')
+  @Permissions(PERMISSIONS.ROLES.ASSIGN)
   async assignRoleToUser(
     @Param('userId') userId: string,
     @Param('roleId') roleId: string,
@@ -45,7 +46,7 @@ export class PermissionsAdminController {
    * Assign a permission to a role.
    */
   @Post('roles/:roleId/permissions')
-  @Permissions('permissions.assign')
+  @Permissions(PERMISSIONS.PERMISSIONS.ASSIGN)
   async assignPermissionToRole(
     @Param('roleId') roleId: string,
     @Body(new ZodValidationPipe(AssignPermissionSchema))
@@ -58,7 +59,7 @@ export class PermissionsAdminController {
    * Override a permission for a user.
    */
   @Post('users/:userId/overrides')
-  @Permissions('permissions.override')
+  @Permissions(PERMISSIONS.PERMISSIONS.OVERRIDE)
   async overridePermissionForUser(
     @Param('userId') userId: string,
     @Body(new ZodValidationPipe(OverridePermissionSchema))

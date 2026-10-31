@@ -1,5 +1,11 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { PrismaClient } from '#generated/prisma/client.js';
+import {
+  ACTIONS,
+  PERMISSIONS,
+  ALL_PERMISSIONS,
+  type Permission,
+} from '#modules/permissions/permissions.constants.js';
 import { SEED_PRISMA } from './seed.tokens.js';
 import { computeHmac, aesGcmEncrypt, maskString } from '../lib/encryption.util.js';
 import { hashPassword } from '../lib/password.util.js';
@@ -70,42 +76,43 @@ export class SeedService {
   }
 
   async seedRolePermissions() {
-    const map: Record<string, string[]> = {
-      'system.admin': [
-        'patient.read',
-        'patient.create',
-        'visits.read',
-        'visits.create',
-        'visits.update',
-        'visits.update_status',
-        'org_units.read',
-        'org_units.create',
-        'org_units.update',
-        'org_units.delete',
-        'user.read',
-        'user.create',
-        'user.update',
-        'user.delete',
-      ],
-      'system.auditor': ['patient.read', 'visits.read', 'org_units.read', 'user.read'],
+    const map: Record<string, Permission[]> = {
+      'system.admin': ALL_PERMISSIONS,
+      'system.auditor': ALL_PERMISSIONS.filter((p) => p.endsWith(`.${ACTIONS.READ}`)),
       'org.admin': [
-        'patient.read',
-        'patient.create',
-        'visits.read',
-        'visits.create',
-        'visits.update',
-        'visits.update_status',
-        'org_units.read',
-        'org_units.create',
-        'org_units.update',
-        'org_units.delete',
-        'user.read',
-        'user.create',
-        'user.update',
+        PERMISSIONS.PATIENTS.READ,
+        PERMISSIONS.PATIENTS.CREATE,
+        PERMISSIONS.VISITS.READ,
+        PERMISSIONS.VISITS.CREATE,
+        PERMISSIONS.VISITS.UPDATE,
+        PERMISSIONS.VISITS.UPDATE_STATUS,
+        PERMISSIONS.ORG_UNITS.READ,
+        PERMISSIONS.ORG_UNITS.CREATE,
+        PERMISSIONS.ORG_UNITS.UPDATE,
+        PERMISSIONS.ORG_UNITS.DELETE,
+        PERMISSIONS.USERS.READ,
+        PERMISSIONS.USERS.CREATE,
+        PERMISSIONS.USERS.UPDATE,
       ],
-      'org.doctor': ['patient.read', 'visits.read', 'visits.update_status'],
-      'org.nurse': ['patient.read', 'visits.read', 'visits.update_status'],
-      'org.receptionist': ['patient.read', 'patient.create', 'visits.read', 'visits.create'],
+      'org.doctor': [
+        PERMISSIONS.PATIENTS.READ,
+        PERMISSIONS.VISITS.READ,
+        PERMISSIONS.VISITS.UPDATE_STATUS,
+        PERMISSIONS.ORG_UNITS.READ,
+      ],
+      'org.nurse': [
+        PERMISSIONS.PATIENTS.READ,
+        PERMISSIONS.VISITS.READ,
+        PERMISSIONS.VISITS.UPDATE_STATUS,
+        PERMISSIONS.ORG_UNITS.READ,
+      ],
+      'org.receptionist': [
+        PERMISSIONS.PATIENTS.READ,
+        PERMISSIONS.PATIENTS.CREATE,
+        PERMISSIONS.VISITS.READ,
+        PERMISSIONS.VISITS.CREATE,
+        PERMISSIONS.ORG_UNITS.READ,
+      ],
       'user.blocked': [],
     };
 
@@ -119,6 +126,10 @@ export class SeedService {
           create: { roleId: role.id, permission },
         });
       }
+
+      await this.prisma.rolePermission.deleteMany({
+        where: { roleId: role.id, permission: { notIn: perms } },
+      });
     }
   }
 
