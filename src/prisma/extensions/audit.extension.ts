@@ -1,4 +1,4 @@
-import { Prisma } from '#generated/prisma/client.js';
+import { Prisma, PrismaClient } from '#generated/prisma/client.js';
 
 type JsonVal = Prisma.InputJsonValue;
 type JsonObj = { [key: string]: JsonVal } | null;
@@ -12,9 +12,11 @@ export type AuditPayload = {
   args: unknown;
 };
 
+export type FindOld = (model: string, where: unknown) => Promise<unknown>;
+
 const SENSITIVE_FIELDS = [
   'passwordHash',
-  'tokenHash', 
+  'tokenHash',
   'loginHmac',
   'emailHmac',
   'loginEncrypted',
@@ -22,8 +24,8 @@ const SENSITIVE_FIELDS = [
 ];
 
 /**
-  * Redacts sensitive fields from a JSON object. Fields to redact are defined in SENSITIVE_FIELDS.
- * @param obj 
+ * Redacts sensitive fields from a JSON object. Fields to redact are defined in SENSITIVE_FIELDS.
+ * @param obj
  * @returns A new object with sensitive fields redacted.
  */
 function redactSensitive(obj: JsonObj): JsonObj {
@@ -33,6 +35,11 @@ function redactSensitive(obj: JsonObj): JsonObj {
     if (field in result) result[field] = '[REDACTED]';
   }
   return result;
+}
+
+/** Value comparison: Date, Decimal and Json fields are different objects even when equal. */
+function isSame(a: unknown, b: unknown): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
 }
 
 /**
@@ -47,11 +54,11 @@ export function computeDiff(
     return { oldValues: oldRecord, newValues: newRecord };
   }
 
-  const oldValues: JsonObj = {};
-  const newValues: JsonObj = {};
+  const oldValues: { [key: string]: JsonVal } = {};
+  const newValues: { [key: string]: JsonVal } = {};
 
   for (const key of Object.keys(newRecord)) {
-    if (oldRecord[key] !== newRecord[key]) {
+    if (!isSame(oldRecord[key], newRecord[key])) {
       oldValues[key] = oldRecord[key]!;
       newValues[key] = newRecord[key]!;
     }
@@ -65,8 +72,7 @@ export function computeDiff(
 
 /**
  * Handles audit operations for a given set of options and audit callback.
- * @param opts 
- * @param auditCallback 
+ * @param findOld loads the record before the mutation (query() can only run the current operation)
  * @returns result of the original query operation
  */
 export async function handleAuditOperation(
@@ -77,6 +83,7 @@ export async function handleAuditOperation(
     query: any;
   },
   auditCallback: (payload: AuditPayload) => Promise<void>,
+  findOld: FindOld,
 ) {
   const mutationOps = ['create', 'update', 'delete', 'upsert'] as const;
 
@@ -91,9 +98,10 @@ export async function handleAuditOperation(
 
   if (operation !== 'create' && where) {
     try {
-      const found = await query({ action: 'findUnique', where });
-      oldRecord = found && typeof found === 'object' ? found : null;
-    } catch {
+      const found = await findOld(model, where);
+      oldRecord = found && typeof found === 'object' ? (found as JsonObj) : null;
+    } catch (err) {
+      console.error('Audit: failed to load old record', err);
       oldRecord = null;
     }
   }
@@ -136,14 +144,24 @@ export async function handleAuditOperation(
  *  - before/after values
  *  - model name
  *  - operation type
+ *
+ * @param baseClient client WITHOUT this extension, used to read the record before the mutation
  */
-export function createAuditExtension(auditCallback: (payload: AuditPayload) => Promise<void>) {
+export function createAuditExtension(
+  auditCallback: (payload: AuditPayload) => Promise<void>,
+  baseClient: PrismaClient,
+) {
+  const findOld: FindOld = (model, where) => {
+    const delegate = (baseClient as any)[model.charAt(0).toLowerCase() + model.slice(1)];
+    return delegate.findUnique({ where });
+  };
+
   return Prisma.defineExtension({
     name: 'audit-extension',
     query: {
       $allModels: {
         async $allOperations(params) {
-          return handleAuditOperation(params, auditCallback);
+          return handleAuditOperation(params, auditCallback, findOld);
         },
       },
     },

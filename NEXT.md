@@ -9,7 +9,7 @@
 **Gałąź:** `test/audit-integration` (od świeżego `main`)
 **Zrobione, gdy:** jeden test integracyjny (update pacjenta → wpis w audycie ze starą i nową wartością) przechodzi na prawdziwej bazie albo czerwienią pokazuje konkretny błąd audytu, zapisany w kolejce. `pnpm test:unit` nadal zielone.
 
-- [ ] (0–5 min) Jeśli PR `refactor/permissions-constants` nie jest jeszcze zmergowany: merge, `git checkout main && git pull`, nowa gałąź
+- [x] (0–5 min) Jeśli PR `refactor/permissions-constants` nie jest jeszcze zmergowany: merge, `git checkout main && git pull`, nowa gałąź
 - [ ] (5–20 min) Rozpoznanie: gdzie powstaje wpis audytu (middleware/extension Prismy czy serwis), czy jest konfiguracja testów integracyjnych i osobna baza testowa (`.env.test`, `DATABASE_URL`)
 - [ ] (20–45 min) Jeden test: utwórz pacjenta, zmień jedno pole, odczytaj wpis audytu, sprawdź stare i nowe wartości. **Plan B:** jeśli w 30. minucie nie ma działającego połączenia z bazą testową, sprawdzić to ręcznie (`curl` PATCH + `SELECT` z tabeli audytu), zapisać wynik, a test automatyczny zostaje w kolejce
 - [ ] (45–55 min) Jeśli zostanie czas: drugi przypadek w tym samym teście (delete zapisuje stare wartości)

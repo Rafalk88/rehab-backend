@@ -45,6 +45,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
           },
         });
       },
+      this,
     );
 
     Object.assign(this, this.$extends(auditExtension));
