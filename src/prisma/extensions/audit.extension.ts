@@ -132,6 +132,7 @@ export async function handleAuditOperation(
     });
   } catch (err) {
     console.error('Audit error:', err);
+    //! TODO: add error handling strategy: fail silently, log, or throw error to rollback transaction
   }
 
   return result;
