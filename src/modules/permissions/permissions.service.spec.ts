@@ -60,14 +60,14 @@ describe('PermissionsService', () => {
             },
           },
         ],
-        userPermissions: [{ permission: 'PERM_DELETE', allowed: true }],
+        userPermissions: [{ permission: 'PERM_UPDATE', allowed: true }],
         organizationalUnitId: uuidv4(),
       } as never);
 
       const result = await service.getPermissions(userId);
 
       expect(result?.perms).toEqual(['PERM_READ', 'PERM_WRITE']);
-      expect(result?.overrides).toEqual([{ permission: 'PERM_DELETE', allowed: true }]);
+      expect(result?.overrides).toEqual([{ permission: 'PERM_UPDATE', allowed: true }]);
       expect(result?.orgId).toBeDefined();
       expect(cache.set).toHaveBeenCalledWith(userId, ['PERM_READ', 'PERM_WRITE']);
     });
