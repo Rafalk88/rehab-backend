@@ -1,7 +1,6 @@
 const ACTIONS = {
   READ: 'read',
   UPDATE: 'update',
-  DELETE: 'delete',
   REGISTER: 'register',
   RESET: 'reset',
   LOCK: 'lock',
@@ -16,13 +15,11 @@ const PERMISSIONS = {
     CREATE: `visits.${ACTIONS.CREATE}`,
     UPDATE: `visits.${ACTIONS.UPDATE}`,
     UPDATE_STATUS: `visits.${ACTIONS.UPDATE}_status`,
-    DELETE: `visits.${ACTIONS.DELETE}`,
   },
   USERS: {
     READ: `users.${ACTIONS.READ}`,
     CREATE: `users.${ACTIONS.CREATE}`,
     UPDATE: `users.${ACTIONS.UPDATE}`,
-    DELETE: `users.${ACTIONS.DELETE}`,
     REGISTER: `users.${ACTIONS.REGISTER}`,
     RESET_PASSWORD: `users.${ACTIONS.RESET}_password`,
     LOCK: `users.${ACTIONS.LOCK}`,
@@ -31,19 +28,16 @@ const PERMISSIONS = {
     READ: `org_units.${ACTIONS.READ}`,
     CREATE: `org_units.${ACTIONS.CREATE}`,
     UPDATE: `org_units.${ACTIONS.UPDATE}`,
-    DELETE: `org_units.${ACTIONS.DELETE}`,
   },
   PATIENTS: {
     READ: `patients.${ACTIONS.READ}`,
     CREATE: `patients.${ACTIONS.CREATE}`,
     UPDATE: `patients.${ACTIONS.UPDATE}`,
-    DELETE: `patients.${ACTIONS.DELETE}`,
   },
   ROLES: {
     READ: `roles.${ACTIONS.READ}`,
     CREATE: `roles.${ACTIONS.CREATE}`,
     UPDATE: `roles.${ACTIONS.UPDATE}`,
-    DELETE: `roles.${ACTIONS.DELETE}`,
     ASSIGN: `roles.${ACTIONS.ASSIGN}`,
   },
   PERMISSIONS: {
